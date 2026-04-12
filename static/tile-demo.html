@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gleo 最精简 WebGL 瓦块地图 Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script type="module">
+        // ============================================================
+        // 最精简 WebGL 瓦块地图 Demo
+        //
+        // 核心模块:
+        //   1. MercatorMap  — 封装 Platina WebGL 渲染引擎 + 交互
+        //   2. MercatorTiles — 封装 Pyramid3857 瓦块金字塔 + 瓦块加载
+        //
+        // 渲染流程:
+        //   MercatorMap 创建 Platina (WebGL canvas + CRS + Acetate栈)
+        //   MercatorTiles 创建 Pyramid3857 瓦块金字塔 + RasterTileLoader
+        //     → 监听 viewchanged 事件
+        //     → TilePyramid.bboxToTileRange() 计算可视瓦块范围
+        //     → 加载瓦块图片 → 创建 Tile 符号
+        //     → AcetateStitchedTiles 将瓦块打包到 GPU 纹理图集
+        //     → WebGL 着色器渲染 (UV映射 + 淡入动画)
+        //   Platina 合成所有 Acetate 帧缓冲 → 输出到 Canvas
+        // ============================================================
+
+        // 1. 导入核心模块
+        const { default: MercatorMap } = await import("/static/js/gleo/MercatorMap.mjs");
+        const { default: MercatorTiles } = await import("/static/js/gleo/loaders/MercatorTiles.mjs");
+
+        // 2. 创建地图 (内部初始化 Platina WebGL 引擎 + epsg3857 CRS)
+        const map = new MercatorMap("map", {
+            center: [30, 104],   // [纬度, 经度] — 成都
+            span: 5000000,       // 对角线跨度(米)
+        });
+
+        // 3. 添加 OpenStreetMap 瓦块图层 (内部创建 Pyramid3857 瓦块金字塔)
+        new MercatorTiles("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
+        }).addTo(map);
+    </script>
+</body>
+</html>
