@@ -31,9 +31,8 @@
         //   Platina 合成所有 Acetate 帧缓冲 → 输出到 Canvas
         // ============================================================
 
-        // 1. 导入核心模块 (从精简后的 gleo-lite 库)
-        const { default: MercatorMap } = await import("/static/gleo-lite/core/MercatorMap.mjs");
-        const { default: MercatorTiles } = await import("/static/gleo-lite/loader/MercatorTiles.mjs");
+        // 1. 导入核心模块 (从打包后的 gleo-lite.js 单文件 ES6 库)
+        import { MercatorMap, MercatorTiles } from "/static/gleo-lite.js";
 
         // 2. 创建地图 (内部初始化 Platina WebGL 引擎 + epsg3857 CRS)
         const map = new MercatorMap("map", {
