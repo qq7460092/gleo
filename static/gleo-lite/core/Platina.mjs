@@ -42,41 +42,6 @@ const pointerEvents = [
 	"lostpointercapture",
 ];
 
-/**
- * @class Platina
- *
- * @inherits Evented
- * @relationship compositionOf Acetate, 1..1, 0..n
- * @relationship compositionOf Loader, 1..1, 0..n
- * @relationship compositionOf BaseCRS, 0..n, 1..1
- *
- * @relationship associated GleoPointerEvent, 1..1, 0..n
- * @relationship associated ExpandBox, 1..1, 0..n
- * @relationship associated dom
- *
- * In printing, a "platen" (or "platine" or "platina") is the glass flatbed
- * of a photocopier or scanner where pages are laid down, and in an
- * overhead projector, it's the glass flatbed where an acetate sheet is laid down.
- *
- * In Gleo, a `Platina` is the `<canvas>` where the map is shown (without any
- * map controls). The platina has a state similar to a map (center/scale/etc), and
- * when it changes it tells all acetates to redraw themselves, then flattens
- * all acetates together.
- *
- * A `Platina` boils down to:
- * - A collection of `Acetate`s, stacked and composable
- * - A `<canvas>` and its related WebGL context
- * - A view, with:
- *   - CRS (`BaseCRS`)
- *   - Center (`Geometry`)
- *   - Scale factor
- *   - Yaw rotation angle
- *
- * A `Platina` can ve used standalone to draw `GleoSymbol`s in `Acetate`s, but
- * does not offer interactivity (e.g. map drag, mousewheel zoom, etc); that is
- * left to `Actuator`s in a `GleoMap`.
- */
-
 export default class Platina extends Evented {
 	#glii;
 	#precisionThreshold;
@@ -100,65 +65,24 @@ export default class Platina extends Evented {
 
 	#invalidViewWarningTimeout;
 
-	/**
-	 * @constructor Platina(canvas: HTMLCanvasElement, options?: Platina Options)
-	 * @alternative
-	 * @constructor Platina(canvasID: string, options?: Platina Options)
-	 */
+	
 	/// TODO: Allow a WebGLRenderingContext. This is problematic for
 	/// the ResizeObserver and the DOM events.
 	constructor(
 		canvas,
 		{
-			/**
-			 * @section Platina Options
-			 * @option resizable: Boolean = true
-			 * Whether the map should react to changes in the size of its DOM
-			 * container. Setting to `false` enables some memory optimizations.
-			 */
+			
 			resizable = true,
-			/**
-			 * @option backgroundColour: Colour = [0, 0, 0, 0]
-			 * Self-explanatory. The default transparent black should work for
-			 * most use cases.
-			 * @alternative
-			 * @option backgroundColour: null
-			 * If the background is explicitly set to `null`, then it won't
-			 * be cleared between redraws. This might trigger an "infinite mirror"
-			 * artifact if the canvas is not otherwise cleared between redraws.
-			 */
+			
 			backgroundColour = [0, 0, 0, 0],
 
-			/**
-			 * @option preserveDrawingBuffer: Boolean = false
-			 * Whether the rendering context created from the canvas shall
-			 * be able to be read back. See the `preserveDrawingBuffer` option
-			 * of [`HTMLCanvasElement.getContext()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext)
-			 */
+			
 			preserveDrawingBuffer = false,
 
-			/**
-			 * @option precisionThreshold: Number = *
-			 * The order of magnitude (in terms of significant bits, or base-2
-			 * logarithm) that triggers a CRS offset.
-			 *
-			 * The default value depends on the floating point precision reported
-			 * by the GPU, typically 22 (for GPUs which internally use `float32`)
-			 * or 15 for older GPUs (which internally use `float24`).
-			 *
-			 * Raising this value may prevent spurious CRS offsets and *might*
-			 * alleviate CRS-offset-related delays and artifacts, at the cost
-			 * of possible precision artifacts. A value lower than the default
-			 * has no positive effects.
-			 */
+			
 			precisionThreshold = undefined,
 
-			/**
-			 * @option renderLoop: Boolean = true
-			 * Enable/disable frame-by-frame renderloop. The default is to
-			 * trigger a redraw call on every render frame. Disable this when
-			 * manually trigering redraw calls.
-			 */
+			
 			renderLoop = true,
 
 			// Hidden option. Only used within GleoMap, and meant to let
@@ -255,71 +179,13 @@ export default class Platina extends Evented {
 		this.rebuildCompositor();
 
 		// Hook up event decorators
-		/**
-		 * @section Pointer events
-		 *
-		 * All [DOM `PointerEvent`s](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events)
-		 * to a platina's `<canvas>` are handled by Gleo.
-		 * Besides all of `PointerEvent`'s properties and methods, Gleo adds
-		 * the `Geometry` corresponding to the pixel the event took place in.
-		 *
-		 * Most events are `GleoPointerEvent`s, but some browsers fire
-		 * exclusively `MouseEvent`s for `click`/`auxclick`/`contextmenu`. In
-		 * that case, expect a `GleoMouseEvent` instead.
-		 *
-		 * @event click: GleoPointerEvent
-		 * Akin to the [DOM `click` event](https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event)
-		 * @event dblclick: GleoPointerEvent
-		 * Akin to the [DOM `dblclick` event](https://developer.mozilla.org/en-US/docs/Web/API/Element/dblclick_event)
-		 * @event auxclick: GleoPointerEvent
-		 * Akin to the [DOM `auxclick` event](https://developer.mozilla.org/en-US/docs/Web/API/Element/auxclick_event)
-		 * @event contextmenu: GleoPointerEvent
-		 * Akin to the [DOM `contextmenu` event](https://developer.mozilla.org/en-US/docs/Web/API/Element/contextmenu_event)
-		 * @event pointerover: GleoPointerEvent
-		 * Akin to the [DOM `pointerover` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerover_event)
-		 * @event pointerenter: GleoPointerEvent
-		 * Akin to the [DOM `pointerenter` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerenter_event)
-		 * @event pointerdown: GleoPointerEvent
-		 * Akin to the [DOM `pointerdown` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerdown_event)
-		 * @event pointermove: GleoPointerEvent
-		 * Akin to the [DOM `pointermove` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointermove_event)
-		 * @event pointerup: GleoPointerEvent
-		 * Akin to the [DOM `pointerup` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerup_event)
-		 * @event pointercancel: GleoPointerEvent
-		 * Akin to the [DOM `pointercancel` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointercancel_event)
-		 * @event pointerout: GleoPointerEvent
-		 * Akin to the [DOM `pointerout` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerout_event)
-		 * @event pointerleave: GleoPointerEvent
-		 * Akin to the [DOM `pointerleave` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/pointerleave_event)
-		 * @event gotpointercapture: GleoPointerEvent
-		 * Akin to the [DOM `gotpointercapture` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/gotpointercapture_event)
-		 * @event lostpointercapture: GleoPointerEvent
-		 * Akin to the [DOM `lostpointercapture` event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/lostpointercapture_event)
-		 */
+		
 		this.#boundOnPointerEvent = this._onPointerEvent.bind(this);
 		for (let evName of pointerEvents) {
 			this.#canvas.addEventListener(evName, this.#boundOnPointerEvent);
 		}
 
-		/**
-		 * @section View initialization Options
-		 *
-		 * A `Platina` can take a set of [`SetView` options](#setview-options),
-		 * just as the ones for a `setView` call.
-		 *
-		 * @option crs: BaseCRS = undefined
-		 * Initial CRS of the platina.
-		 * @option yawDegrees: Number = 0
-		 * Initial yaw rotation of the platina, in clockwise degrees.
-		 * @option yawRadians: Number = 0
-		 * Initial yaw rotation of the platina, in counter-clockwise radians.
-		 * @option center: Geometry = undefined
-		 * Initial center of the platina.
-		 * @option scale: Number = undefined
-		 * Initial scale of the platina, in CRS units per CSS pixel.
-		 * @option span: Number = undefined
-		 * Initial span of the platina, in CRS units per diagonal.
-		 */
+		
 		this.setView(options);
 
 		this.#boundRedraw = this.redraw.bind(this);
@@ -345,14 +211,7 @@ export default class Platina extends Evented {
 		}
 	}
 
-	/**
-	 * @section
-	 * @method destroy(): this
-	 * Destroys the platina, freeing the rendering context. Should free all
-	 * used GPU resources.
-	 *
-	 * No methods should be called on a destroyed platina.
-	 */
+	
 	destroy() {
 		cancelAnimationFrame(this.#animFrame);
 
@@ -372,25 +231,12 @@ export default class Platina extends Evented {
 		this.#canvas = undefined;
 	}
 
-	/**
-	 * @section DOM properties
-	 * @property canvas: HTMLCanvasElement
-	 * The `<canvas>` element this platina is attached to. Read-only.
-	 */
+	
 	get canvas() {
 		return this.#canvas;
 	}
 
-	/**
-	 * @section Internal methods
-	 * @method addAcetate(ac: Acetate): this
-	 * Adds a new `Acetate` to the map.
-	 *
-	 * There's no need to call this manually - acetates will be added to a
-	 * `Platina` (or `GleoMap`) automatically then they're instantiated. Do
-	 * remember to pass the `Platina` as the first parameter to the `Acetate`
-	 * constructor.
-	 */
+	
 	addAcetate(acetate) {
 		if (this._acetates.includes(acetate)) {
 			return;
@@ -458,15 +304,7 @@ export default class Platina extends Evented {
 		/// TODO: Method for removing an acetate (dealloc attribs from
 		/// i, triangles from quad)
 
-		/**
-		 * @section Symbol/loader management events
-		 * @event acetateadded
-		 * Fired whenever an `Acetate` is added to the platina.
-		 * @event symbolsadded
-		 * Fired whenever symbols are added to any of the platina's acetates.
-		 * @event symbolsremoved
-		 * Fired whenever symbols are removed from any of th platina's acetates.
-		 */
+		
 		this.fire("acetateadded", acetate);
 		acetate.on("symbolsadded", (ev) => {
 			this.fire("symbolsadded", ev.detail);
@@ -479,13 +317,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @section
-	 * @method getAcetateOfClass(proto: Prototype of Acetate): Acetate
-	 * Given a specific `Acetate` class (e.g. `getAcetateOfClass(Sprite.Acetate)`),
-	 * returns an acetate instance where that kind of symbol can be drawn.
-	 * Will create an acetate of the given class if it doesn't exist in the map yet.
-	 */
+	
 	getAcetateOfClass(acetateClass) {
 		function recurse(ac) {
 			return ac.subAcetates ? [ac, ...ac.subAcetates.map(recurse).flat()] : [ac];
@@ -515,13 +347,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @method redraw(): this
-	 * Redraws acetates that need to do so, and composes them together.
-	 *
-	 * There is no need to call this manually, since it will be called once per
-	 * animation frame.
-	 */
+	
 	redraw(timestamp) {
 		if (!this.#canvas) {
 			// Do not redraw if the platina has already been destroyed. Do not queue redraw.
@@ -544,13 +370,7 @@ export default class Platina extends Evented {
 
 		this.#glii.refreshDrawingBufferSize();
 
-		/**
-		 * @section Rendering events
-		 * @event prerender
-		 * Fired prior to performing a render (rendering `Acetate`s plus compositing them).
-		 * Can be used to set the map's viewport during animations (as long as there's
-		 * only one animation logic running).
-		 */
+		
 		this.dispatchEvent(new Event("prerender"));
 
 		/// Trigger a full redraw of all acetates
@@ -587,27 +407,12 @@ export default class Platina extends Evented {
 			this._compositor.runPartial(i * 6, 6);
 		});
 
-		/**
-		 * @event render
-		 * Fired just after performing a render (rendering `Acetate`s plus compositing them).
-		 */
+		
 		this.dispatchEvent(new Event("render"));
 		return this.#queueRedraw();
 	}
 
-	/**
-	 * @section Internal methods
-	 *
-	 * @method rebuildCompositor()
-	 * Rebuilds the WebGL program in charge of compositing the acetates.
-	 *
-	 * Should only be needed to run once.
-	 *
-	 * The compositor just dumps *one* texture from *one* acetate into the default renderbuffer
-	 * (i.e. the target `<canvas>`). The "clear", then "bind texture"-"dump acetate" logic is
-	 * implemented elsewhere.
-	 *
-	 */
+	
 	rebuildCompositor() {
 		/// TODO: Somehow set the texture unit as a vertex attribute
 		/// and have the frag shader map it to integer, choose the
@@ -667,53 +472,9 @@ export default class Platina extends Evented {
 		this.backgroundColour = this.#backgroundColour;
 	}
 
-	/**
-	 * @section View setters
-	 * @method setView(opts: SetView Options): this
-	 *
-	 * (Re-)sets the platina view to the given center/crs, scale, and yaw.
-	 *
-	 * Can trigger a redraw. Changes to the view state (center/crs/scale/yaw)
-	 * are atomic.
-	 */
+	
 	setView({
-		/**
-		 * @miniclass SetView Options (Platina)
-		 * @section
-		 * Calls to the `setView` method (of `GleoMap` and `Platina`) take an object
-		 * with any of the following properties. e.g.:
-		 *
-		 * ```
-		 * map.setView({ center: [ 100, 10 ], redraw: false });
-		 * map.setView({ scale: 1500, yawDegrees: 90 });
-		 * ```
-		 *
-		 * @option center: RawGeometry = undefined
-		 * The desired map center, as an instantiated `RawGeometry`/`Geometry`.
-		 * @alternative
-		 * @option center: Array of Number = undefined
-		 * The desired map center, as an `Array` of `Number`s. They will be
-		 * converted into a `Geometry` by means of `DefaultGeometry`.
-		 *
-		 * @option scale: Number = undefined
-		 * The desired map scale (**in CRS units per CSS pixel**). Mutually exclusive
-		 * with `span`.
-		 *
-		 * @option span: Number = undefined
-		 * The desired span of the map (in **CRS units** on the **diagonal of the viewport**).
-		 * Mutually exclusive with `scale`.
-		 *
-		 * @option yawDegrees: Number = 0
-		 * The desired yaw rotation, in degrees relative to "north up", clockwise.
-		 * Mutually exclusive with `yawRadians`.
-		 *
-		 * @option yawRadians: Number = 0
-		 * The desired yaw rotation, in radians relative to "north up", counterclockwise.
-		 * Mutually exclusive with `yawDegrees`.
-		 *
-		 * @option crs: BaseCRS = undefined
-		 * The desired CRS of the map.
-		 **/
+		
 		center,
 		crs,
 		scale,
@@ -730,13 +491,7 @@ export default class Platina extends Evented {
 		}
 
 		if (crs && crs !== this.#crs) {
-			/**
-			 * @class Platina
-			 * @section View change events
-			 * @event crschange
-			 * Dispatched when the CRS changes explicitly (by setting the platina's
-			 * CRS, or passing a `crs` option to a `setView` call)
-			 */
+			
 			this.fire("crschange", {
 				oldCRS: this.#crs,
 				newCRS: crs,
@@ -821,10 +576,7 @@ export default class Platina extends Evented {
 
 			const newCRS = new OffsetCRS(new Geometry(this.#crs, newOffset));
 
-			/**
-			 * @event crsoffset
-			 * Dispatched when the CRS undergoes an implicit offset to avoid precision loss.
-			 */
+			
 			this.fire("crsoffset", {
 				oldCRS: this.#crs,
 				newCRS: newCRS,
@@ -903,15 +655,7 @@ export default class Platina extends Evented {
 		corners.forEach((corner) => this._bbox.expandPair(corner));
 		this._viewportCorners = corners.flat();
 
-		/**
-		 * @event viewchanged
-		 * Fired whenever the viewport changes - center, scale or yaw.
-		 *
-		 * Details inclide the center, scale, and the affine matrix for converting
-		 * CRS coordinates into clipspace coordinates.
-		 *
-		 * This event might fire at every frame during interactions and animations.
-		 */
+		
 		this.fire("viewchanged", {
 			center: this.#center,
 			scale: this.#scale,
@@ -923,24 +667,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @section View setters
-	 * @method fitBounds(bounds: Array of Number, opts?: SetView Options): this
-	 * Sets the platina's center and scale so that the given bounds (given in
-	 * `[minX, minY, maxX, maxY]` form, and in the platina's CRS) are fully
-	 * visible.
-	 *
-	 * Any other given `SetView Options` will be merged with the calculated center&scale.
-	 * @alternative
-	 * @method fitBounds(bounds: ExpandBox, opts?: SetView Options): this
-	 * Idem, but using an `ExpandBox` instead.
-	 * @alternative
-	 * @method fitBounds(bounds: RawGeometry, opts?: SetView Options): this
-	 * Idem, but fitting to the bbox of a `Geometry` instead.
-	 *
-	 * This performs an implicit reprojection, so that it works as expected
-	 * then the geometry's CRS is different than the platina's CRS.
-	 */
+	
 	fitBounds(bounds, opts = {}) {
 		/// FIXME: Currently sets the yaw to zero. Instead it should respect it.
 		let minX, minY, maxX, maxY;
@@ -964,14 +691,7 @@ export default class Platina extends Evented {
 		});
 	}
 
-	/**
-	 * @method zoomInto(geometry: Geometry, scale: Number, opts?: SetView Options): this
-	 * Performs a `setView` operation so that the given geometry stays at the
-	 * same pixel.
-	 *
-	 * Meant for user interactions on the map, including double-clicking and
-	 * zooming into clusters from a `Clusterer`. Akin to Leaflet's `zoomAround`.
-	 */
+	
 	zoomInto(geometry, scale, opts = {}) {
 		const [canvasX, canvasY] = this.geomToPx(factory(geometry));
 		const [w, h] = this.pxSize;
@@ -993,32 +713,7 @@ export default class Platina extends Evented {
 		return this.setView({ ...opts, center: targetCenter, scale: scale });
 	}
 
-	/**
-	 * @section View setter/getter properties
-	 * These properties allow to fetch the state of the view then read, *and*
-	 * modify it. Setting the value of any of these properties has the same
-	 * effect as calling `setView()` with appropriate values.
-	 *
-	 * Setting a value does not guarantee that the final value will be the
-	 * given one. For example, when setting the center and immediatly then
-	 * querying the center, the actual center can be a reprojection of the
-	 * given one.
-	 *
-	 * @property center: RawGeometry
-	 * The center of the map, as a point geometry.
-	 * @property scale: Number
-	 * The scale, in CRS units per CSS pixel.
-	 * @property span: Number
-	 * The span, in CRS units per diagonal.
-	 * @property crs: BaseCRS
-	 * The CRS being used by the platina.
-	 * @property yawDegrees: Number
-	 * The yaw rotation angle, in clockwise degrees.
-	 * @property yawRadians: Number
-	 * The yaw rotation angle, in counter-clockwise radians.
-	 * @property backgrounColour: Colour
-	 * Self-explanatory
-	 */
+	
 	get center() {
 		return this.#center;
 	}
@@ -1080,12 +775,7 @@ export default class Platina extends Evented {
 		}
 	}
 
-	/**
-	 * @property bbox: ExpandBox
-	 * A rectangular bounding box that completely covers the map
-	 * viewport. This box is aligned to the CRS, not to the viewport. Setting its
-	 * value is akin to running `fitBounds`.
-	 */
+	
 	get bbox() {
 		return this._bbox;
 	}
@@ -1093,61 +783,32 @@ export default class Platina extends Evented {
 		this.fitBounds(b);
 	}
 
-	/**
-	 * @section View getter properties
-	 * @property pxSize: Array of Number
-	 * The size of the canvas, in CSS pixels, in `[width, height]` form. Read-only.
-	 */
+	
 	get pxSize() {
 		return [this._pxWidth, this._pxHeight];
 	}
 
-	/**
-	 * @property deviceSize: Array of Number
-	 * The size of the canvas, in device pixels, in `[width, height]` form. Read-only.
-	 */
+	
 	get deviceSize() {
 		return [this._devWidth, this._devHeight];
 	}
 
-	/**
-	 * @section
-	 * @property glii: GliiFactory
-	 * The Glii instance used by the platina. Read-only.
-	 */
+	
 	get glii() {
 		return this.#glii;
 	}
 
-	/**
-	 * @property glii: GleoMap
-	 * The `GleoMap` instance used to spawn this platina. If the platina
-	 * was created stand-alone, this will be `undefined` instead.
-	 */
+	
 	get map() {
 		return this.#map;
 	}
 
-	/**
-	 * @property resizable: Boolean
-	 * Whether the platina reacts to changes in its DOM container. Read-only.
-	 */
+	
 	get resizable() {
 		return this.#resizable;
 	}
 
-	/**
-	 * @section Conversion methods
-	 * @method pxToGeom(xy: Array of Number, wrap?: Boolean): Geometry
-	 * Given a (CSS) pixel coordinate relative to the `<canvas>` of the map,
-	 * in the form `[x, y]`, returns the point `Geometry` (in the map's CRS)
-	 * which corresponds to that pixel, at the map's current center/scale.
-	 *
-	 * The resulting geometry will be wrapped by default. To avoid this,
-	 * set `wrap` to `false`.
-	 *
-	 * This is akin to Leaflet's `containerPointToLatLng()`. Inverse of `geomToPx`.
-	 */
+	
 	pxToGeom([x, y], wrap = true) {
 		if (!this._crsMatrix) {
 			// Edge case - pointer events before center/scale has been set.
@@ -1184,14 +845,7 @@ export default class Platina extends Evented {
 		return new Geometry(this.#crs, [vec[0], vec[1]], { wrap });
 	}
 
-	/**
-	 * @method geomToPx(Geometry): Array of Number
-	 * Given a point `Geometry`, returns the `[x, y]` coordinates of the (CSS)
-	 * pixel relative to the `<canvas>` of the map corresponding to that geometry
-	 * (for the map's current center/scale).
-	 *
-	 * This is akin to Leaflet's `latLngToContainerPoint()`. Inverse of `pxToGeom`.
-	 */
+	
 	geomToPx(geom) {
 		if (!this._crsMatrix) {
 			// Edge case - pins before center/scale have been set
@@ -1216,30 +870,12 @@ export default class Platina extends Evented {
 
 	#loaders = [];
 
-	/**
-	 * @section Symbol/Loader management
-	 * @method add(symbol: GleoSymbol): this
-	 * Adds the given `GleoSymbol` to the appropriate acetate.
-	 *
-	 * Users should note that repeated calls to `add()` are, in performance terms,
-	 * **much worse** than a single call to `multiAdd()`. Try to avoid repeated calls
-	 * to `add()` inside a loop.
-	 *
-	 * @alternative
-	 * @method add(loader: Loader): this
-	 * Attaches the given `Loader` to the map.
-	 */
+	
 	add(symbol) {
 		return this.multiAdd([symbol]);
 	}
 
-	/**
-	 * @method multiAdd(symbols: Array of GleoSymbol): this
-	 * Adds the given `GleoSymbol`s to the appropriate acetate(s).
-	 * @alternative
-	 * @method multiAdd(loaders: Arrary of Loader): this
-	 * Adds the given `Loader`s to the platina.
-	 */
+	
 	multiAdd(symbols) {
 		const bins = new Map();
 
@@ -1288,10 +924,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @method remove(symbol: GleoSymbol): this
-	 * Removes one symbol from this map.
-	 */
+	
 	remove(symbol) {
 		symbol.remove();
 		if (symbol instanceof Loader) {
@@ -1304,10 +937,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @method multiRemove(symbols: Array of GleoSymbol): this
-	 * Removes several symbols from this map.
-	 */
+	
 	multiRemove(symbols) {
 		const bins = new Map();
 
@@ -1350,13 +980,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @method has(symbol: GleoSymbol): Boolean
-	 * Returns `true` if this platina contains the given symbol, false otherwise.
-	 * @alternative
-	 * @method has(symbol: Loader): Boolean
-	 * Returns `true` if this platina contains the given loader, false otherwise.
-	 */
+	
 	has(s) {
 		if (s instanceof Loader) {
 			return this.#loaders.includes(s);
@@ -1413,10 +1037,7 @@ export default class Platina extends Evented {
 		this._devWidth = x_device;
 		this._devHeight = y_device;
 
-		/**
-		 * @event resize: Event
-		 * Fired when the platina is resized. Detail
-		 */
+		
 		this.fire("resize", {
 			x_css,
 			y_css,
@@ -1433,22 +1054,9 @@ export default class Platina extends Evented {
 		}
 	}
 
-	/**
-	 * @section Scale and pixel fidelity methods
-	 * Several use cases call for re-using a set of scale values.
-	 *
-	 * In particular, raster symbols (including tiles) have a preferred (or
-	 * set of preferred) scale factors to be shown as, so that they are shown at
-	 * a 1:1 raster pixel / screen pixel ratio.
-	 *
-	 * A `Platina` does not enforce these scale values; the usual way to enforce
-	 * them is by using a `ZoomYawSnapActuator`.
-	 */
+	
 	#scaleStopsPerCRS = new Map();
-	/**
-	 * @method setScaleStop(crsName: String, scale: Number): this
-	 * Sets a scale stop for the given CRS **name**.
-	 */
+	
 	setScaleStop(crsName, scale) {
 		if (!this.#scaleStopsPerCRS.has(crsName)) {
 			this.#scaleStopsPerCRS.set(crsName, new Map());
@@ -1462,10 +1070,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @method removeScaleStop(crsName: String, scale: Number): this
-	 * Reverse of `setScaleStop`.
-	 */
+	
 	removeScaleStop(crsName, scale) {
 		if (!this.#scaleStopsPerCRS.has(crsName)) {
 			return this;
@@ -1484,10 +1089,7 @@ export default class Platina extends Evented {
 		return this;
 	}
 
-	/**
-	 * @method getScaleStops(crsName): Array of Number
-	 * Returns the scale stops for the given CRS name
-	 */
+	
 	getScaleStops(crsName) {
 		const crsStops = this.#scaleStopsPerCRS.get(crsName);
 		return crsStops ? Array.from(this.#scaleStopsPerCRS.get(crsName).keys()) : [];
@@ -1620,13 +1222,7 @@ export default class Platina extends Evented {
 	}
 
 	#cursorQueue = [];
-	/**
-	 * @section Internal methods
-	 * @method queueCursor(cursor: String): this
-	 * Called when hovering over an interactive symbol with a `cursor`; adds the
-	 * given cursor to an internal queue. If there's only one cursor in the queue
-	 * the CSS property of the platina's `<canvas>` will be set to it.
-	 */
+	
 	queueCursor(cursor) {
 		/*
 		 * The reason for having a queue is that there might be several
@@ -1646,13 +1242,7 @@ export default class Platina extends Evented {
 		this.#cursorQueue.push();
 	}
 
-	/**
-	 * @method unqueueCursor(cursor: String): this
-	 * Called when unhovering out of an interactive symbol with a `cursor`; removes
-	 * the given cursor from an internal queue. Resets the `cursor` CSS property
-	 * of the platina's `<canvas>` to next item in that queue, or unsets it if the
-	 * stack is empty.
-	 */
+	
 	unqueueCursor(cursor) {
 		this.#cursorQueue.splice(this.#cursorQueue.indexOf(cursor), 1);
 		this.canvas.style.cursor =

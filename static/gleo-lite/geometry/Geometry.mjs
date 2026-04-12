@@ -2,36 +2,6 @@ import RawGeometry from "./RawGeometry.mjs";
 import { getCRS } from "../crs/knownCRSs.mjs";
 import BaseCRS from "../crs/BaseCRS.mjs";
 
-/**
- * @class Geometry
- * @inherits RawGeometry
- *
- * A Gleo `Geometry` is akin to geometries in the OGC Simple Features Specification:
- * points, linestrings, polygons and multipolygons.
- *
- * Internally, `Geometry`s are represented as a flat array of coordinates, in the form
- * `[x1,y2, x2,y2, x3,y3 ... xn,yn]` for 2-dimensional geometries; plus a list of
- * offsets specifying the n-th coordinate where a hull starts and a ring starts (0th
- * hulls and rings are ommitted).
- *
- * (About nomenclature: a multipolygon has one or more hulls, and each hull
- * has an outer ring and zero or more inner rings. Hulls tell apart polygons
- * within a multipolygon, and rings tell apart inner/outer boundaries of a
- * polygon).
- *
- * (TODO: [x1,y1,z1, ... xn,yn,zn] for 3-dimensional, and [x1,y1,z1,m1, ... xn,yn,zn,mn]
- * for 4-dimensional)
- *
- * @example
- *
- * ```
- * let point = new Geometry(crs, [x,y]);
- *
- * let linestring = new Geometry(crs, [[x1,y1],[x2,y2]]);
- * ```
- *
- **/
-
 /*
 
 Depths:
@@ -44,39 +14,14 @@ Depths:
  */
 
 export default class Geometry extends RawGeometry {
-	/**
-	 * @section
-	 * The constructor for a `Geometry` can take either a `BaseCRS` instance, or
-	 * its name.
-	 *
-	 * The geometry can be:
-	 * - An `Array` of two `Number`s (for points)
-	 * - An `Array` of `Array`s of two `Number`s (for multipoints or linestrings)
-	 * - An `Array` of `Array`s of `Array`s of two `Number`s (for multilinestrings or polygons)
-	 * - An `Array` of `Array`s of `Array`s of `Array`s of two `Number`s (for multipolygons)
-	 *
-	 * @constructor Geometry(crs: BaseCRS, coords: Array of Number, opts: Geometry Options)
-	 * @alternative
-	 * @constructor Geometry(crs: String, coords: Array of Number, opts: Geometry Options)
-	 * @alternative
-	 * @constructor Geometry(crs: BaseCRS, coords: Array of Array of Number, opts: Geometry Options)
-	 * @alternative
-	 * @constructor Geometry(crs: BaseCRS, coords: Array of Array of Array of Number, opts: Geometry Options)
-	 * @alternative
-	 * @constructor Geometry(crs: BaseCRS, coords: Array of Array of Array of Array of Number, opts: Geometry Options)
-	 */
+	
 	constructor(
 		crs,
 		coords,
 		{
 			wrap,
 			dimension = 2,
-			/**
-			 * @section Geometry Options
-			 * @option deduplicate: Boolean = true
-			 * Whether to detect and remove duplicated consecutive coordinates. Prevents
-			 * graphical artefacts on some edge cases of topologically malformed data.
-			 */
+			
 			deduplicate = true,
 		} = {}
 	) {

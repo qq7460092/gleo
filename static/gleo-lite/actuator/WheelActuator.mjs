@@ -4,22 +4,11 @@ import { getMousePosition } from "../dom/Dom.mjs";
 import { invert, transpose } from "../3rd-party/gl-matrix/mat3.mjs";
 import { transformMat3 } from "../3rd-party/gl-matrix/vec3.mjs";
 
-/**
- * @class WheelActuator
- * @inherits Actuator
- *
- * Mouse wheel actuator. Scrolling the mouse wheel shall zoom the map in/out.
- *
- * TODO: Fix interaction with SpanClampActuator
- */
-
 class WheelActuator {
 	#boundWheel;
 	#boundPreRender;
 
-	/**
-	 * @constructor WheelActuator(map: GleoMap)
-	 */
+	
 	constructor(map) {
 		this.map = map;
 		this.canvas = map.canvas;
@@ -27,38 +16,13 @@ class WheelActuator {
 		this.#boundWheel = this.#onWheel.bind(this);
 		this.#boundPreRender = this.#onPreRender.bind(this);
 
-		/**
-		 * @class GleoMap
-		 * @section Interaction behaviour options
-		 * @option wheelPxPerZoomLog2: Number = 60
-		 * How many scroll pixels mean a change in the scale by a factor of 2.
-		 * Smaller values will make wheel-zooming faster, and vice versa. The
-		 * default value of 60 means that one "step" on a standard mousewheel
-		 * should change the scale by a factor of 2.
-		 *
-		 * This option depends on `WheelActuator` being loaded.
-		 */
+		
 		map.wheelPxPerZoomLog2 ??= map.options.wheelPxPerZoomLog2 ?? 60;
 
-		/**
-		 * @option wheelZoomDuration: Number = 200
-		 * Duration, in milliseconds, of the mousewheel zoom animation.
-		 *
-		 * This option depends on `WheelActuator` and `InertiaActuator` being loaded.
-		 */
+		
 		map.wheelZoomDuration ??= map.options.wheelZoomDuration ?? 200;
 
-		/**
-		 * @section Interaction behaviour properties
-		 * @property wheelPxPerLog2: Number
-		 * Runtime value of the `wheelPxPerLog2` initialization option.
-		 *
-		 * Updating its value will affect future scrollwheel zoom operations.
-		 * @property wheelZoomDuration: Number
-		 * Runtime value of the `wheelZoomDuration` initialization option.
-		 *
-		 * Updating its value will affect future scrollwheel zoom operations.
-		 */
+		
 
 		this.resetTargetScaleTimeout = undefined;
 	}

@@ -11,21 +11,12 @@ css(`
 }
 `);
 
-/**
- * @class PinchActuator
- * @inherits Actuator
- *
- * Pointer pinch actuator, for two-finger zoom and rotation.
- */
-
 class PinchActuator {
 	#boundDown;
 	#boundUp;
 	#boundMove;
 
-	/**
-	 * @constructor PinchActuator(map: GleoMap)
-	 */
+	
 	constructor(map) {
 		this.map = map;
 		this.platina = map.platina;
@@ -35,11 +26,7 @@ class PinchActuator {
 		this.#boundMove = this.#onPointerMove.bind(this);
 	}
 
-	/**
-	 * @method enable(): this
-	 * Enables this actuator. This will capture `pointerdown`, `pointerup` and
-	 * `pointermove` (between `pointerdown` and `pointerup`) DOM events.
-	 */
+	
 	enable() {
 		this.platina.canvas.classList.add("nopinch");
 		this.platina.addEventListener("pointerdown", this.#boundDown);
@@ -47,11 +34,7 @@ class PinchActuator {
 		this.platina.addEventListener("pointerout", this.#boundUp);
 	}
 
-	/**
-	 * @method disable(): this
-	 * Disables this actuator. Stops capturing `pointerdown`, `pointermove`, `pointerup`
-	 * DOM events.
-	 */
+	
 	disable() {
 		this.platina.canvas.classList.remove("nopinch");
 		this.platina.removeEventListener("pointerdown", this.#boundDown);

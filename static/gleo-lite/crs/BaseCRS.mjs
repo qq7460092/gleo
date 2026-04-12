@@ -1,112 +1,12 @@
 import { getCRS, registerCRS } from "./knownCRSs.mjs";
 import { project } from "./projector.mjs";
 
-/**
- * @class BaseCRS
- *
- * Represents a Coordinate Reference System.
- *
- * A `CRS` is identified by:
- * - Its well-known name (e.g. "EPSG:4326" or "cartesian")
- * - A wrapping delta vector (the `wrapPeriodX` and `wrapPeriodY` options)
- * - A way to calculate distance, either
- *   - A distance function that takes two points in the CRS, *or*
- *   - An instance of a different CRS that will perform the distance
- *     calculations after reprojecting the points
- * - An bounding box (in the `[minX, minY, maxX, maxY]` form)
- *   informative of the area in which the CRS makes sense; this is mostly to
- *   prevent users from setting the platina's center too far away.
- * - An informative set of minimum and maximum span; this is mostly to
- *   prevent users from zooming in/out foo far.
- *
- * Members of bounding boxes, as well as the minimum/maximum span, can have
- * values of `Infinity` or `-Infinity` (or `Number.POSITIVE_INFINITY`/`Number.NEGATIVE_INFINITY`).
- *
- * The wrapping delta vector is meant to draw `Acetate`s multiple times, offsetting
- * by that value. Also used to wrap coordinates when their X (or Y) component is larger
- * than *half* the X (or Y) component of the wrapping delta vector.
- *
- * It's important to note that the the wrapping vector does **not** mean that
- * coordinates wrap, but rather that the *display* of the coordinates wrap.
- * Thus, a point at a position `P` and another point at `P+wrap` are different,
- * but will be displayed at the same pixel. (Idem for `P+2*wrap`, `P-wrap` and
- * in general, for `P+n*wrap` for all natural numbers `n`).
- *
- * For geographical CRSs, it's highly recommended to use names that match
- * a Proj definition. Other functionality, such as the `ConformalWMS` loader,
- * depends on the CRS names.
- */
-
 export default class BaseCRS {
-	/**
-	 * @constructor BaseCRS(name: String, opts: BaseCRS Options)
-	 */
+	
 	constructor(
 		name,
 		{
-			/**
-			 * @section
-			 * @aka BaseCRS Options
-			 * @uninheritable
-			 * @option wrapPeriodX: Number = Infinity
-			 * The horizontal length, in CRS units, of the display wrapping.
-			 * @option wrapPeriodY: Number = Infinity
-			 * The vertical length, in CRS units, of the display wrapping.
-			 *
-			 * @option distance: Function
-			 * A distance function, that should take two point `Geometry`s as arguments
-			 * and return the distance between them (when given non-point `Geometry`s,
-			 * it shall return the distance between the first coordinate pair of each
-			 * `Geometry`). The units of distance depend on the CRS. They **should**
-			 * be meters for geographical CRSs, and unitless for `cartesian`.
-			 * @alternative
-			 * @option distance: BaseCRS
-			 * Whenever it's not trivial or convenient to calculate distances,
-			 * calculations can be proxied to another CRS (which must have a `distance`
-			 * function defined). This is useful for geographical CRSs where a CRS
-			 * represents a geoid (e.g. the `EPSG:4326` CRS represents the `WGS84` geoid)
-			 * and all CRSs for that geoid use one common distance calculation.
-			 *
-			 * @option flipAxes: Boolean = false
-			 * Used **only** for OGC services (WMS, WFS, etc). The default `false` works
-			 * for CRSs with an X-Y axis order (or easting-northing, or longitude-latitude).
-			 *
-			 * This should be set to `true` whenever the CRS definition specifies that
-			 * the axes should be in Y-X order (or northing-easting, or latitude-longitude)
-			 * (e.g. EPSG:4326 and EPSG:3035).
-			 *
-			 * Gleo `Geometry`s always store data in X-Y (or easting-northing, or
-			 * lng-lat) order, regardless of this setting.
-			 *
-			 * @option ogcUri: String = ""
-			 * Used **only** for OGC API services (OGC API Tiles, etc). This
-			 * should be a URI string like `"https://www.opengis.net/def/crs/EPSG/0/4326"`
-			 * that will be used to match metadata.
-			 *
-			 * @option minSpan: Number = 0
-			 * The minimum span of a map/platina using the CRS, expressed in CRS units
-			 * (meters/degrees/etc) across the diagonal of a platina.
-			 *
-			 * This is an informative value that actuators use to prevent the user from
-			 * zooming in too far.
-			 *
-			 * @option maxSpan: Number = Infinity
-			 * The maximum span of a map/platina using the CRS, expressed in CRS units
-			 * (meters/degrees/etc) across the diagonal of a platina.
-			 *
-			 * This is an informative value that actuators use to prevent the user from
-			 * zooming out too far.
-			 *
-			 * @option viewableBounds: Array of Number = [-Infinity, -Infinity, Infinity, Infinity]
-			 * The *practical* viewable bounds of the CRS, as an array of the form
-			 * `[x1, y1, x2, y2]`.
-			 *
-			 * This is an informative value that actuators use to prevent the user
-			 * from moving away from areas where the CRS makes sense.
-			 *
-			 * Values are absolute, not relative to the CRS's offset (important
-			 * for instances of `offsetCRS`).
-			 */
+			
 			wrapPeriodX = Infinity,
 			wrapPeriodY = Infinity,
 			distance,
@@ -165,30 +65,17 @@ export default class BaseCRS {
 		}
 	}
 
-	/**
-	 * @method offsetToBase(xy: Array of Number): Array of Number
-	 * Identity function (all coordinates represented in a Base CRS are already
-	 * relative to the 0,0 origin of coordinates).
-	 */
+	
 	offsetToBase(xy) {
 		return xy;
 	}
 
-	/**
-	 * @method offsetFromBase(xy: Array of Number): Array of Number
-	 * Identity function (all coordinates represented in a Base CRS are already
-	 * relative to the 0,0 origin of coordinates).
-	 */
+	
 	offsetFromBase(xy) {
 		return xy;
 	}
 
-	/**
-	 * @method wrap(xy: Array of Number, ref: Array of Number): Array of Number
-	 * Wraps the given coordinate if it's further away from the reference `ref`
-	 * than half the wrap period. This guarantees that the return value is less than
-	 * half a period away from the reference.
-	 */
+	
 
 	_wrapNone(xy) {
 		return xy;
@@ -223,13 +110,7 @@ export default class BaseCRS {
 		];
 	}
 
-	/**
-	 * @method wrapString(xys: Array of Number): Array of Number
-	 * Given a linestring array of the form `[x1,y2, x2,y2, ... xn,yn],
-	 * runs `wrap()` on every `x,y` pair. This ensures that the first point of
-	 * the linestring is less than half a period away from the CRS' origin, and
-	 * idem with each pair of consecutive points.
-	 */
+	
 	wrapString(xys) {
 		const l = xys.length / 2;
 		const dest = new Array(l);
@@ -245,17 +126,7 @@ export default class BaseCRS {
 		return dest.flat();
 	}
 
-	/**
-	 * @function guessFromCode(crs: String): Promise to BaseCRS
-	 *
-	 * Factory method. Expects a string like `"EPSG:12345"`.
-	 *
-	 * Fetches information from https://crs-explorer.proj.org/ and
-	 * tries to build a Gleo CRS on a best-effort basis. Registers it via `proj4js`
-	 * as well, assuming `enableProj()` has been called.
-	 *
-	 * The resulting CRS might lack information such as wrap periods or min/max spans.
-	 */
+	
 	static async guessFromCode(code) {
 		try {
 			return getCRS(code);

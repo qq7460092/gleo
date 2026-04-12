@@ -1,22 +1,4 @@
-/**
- * @class AbstractAttributeSet
- *
- * Represents a set of attribute data for vertices (each set being a small slice
- * of contiguous memory), plus some niceties to add/modify records.
- *
- * Internally this represents a `gl.ARRAY_BUFFER` at the WebGL level, or a Vertex Buffer
- * Object (VBO) at the OpenGL level. It also includes the VertexAttrib call(s) needed
- * to use the attribute(s) contained here (since this is WebGL1 and there are no Vertex
- * Array Objects/VAOs, which would cache this).
- *
- * Note that an `AbstractAttributeSet` might correspond to just one attribute (and
- * offer the `BindableAttribute` interface), or several attributes (and do not offer
- * the `BindableAttribute` interface, but rather have properties of setters for such).
- *
- * This is the base abstract class - record size (amount of data per vertex)
- * for this class is zero.
- *
- */
+
 export default class AbstractAttributeSet {
 	constructor(gl, options = {}, recordSize = 0) {
 		this._gl = gl;
@@ -68,15 +50,7 @@ export default class AbstractAttributeSet {
 		// mat4: 16,
 	};
 
-	/**
-	 * @section Batch update methods
-	 * @method commit(index, length): this
-	 * Dumps the contents of the data in RAM into GPU memory. Will dump a
-	 * contiguous section of memory, for a block of vertices starting at `index`
-	 * and with the given `length`.
-	 *
-	 * Will fail if the attribute set has been created with a `growFactor` of zero.
-	 */
+	
 	commit(index, length) {
 		const gl = this._gl;
 		const addr = this._recordSize * index;
@@ -93,28 +67,7 @@ export default class AbstractAttributeSet {
 		return this;
 	}
 
-	/**
-	 * @section Internal methods
-	 * @method set(index: Number, offset: Number, data: ArrayBufferView): this
-	 *
-	 * Uploads the given `data` to GPU memory, given the vertex `index` and the byte
-	 * `offset` into that record.
-	 *
-	 * It can be used to update one record at a time (passing a record-full of `data`),
-	 * one attribute field (less than a record-full of data, specifying `offset`), or several
-	 * contiguous records.
-	 *
-	 * The input `data` is *expected* to be in the same byte format than the expected
-	 * storage; subclasses do this by coercing `TypeArray`s of specific sizes. Users
-	 * wanting to dump binary data using this method are advised to pay attention to
-	 * the way the data is packed.
-	 *
-	 * Will grow self if allowed by `grow` when `index` is larger than the current size.
-	 * @alternative
-	 * @method set(index: Number, offset: Number, data: ArrayBuffer): this
-	 * In addition to `TypedArray`s of any kind and `DataView`s, this method can
-	 * also take `ArrayBuffer`s.
-	 */
+	
 	setBytes(index, offset, data) {
 		// if (index >= this._size) {
 		const upperIndex =

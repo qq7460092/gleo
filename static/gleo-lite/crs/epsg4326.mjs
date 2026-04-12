@@ -1,26 +1,6 @@
 import BaseCRS from "./BaseCRS.mjs";
 import { registerCRS } from "./knownCRSs.mjs";
 
-/**
- * @namespace epsg4326
- * @inherits BaseCRS
- *
- * A EPSG:4326 CRS - aka "latitude-longitude".
- *
- * Note that `epsg4326` works as a Singleton pattern - it's already an instance, so
- * do **not** call `new epsg4326()`.
- *
- * @example
- *
- * ```
- * import epsg4326 from 'gleo/src/crs/epsg4326.mjs';
- * import Geometry from 'gleo/src/geometry/Geometry.mjs';
- *
- * let myPoint = new Geometry(epsg4326, [5, 9]);
- * ```
- *
- */
-
 const rad = Math.PI / 180;
 const R = 6371000;
 

@@ -1,11 +1,5 @@
 import ZoomButton from "./ZoomButton.mjs";
 
-/**
- * @class ZoomIn
- * @inherits ZoomButton
- * A "Zoom In" button.
- */
-
 export default class ZoomIn extends ZoomButton {
 	constructor(opts) {
 		super({

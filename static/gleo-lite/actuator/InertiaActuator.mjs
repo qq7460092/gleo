@@ -3,21 +3,10 @@ import Geometry from "../geometry/Geometry.mjs";
 import InertialEasing from "./InertialEasing.mjs";
 import { factory } from "../geometry/DefaultGeometry.mjs";
 
-/**
- * @class InertiaActuator
- * @inherits Actuator
- * @relationship associated InertialEasing
- *
- * The "Inertia Actuator" intercepts calls to the `GleoMap`'s `setView` method,
- * and turns them into timed, eased, animations.
- */
-
 class InertiaActuator {
 	#boundPreRender;
 
-	/**
-	 * @constructor InertiaActuator(map: GleoMap)
-	 */
+	
 	constructor(map) {
 		this.map = map;
 
@@ -32,29 +21,17 @@ class InertiaActuator {
 		this.#boundPreRender = this.#onPreRender.bind(this);
 	}
 
-	/**
-	 * @method enable(): this
-	 * Enables this actuator. This will overload the map's `setView` in order to
-	 * intercept all of its calls.
-	 */
+	
 	enable() {
 		this.map.setView = (...args) => this.inertialSetView(...args);
 	}
 
-	/**
-	 * @method disable(): this
-	 * Disables this actuator. All calls to `setView` will not trigger an easing animation.
-	 */
+	
 	disable() {
 		this.map.setView = this.origSetView;
 	}
 
-	/**
-	 * @method inertialSetView(opts?: Setview Options): this
-	 *
-	 * Starts an easing animation to (re-)set the map's center and scale to the given one.
-	 * This implementation overrides the `GleoMap`'s default `setView` implementation.
-	 */
+	
 	inertialSetView(opts = {}) {
 		if (opts.crs && opts.crs !== this.map.platina.crs) {
 			// Explicit CRS changes are applied directly, foregoing
@@ -82,17 +59,7 @@ class InertiaActuator {
 		const startScale = this.map.scale;
 		const startYaw = this.map.yawRadians;
 
-		/**
-		 * @miniclass SetView Options (Platina)
-		 * @section
-		 * @option duration: Number = 200
-		 * If the map has a `InertiaActuator`, this defines the duration of the
-		 * easing animation, in milliseconds. A value of `0` effectively disables
-		 * the animation.
-		 *
-		 * Works only for `GleoMap`, and only when an `InertiaActuator` has been
-		 * loaded; has no effect on `setView` calls made to a `Platina`.
-		 */
+		
 		const duration = opts.duration || 200;
 
 		if (
@@ -137,12 +104,7 @@ class InertiaActuator {
 			// 				speed[2] = - startScale * (this.easing.exp+1);
 			// 			}
 		} else {
-			/**
-			 * @class GleoMap
-			 * @section Inertia animation events
-			 * @event inertiastart: Event
-			 * Fired at the beginning of an inertia animation.
-			 */
+			
 			this.map.fire("inertiastart");
 		}
 
@@ -199,12 +161,7 @@ class InertiaActuator {
 		if (percentage >= 1) {
 			this.map.platina.removeEventListener("prerender", this._boundPreRender);
 			this.easing = undefined;
-			/**
-			 * @class GleoMap
-			 * @section Inertia animation events
-			 * @event inertiaend: Event
-			 * Fired at the end of an inertia animation.
-			 */
+			
 			this.map.fire("inertiaend");
 		}
 	}

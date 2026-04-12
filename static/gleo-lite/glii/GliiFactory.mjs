@@ -9,55 +9,8 @@ export function registerFactory(name, fact) {
 	factories[name] = fact;
 }
 
-/**
- * @class Glii
- * @aka GliiFactory
- * @inherits EventTarget
- * Glii core. Wraps the functionality of a `WebGLRenderingContext`.
- *
- * Contains wrappers for buffer, program, texture classes; also contains
- * a partial set of WebGL constants (only the ones that need to be
- * specified as options/parameters to Glii classes).
- *
- * @example
- * ```
- * // The Glii factory class is the default export of the Glii module;
- * // importing it looks like...
- * import Glii from "path_to_glii/index.mjs";
- *
- * // Create a Glii factory instance from a canvas...
- * const glii = new Glii(document.getElementById("some-canvas"));
- *
- * // ...and use such instance to spawn stuff...
- * let pointIndices = new glii.IndexBuffer({
- * 	// ...using constants available in the Glii factory instance.
- * 	drawMode: glii.POINTS
- * });
- * ```
- *
- * Note that all Glii classes except for `GliiFactory` are meant to be instantiated from
- * the following wrapped classes. In other words: do not try to instantiate e.g.
- * `new IndexBuffer(...)`, but rather create a `GliiFactory` instance
- * (usually named lowercase `glii` in the documentation and examples) and instantiate
- * `new glii.IndexBuffer(...)`.
- *
- * Idem for WebGL constants: most (if not all) the constants needed in class constructors
- * are copied into the namespace of `GliiFactory`, as shown above with `glii.POINTS`.
- *
- */
-
 export default class GliiFactory extends EventTarget {
-	/**
-	 * @constructor GliiFactory(target: HTMLCanvasElement, contextAttributes?: Object)
-	 * Create a GL factory from a `HTMLCanvasElement`, and context attributes as per
-	 * [`getContext`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext)
-	 * @alternative
-	 * @constructor GliiFactory(target: WebGLRenderingContext)
-	 * Create a GL factory from an already instantiated `WebGLRenderingContext`
-	 * @alternative
-	 * @constructor GliiFactory(target: WebGL2RenderingContext)
-	 * Create a GL factory from an already instantiated `WebGL2RenderingContext`
-	 */
+	
 	/// TODO: Add another alternative, using only context attributes, which shall
 	/// implicitly create the canvas.
 	constructor(target, contextAttributes) {
@@ -194,11 +147,7 @@ export default class GliiFactory extends EventTarget {
 		// 		console.log('GLSL version: ', this._glslVersion);
 	}
 
-	/**
-	 * @method getSupportedExtensions(): Array of String
-	 * Returns the list of GL extensions supported in the running platform, as per
-	 * https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getSupportedExtensions.html
-	 */
+	
 	getSupportedExtensions() {
 		if (this._knownExtensions) {
 			return this._knownExtensions;
@@ -206,21 +155,12 @@ export default class GliiFactory extends EventTarget {
 		return (this._knownExtensions = this.gl.getSupportedExtensions());
 	}
 
-	/**
-	 * @method isExtensionSupported(extName: String): Boolean
-	 * Returns whether the given extension is supported in the running platform
-	 */
+	
 	isExtensionSupported(extName) {
 		return this.getSupportedExtensions().includes(extName);
 	}
 
-	/**
-	 * @method loadExtension(ext: String): Object
-	 * Tries to load the given GL extension. Throws an error if the extension is
-	 * not supported.
-	 *
-	 * Returns the extension object, which may vary by extension.
-	 */
+	
 	loadExtension(extName) {
 		let ext = this._loadedExtensions.get(extName);
 		if (ext) {
@@ -235,11 +175,7 @@ export default class GliiFactory extends EventTarget {
 		}
 	}
 
-	/**
-	 * @method isWebGL2(): Boolean
-	 * Returns whether the Glii instance is using a `WebGL2RenderingContext` or
-	 * not.
-	 */
+	
 	isWebGL2() {
 		return this._isWebGL2;
 	}
@@ -283,20 +219,12 @@ export default class GliiFactory extends EventTarget {
 			height_device = height_css * dpr
 		}
 
-
 		this.#resizedWidth = width_device = Math.round(width_device);
 		this.#resizedHeight = height_device = Math.round(height_device);
 
 		this._drawingBufferSizeChanged = true;
 
-		/**
-		 * @event resize: CustomEvent
-		 * Fired whenever the underlying `<canvas>` changes size. The next
-		 * call to `refreshDrawingBufferSize()` will update the output
-		 * framebuffer to the updated size (in device pixels).
-		 * The `detail` of this event contains the new size, both in CSS pixels
-		 * and device pixels.
-		 */
+		
 		this.dispatchEvent(
 			new CustomEvent("resized", {
 				detail: {
@@ -314,17 +242,7 @@ export default class GliiFactory extends EventTarget {
 	#resizedWidth;
 	#resizedHeight;
 
-	/**
-	 * @section Internal methods
-	 * @method refreshDrawingBufferSize(): Array of Number
-	 * Ensure that the size of the <canvas> linked to the `WebGLRenderingContext`
-	 * matches the size provided by `getClientRect()`.
-	 *
-	 * Meant to be called from a `WebGL1Program` right before fetching the drawing buffer
-	 * size. This technique should lower blinking when the `<canvas>` is resized.
-	 *
-	 * Returns the current canvas dimensions in `[width, height]` form.
-	 */
+	
 	refreshDrawingBufferSize() {
 		if (this._drawingBufferSizeChanged) {
 			const canvas = this.gl.canvas;

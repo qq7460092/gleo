@@ -1,20 +1,6 @@
 import Acetate from "./Acetate.mjs";
 import Allocator from "../glii/Allocator.mjs";
 
-/**
- * @class AcetateVertices
- * @inherits Acetate
- *
- * An abstract `Acetate` that implements multiple vertices per symbol.
- *
- * Most `Acetate`s draw symbols that must be represented by more than one vertex
- * (and typically forming triangles), and should inherit this functionality.
- *
- * The only exception is acetates that do not need vertex indices at all because
- * they do not rely on primitives (i.e. triangles) - the `AcetateDot` being the only
- * instance of such.
- */
-
 export default class AcetateVertices extends Acetate {
 	constructor(glii, opts) {
 		super(glii, opts);
@@ -53,13 +39,7 @@ export default class AcetateVertices extends Acetate {
 		};
 	}
 
-	/**
-	 * @section Internal Methods
-	 * @uninheritable
-	 * @method reproject(): this
-	 * Runs `toCRS` on the coordinates of all known symbols, and (re)sets the values in
-	 * the coordinates attribute buffer.
-	 */
+	
 	reprojectAll() {
 		this._attribAllocator.forEachBlock((start, length) => {
 			this.reproject(start, length);
@@ -86,10 +66,7 @@ export default class AcetateVertices extends Acetate {
 		// noop
 	}
 
-	/**
-	 * @method deallocate(symbol: GleoSymbol): this
-	 * Deallocate the symbol from this acetate (so it's not drawn on the next refresh)
-	 */
+	
 	deallocate(symbol) {
 		return this.multiDeallocate([symbol]);
 	}
@@ -194,22 +171,7 @@ export default class AcetateVertices extends Acetate {
 		return this;
 	}
 
-	/**
-	 * @method reproject(start: Number, length: Number, symbols?: Array of GleoSymbol): Array of Number
-	 * Dumps a new set of values to the `this._coords` attribute buffer, based
-	 * on the known set of symbols added to the acetate (only those which have
-	 * their attribute offsets between `start` and `start+length`.
-	 *
-	 * If the list of symbols is already known, they can be passed as a third
-	 * argument for a performance improvement.
-	 *
-	 * This default implementation **assumes** that the `attrLength` of a
-	 * `GleoSymbol` is equal to the length of its `Geometry` (i.e. there's
-	 * `one vertex per point in the geometry).
-	 *
-	 * Returns the data set into the attribute buffer: a ' Float32Array`
-	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
-	 */
+	
 	reproject(start, length, symbols) {
 		const end = start + length;
 		let maxIdx = -Infinity;

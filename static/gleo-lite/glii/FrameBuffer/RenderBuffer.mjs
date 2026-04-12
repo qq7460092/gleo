@@ -1,14 +1,4 @@
-/**
- * @class RenderBuffer
- * @inherits AbstractFrameBufferAttachment
- *
- * Wraps a [`WebGLRenderbuffer`](https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderbuffer)
- * and offers convenience methods.
- *
- * A `RenderBuffer` is most akin to an image: a rectangular collection of
- * pixels with `width`, `height` and a `internalFormat`. The main difference
- * between a `RenderBuffer` and a 2D `Texture` is the different `internalFormat`s.
- */
+
 
 import { registerFactory } from "../GliiFactory.mjs";
 
@@ -57,10 +47,7 @@ export default class RenderBuffer {
 		this.resize(this.#width, this.#height);
 	}
 
-	/**
-	 * @property rb: WebGLRenderbuffer
-	 * The underlying instance of `WebGLRenderBuffer`. Read-only.
-	 */
+	
 	get rb() {
 		if (!this.#rb) {
 			throw new Error("RenderBuffer has been destroyed and cannot be used");
@@ -68,10 +55,7 @@ export default class RenderBuffer {
 		return this.#rb;
 	}
 
-	/**
-	 * @method resize(x: Number, y: Number): this
-	 * Sets a new size for the renderbuffer (destroying its data in the process).
-	 */
+	
 	resize(x, y) {
 		this.#width = x;
 		this.#height = y;
@@ -98,27 +82,13 @@ export default class RenderBuffer {
 		return this;
 	}
 
-	/**
-	 * @method destroy(): this
-	 * Tells WebGL to free resources associated with this `RenderBuffer`. Use
-	 * when the `RenderBuffer` won't be used anymore.
-	 *
-	 * After being destroyed, WebGL programs should not use any `FrameBuffer` which
-	 * points to the destroyed `RenderBuffer`.
-	 */
+	
 	destroy() {
 		this.#gl.deleteRenderbuffer(this.#rb);
 		this.#rb = undefined;
 	}
 }
 
-/**
- * @factory GliiFactory.RenderBuffer(options: RenderBuffer options)
- * @class Glii
- * @section Class wrappers
- * @property RenderBuffer(options: RenderBuffer options): Prototype of RenderBuffer
- * Wrapped `RenderBuffer` class
- */
 registerFactory("RenderBuffer", function (gl) {
 	return class WrappedRenderBuffer extends RenderBuffer {
 		constructor(opts) {

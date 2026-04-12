@@ -1,12 +1,5 @@
 const errRegexp = /ERROR: 0:([0-9]+):(.*)\n/;
 
-/**
- * Internal helper function
- *
- * Tries to parse the (first) error from a shader compile log (from a
- * getShaderInfoLog() call), extracts the corresponding (offset) line
- * from the given source, and throws an error containing that information.
- */
 export default function prettifyGlslError(log, header, src, type, lineOffset) {
 	const match = errRegexp.exec(log);
 	if (match) {

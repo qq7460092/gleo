@@ -8,28 +8,12 @@ css(`
 }
 `);
 
-/**
- * @class Attribution
- * @inherits Control
- * An informative attribution control. It shall display HTML text (with links)
- * based on the `attribution` option of `GleoSymbol`s added to the map.
- */
 export default class Attribution extends Control {
-	/**
-	 * @constructor Attribution(opts: Attribution Options)
-	 */
+	
 	constructor({
-		/**
-		 * @section Attribution Options
-		 * @option separator: String = ' | '
-		 * A string to separate different attributions
-		 */
+		
 		separator = " | ",
-		/**
-		 * @option prefix: String = 'Gleo'
-		 * A prefixed attribution that shall always be present irrespective of
-		 * symbols in the map.
-		 */
+		
 		prefix = "<a href='https://gitlab.com/IvanSanchez/gleo/' target=_blank>Gleo</a>",
 		position = "br",
 		...opts

@@ -2,40 +2,11 @@ import AcetateVertices from "./AcetateVertices.mjs";
 // import { registerDefaultAcetate } from "../Platina.mjs";
 // import Allocator from "../glii/src/Allocator.mjs";
 
-/**
- * @class AcetateStitchedTiles
- * @inherits AcetateVertices
- *
- * @relationship compositionOf TilePyramid, 0..n, 1..1
- *
- * An `Acetate` that draws rectangular conformal (i.e. matching the display CRS)
- * RGB(A) raster images, all of which fit together inside a Glii texture (and
- * so they share it). Users should not use this acetate directly; look at
- * `MercatorTiles` and `RasterTileLoader` and instead.
- *
- * This acetate will **not** hold an indefinite number of tiles; rather,
- * a tile might overwrite an existing tile. The (maximum) number of tiles at
- * any given moment depends on the size of the WebGL texture used.
- */
-
 export default class AcetateStitchedTiles extends AcetateVertices {
 	#MRULevels; // Most Recently Used levels
 	#texFilter; // Either glii.NEAREST or glii.LINEAR
 
-	/**
-	 * Info about tile pyramid levels. Looks like:
-	 * "8": {
-	 * 	scale: 9.26,
-	 * 	resX: 256,	// size of tiles in raster px
-	 * 	resY: 256,	// size of tiles in raster px
-	 * 	wrapX: 16,	// amount of tiles fitting in the texture
-	 * 	wrapY: 16,	// amount of tiles fitting in the texture
-	 * 	texSizeX: 4096,	// (desired) Size of texture
-	 * 	texSizeY: 4096,	// (desired) Size of texture
-	 * 	baseVtx: 348	// Index of the first vertex attribute for the level
-	 * 	valid: true,	// Whether should be drawn or not
-	 * }
-	 */
+	
 	#levels = {};
 	#levelNames = [];
 
@@ -46,40 +17,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 	constructor(
 		glii,
 		{
-			/**
-			 * @section AcetateStitchedTiles Options
-			 * @option pyramid: TilePyramid
-			 * The tile pyramid to use
-			 * @option tileResX: Number = 256; Horizontal size, in pixels, of each tile.
-			 * @option tileResY: Number = 256; Vertical size, in pixels, of each tile.
-			 * @option minTextureSize: Number = 2048
-			 * Minimum size of the textures used to cache tile data. This should
-			 * be set to the maximum expected size of the map (`RasterTileLoader`
-			 * does so).
-			 *
-			 * Lower values might save some GPU memory, but will cause tiles to
-			 * be culled prematurely.
-			 *
-			 * Higher values will keep more tiles cached in GPU textures, but
-			 * will use more GPU memory and can cause browsers (notably
-			 * chrome/chromium) to spend more time allocating the textures. Texture
-			 * size is ultimately bound by the WebGL capabilities of the
-			 * browser/OS/GPU, which usually can support textures 8192 or 16384
-			 * pixels wide/high.
-			 * @option interpolate: Boolean = false
-			 * Whether to use bilinear pixel interpolation or not.
-			 *
-			 * In other words: `false` means pixellated, `true` means smoother.
-			 * @option fadeInDuration: Number = 250
-			 * Duration, in milliseconds, of the tile fade-in animation.
-			 * @option maxLoadedLevels: Number = 3
-			 * Number of maximum tile levels to keep loaded in their textures.
-			 * Higher values can provide a slightly better experience when
-			 * zooming in and out, but will use more GPU RAM.
-			 * @option resizablePlatina: Boolean = true
-			 * Whether the platina can be expected to be resized up to the size
-			 * of the screen. When `false`, less GPU RAM is used for the textures.
-			 */
+			
 			pyramid,
 			tileResX = 256,
 			tileResY = 256,
@@ -306,17 +244,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 		};
 	}
 
-	/**
-	 * @section
-	 * @method multiAdd(tiles: Array of Tile): this
-	 * Adds the tiles to this acetate (so they're drawn on the next refresh).
-	 *
-	 * The images for the tiles are dumped into the acetate's texture.
-	 *
-	 * Unlike most other acetates, tiles are added on an individual basis and
-	 * their data might not be stored adjacently in the attribute/primitive
-	 * buffers.
-	 */
+	
 	multiAdd(tiles) {
 		/// TODO: Keep track of loaded tiles, in order to fire the `symbolsremoved`
 		/// event whenever tiles are overwritten.
@@ -329,12 +257,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 		return super.multiAdd(tiles);
 	}
 
-	/**
-	 * @method add(tile: Tile): this
-	 *
-	 * Adds a single tile. The tile will be slotted in a specific portion
-	 * of the available space, depending on its X and Y coordinates within its pyramid level.
-	 */
+	
 	allocate(tile) {
 		const levelInfo = this.#levels[tile.level];
 		const x = tile.tileX % levelInfo.wrapX;
@@ -371,11 +294,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 		return this;
 	}
 
-	/**
-	 * Redefinition of the default. Render must happen once per level, in order
-	 * to load the appropriate textures. This leverages Glii's LoDIndices, by
-	 * using a LoD per level of the pyramid.
-	 */
+	
 	runProgram() {
 		//this._clear();
 		const now = performance.now();
@@ -401,19 +320,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 		}
 	}
 
-	/**
-	 * @method reproject(start: Number, length: Number): Array of Number
-	 * Dumps a new set of values to the `this._coords` attribute buffer, based on the known
-	 * set of symbols added to the acetate (only those which have their attribute offsets
-	 * between `start` and `start+length`.
-	 *
-	 * Returns the data set into the attribute buffer: a plain array of coordinates
-	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
-	 *
-	 * This implementation does not assume that the attribute allocation block
-	 * contains a compact set of symbols (since tiles are statically allocated at
-	 * instantiation time, then overwritten at runtime).
-	 */
+	
 	reproject(start, length) {
 		/// FIXME: Filtering needs optimization. Bisect search?
 		/// Optimization only applies to chrome/chromium.
@@ -438,15 +345,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 		return coordData;
 	}
 
-	/**
-	 * @section Acetate interface
-	 * @method getLevelsInfo(): Object of Object
-	 * Returns a data structure containing information about tile levels:
-	 * tile resolution, expected texture size, number of tiles fitting in the
-	 * texture, etc.
-	 *
-	 * Meant for debugging and communication with a `RasterTileLoader` only.
-	 */
+	
 	getLevelsInfo() {
 		return this.#levels;
 	}
@@ -466,13 +365,7 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 			let currentX, currentY;
 
 			if (expel !== undefined) {
-				/**
-				 * @section Acetate interface
-				 * @event levelexpelled: Event
-				 * Fired whenever a texture for a level of tiles is expelled, and
-				 * thus all tiles from that level should be marked as unusable.
-				 * The event's `detail` contains the name of the expelled level.
-				 */
+				
 				this.fire("levelexpelled", { levelName: expel });
 				currentX = this._textures[expel]?.width;
 				currentY = this._textures[expel]?.height;
@@ -510,23 +403,12 @@ export default class AcetateStitchedTiles extends AcetateVertices {
 		return this._textures[levelName];
 	}
 
-	/**
-	 * @section Acetate interface
-	 * @method isLevelAvailable(levelName: String): Boolean
-	 * Returns whether the texture for the given level name is available.
-	 * In other words: when the given level has never been loaded, or it has
-	 * been expelled from the MRU list, this returns `false`.
-	 */
+	
 	isLevelAvailable(levelName) {
 		return this.#levels[levelName].valid && !!this._textures[levelName];
 	}
 
-	/**
-	 * @method destroyHigherScaleLevels(levelName: String): Boolean
-	 * Searches all levels with a scale lower than the given one (i.e. those with
-	 * "higher zoom levels") and marks them as invalid; will not be re-rendered
-	 * until a tile for that level is allocated.
-	 */
+	
 	destroyHigherScaleLevels(levelName) {
 		const scale = this.#levels[levelName].scale;
 		// const str = Object.values(this.#levels).map(l=>l.valid?"1":"0").join("");

@@ -4,53 +4,6 @@ import { default as typeMap } from "../util/typeMap.mjs";
 import { parseGlslAttribType } from "../util/parseGlslType.mjs";
 import stridedArrays from "./StridedTypedArrays.mjs";
 
-/**
- * @class InterleavedAttributes
- * @inherits AbstractAttributeSet
- * @relationship aggregationOf BindableAttribute, 1..1, 0..n
- *
- * Represents a `gl.ARRAY_BUFFER` holding data for several attributes, which
- * internally (in memory) are interleaved (data for the same vertex index is
- * adjacent).
- *
- * Since the internal data structure vaguely resembles a C `struct`, each attribute
- * contained therein is referred to as `field`.
- *
- * @example
- *
- * ```
- * // Instantiate
- * const interleaved = new glii.InterleavedAttributes({
- * 	usage: glii.STATIC_DRAW
- * },[{
- * 	type: Float32Array
- * 	glslType: 'vec2'
- * }, {
- * 	type: Uint8Array,
- * 	normalized: true,
- * 	glslType: 'vec4'
- * }]);
- *
- * // Set the float32 values (0th field) for vertex 5
- * interleaved.setField(5, 0, [0.5, 0.5]);
- *
- * // Set the uint8 values (1st field) for vertex 2
- * interleaved.setField(2, 1, [255, 0, 0, 255]);
- *
- * // Set all fields for vertex 7
- * interleaved.setFields(7, [[0.5, 0.5], [255, 0, 0, 255]]);
- *
- * // Link to attributes in a program
- * program = new glii.WebGL1Program({
- * 	attributes: {
- * 		aRGBA: interleaved.getBindableAttribute(1),
- * 		aPos: interleaved.getBindableAttribute(0),
- * 	},
- * 	// etc
- * });
- * ```
- */
-
 /// TODO: Somehow implement integer GLSL types for WebGL2.
 
 export default class InterleavedAttributes extends AbstractAttributeSet {
@@ -99,13 +52,7 @@ export default class InterleavedAttributes extends AbstractAttributeSet {
 		);
 	}
 
-	/**
-	 * @method setField(vertexIndex: Number, fieldIndex, values: Array of Number): this
-	 * Sets the value(s) for the given vertex index and 0-indexed field.
-	 *
-	 * Values must be given as an `Array` (or `Array-like`) of numbers, even for
-	 * 1-component fields with the `float` GLSL type.
-	 */
+	
 	setField(vertexIndex, fieldIndex, values) {
 		this._typedArrays[fieldIndex].set(values);
 		super.setBytes(
@@ -117,14 +64,7 @@ export default class InterleavedAttributes extends AbstractAttributeSet {
 		return this;
 	}
 
-	/**
-	 * @method setFields(vertexIndex: Number, values: Array of Array of Number): this
-	 * Sets the value(s) for all fields for the given vertex index.
-	 *
-	 * Values must be given as an `Array`; the `n`th element in this `Array` must be an
-	 * `Array` (or `Array-like`) of arrays of numbers with the values for the `n`th
-	 * field.
-	 */
+	
 	setFields(vertexIndex, values) {
 		this._typedArrays.forEach((arr, f) => {
 			arr.set(values[f]);
@@ -134,13 +74,7 @@ export default class InterleavedAttributes extends AbstractAttributeSet {
 		return this;
 	}
 
-	/**
-	 * @method multiSet(vertexIndex: Number, values: Array of Array of Array of Number): this
-	 *
-	 * Batch version of `setFields`. Instead of
-	 * `attrs.setFields(i, foo); attrs.setFields(i+1,bar);` one can do
-	 * `attrs.multiSet(i, [foo, bar])`.
-	 */
+	
 	multiSet(vertexIndex, values) {
 		const multiBuf = new ArrayBuffer(this._recordSize * values.length);
 		const tmpDst = new Uint8Array(multiBuf);
@@ -161,9 +95,7 @@ export default class InterleavedAttributes extends AbstractAttributeSet {
 		return this;
 	}
 
-	/**
-	 * @method getBindableAttribute(fieldIndex: Number): BindableAttribute
-	 */
+	
 	getBindableAttribute(fieldIndex) {
 		const field = this._fields[fieldIndex];
 		const glType = typeMap.get(field.type);
@@ -209,25 +141,7 @@ export default class InterleavedAttributes extends AbstractAttributeSet {
 		};
 	}
 
-	/**
-	 * @section Batch update methods
-	 *
-	 * These methods are a less convenient, but more performant, way of updating
-	 * attribute data.
-	 *
-	 * For a `InterlevedAttributes`, the workflow is:
-	 * - Call `asTypedArray()` once per bindable attribute
-	 * - Update the values in the returned typed array (using typed array offsets,
-	 *   avoiding array concatenations)
-	 * - Call `commit()`
-	 *
-	 * These methods need the attribute set to have been created with a `growFactor`
-	 * larger than zero.
-	 *
-	 * @method asStridedArray(fieldIndex: Number, minSize?: Number = 0): StridedTypedArray
-	 * Returns a view of the internal in-RAM data buffer for the attribute at
-	 * `fieldIndex`, as a `TypedArray` of the appropriate type.
-	 */
+	
 	asStridedArray(fieldIndex, minSize = 0) {
 		if (minSize > this._size) {
 			this._grow(minSize);
@@ -242,26 +156,12 @@ export default class InterleavedAttributes extends AbstractAttributeSet {
 		);
 	}
 
-	/**
-	 * @method destroy(): this
-	 * Tells WebGL to free resources associated with this `InterleavedAttributes`. Use
-	 * when the `InterleavedAttributes` won't be used anymore.
-	 *
-	 * After being destroyed, WebGL programs should not use any `BindableAttribute`
-	 * linked to a destroyed `InterleavedAttributes`.
-	 */
+	
 	destroy() {
 		this._gl.deleteBuffer(this._buf);
 	}
 }
 
-/**
- * @factory GliiFactory.InterleavedAttributes(options: InterleavedAttributes options, fields: Array of BindableAttributeOptions)
- * @class Glii
- * @section Class wrappers
- * @property InterleavedAttributes(options: InterleavedAttributes options, fields: Array of BindableAttributeOptions): Prototype of InterleavedAttributes
- * Wrapped `InterleavedAttributes` class
- */
 registerFactory("InterleavedAttributes", function (gl) {
 	return class WrappedInterleavedAttributes extends InterleavedAttributes {
 		constructor(options, fields) {

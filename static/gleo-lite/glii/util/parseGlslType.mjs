@@ -26,13 +26,6 @@ const regexpAttrib = new RegExp(
 
 const regexpVarying = new RegExp("^" + precisionQualifiers + glsl1VaryingTypes + "$");
 
-/**
- * Parses a string containing:
- * - An (optional) precision qualifier
- * - A GLSL type for an attribute
- *
- * Returns a string of the form [precision, type]
- */
 export function parseGlslAttribType(str) {
 	const match = regexpAttrib.exec(str);
 	if (!match) {
@@ -44,13 +37,6 @@ export function parseGlslAttribType(str) {
 	return [precision, type];
 }
 
-/**
- * Parses a string containing:
- * - An (optional) precision qualifier
- * - A GLSL type for a varying (reused for uniforms)
- *
- * Returns a string of the form [precision, type]
- */
 export function parseGlslVaryingType(str) {
 	const match = regexpVarying.exec(str);
 	if (!match) {

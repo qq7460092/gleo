@@ -1,36 +1,4 @@
-/**
- * @class Allocator
- *
- * The purpose of an `Allocator` is to provide a way to request (and
- * return) blocks of 0-indexed IDs.
- *
- * The general idea is that a user should request N points/linesegments/triangles,
- * and this class would be responsible for creating numeric indices for them.
- * Then, the allocated indices would use up space in a `PointIndices`/
- * `LineSegmentIndices`/`TriangleIndices`.
- *
- * @example
- *
- * The `Allocator` class is `import`ed directly from the `glii` module:
- *
- * ```
- * import { default as Glii, Allocator } from "path_to_glii/index.mjs";
- *
- * const glii = GliiFactory(// etc //);
- *
- * const myAllocator = new Allocator();
- * ```
- *
- * Trying to spawn an `Allocator` from a `GliiFactory` will fail:
- *
- * ```
- * import { default as Glii, Allocator } from "path_to_glii/index.mjs";
- * const glii = GliiFactory(// etc //);
- *
- * const myAllocator = new glii.Allocator();	// BAD!
- * ```
- *
- */
+
 
 // This is kinda similar to https://github.com/redboltz/number-allocator ,
 // but allows allocating a range, and has worse complexity (O(n) instead of
@@ -38,11 +6,7 @@
 
 export default class Allocator {
 	constructor(max = Number.MAX_SAFE_INTEGER) {
-		/**
-		 * @constructor Allocator(max: Number)
-		 * Creates a new `Allocator` instance, given the upper limit
-		 * of the allocatable area.
-		 */
+		
 
 		this._max = max;
 		// The 'points' structure is effectively a linked list of
@@ -54,11 +18,7 @@ export default class Allocator {
 		});
 	}
 
-	/**
-	 * @method allocateBlock(size:Number): Number
-	 * Given the count of IDs to allocate, returns a `Number` with the
-	 * first ID of the allocated block (last would be return + count - 1)
-	 */
+	
 	allocateBlock(size) {
 		if (size === 0) {
 			return NaN;
@@ -114,11 +74,7 @@ export default class Allocator {
 		}
 	}
 
-	/**
-	 * @method deallocateBlock([Number]): this
-	 * Given a starting ID and the size of a block, deallocates that block
-	 * (marks it as allocatable again)
-	 */
+	
 	deallocateBlock(start, size) {
 		if (size === 0) {
 			return this;
@@ -193,12 +149,7 @@ export default class Allocator {
 		}
 	}
 
-	/**
-	 * @method forEachBlock(fn: Function): this
-	 * Runs the given callback `Function` `fn`. `fn` receives
-	 * the start and length of each allocated block as its two
-	 * parameters.
-	 */
+	
 	forEachBlock(fn) {
 		if (this._points.size <= 1) {
 			return this;

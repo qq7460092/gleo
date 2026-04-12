@@ -1,22 +1,4 @@
-/**
- * @namespace Util
- * @function imagePromise(url: URL, fillCache?: Boolean): Promise of HTMLImageElement
- *
- * Requests the given `URL`, and returns a `Promise` of an `HTMLImageElement`.
- *
- * By default it **caches all images**, and uses a hash `Map` internally to
- * de-duplicate loading the same URL. Use a `false` value for `fillCache` to
- * prevent this.
- *
- * @alternative
- * @function imagePromise(url: String, fillCache?: Boolean): Promise of HTMLImageElement
- * Idem, but using a `String` containing a URL.
- *
- * @alternative
- * @function imagePromise(image: HTMLImageElement, fillCache?: Boolean): Promise of HTMLImageElement
- * Returns a `Promise` that immediately resolves to the given image. Does not
- * cache the image.
- */
+
 
 // TODO: This cache is ever increasing. There should be a way to clean it up, since
 // it will hold references to potentially big unused images.

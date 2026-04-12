@@ -16,17 +16,6 @@ function getMaxScreenSize() {
 	}
 }
 
-/**
- * @class RasterTileLoader
- * @inherits AbstractTileLoader
- * @relationship compositionOf AcetateStitchedTiles, 1..1, 1..1
- *
- * Loads raster tiles, according to a Gleo `TilePyramid` and a callback function
- * that returns tiles given the tile coordinates.
- *
- * Will automatically spawn an `AcetateStitchedTiles`.
- *
- */
 export default class RasterTileLoader extends AbstractTileLoader {
 	#boundOnLevelExpelled;
 
@@ -52,82 +41,27 @@ export default class RasterTileLoader extends AbstractTileLoader {
 	#fadeInDuration;
 	#cleanupTimeout;
 
-	/**
-	 * @section
-	 *
-	 * A `RasterTileLoader` needs a `TilePyramid` and a function that, given the
-	 * pyramid level ("`z`"), the coordinates of a tile within that level
-	 * ("`x`" and "`y`"), and an instance of `AbortController`, returns an
-	 * instance of `HTMLImageElement`, or a `Promise` to such an image. The
-	 * promise should be rejected whenever the abort controller's signal is
-	 * activated.
-	 *
-	 * @constructor TileLoader(pyramid:TilePyramid, tileFn: Function, opts: TileLoader Options)
-	 */
+	
 	constructor(
 		pyramid,
 		fn,
 		{
 			/// FIXME: tile resolution is per pyramid level, not global!!
-			/**
-			 * @section TileLoader Options
-			 * @option tileResX: Number = 256; Horizontal size, in source raster pixels, of each tile.
-			 * @alternative
-			 * @option tileResX: Object of String to Number
-			 * A map of level identifier to horizontal raster size (in source raster pixels).
-			 * e.g. `{"0": 512, "1": 256}`
-			 * @option tileResY: Number = 256; Vertical size, in source raster pixels, of each tile.
-			 * @option tileResY: Object of String to Number
-			 * A map of level identifier to vertical raster size (in source raster pixels).
-			 * e.g. `{"0": 512, "1": 256}`
-			 * @option zIndex: Number = -5500; The z-index of the acetate for these tiles.
-			 */
+			
 			tileResX = 256,
 			tileResY = 256,
 
 			zIndex = -5500,
 
-			/**
-			 * @option fallback: HTMLImageElement
-			 * An image to use as fallback is loading a tile fails.
-			 * @alternative
-			 * @option fallback: URL
-			 * Idem, but using the `URL` to an image.
-			 * @alternative
-			 * @option fallback: String
-			 * Idem, but using a `String` containing a URL
-			 */
+			
 			fallback,
 
-			/**
-			 * @option retry: Boolean = false
-			 * When `true`, tiles that failed to load will be re-requested
-			 * the next time the tile extent changes (i.e. moving the map enough
-			 * so that new tiles become visible). This can potentially
-			 * lead to lots of requests for missing tiles.
-			 */
+			
 			retry = false,
 
 			/// TODO: Additional option to enable/disable scale snap points
 
-			/**
-			 * @section Options passed to spawned acetate
-			 * A `RasterTileLoader` creates a `AcetateStitchedTiles` under the hood.
-			 * The following options are passed through to this acetate.
-			 * @option interpolate: Boolean = false
-			 * Whether to use bilinear pixel interpolation or not.
-			 *
-			 * In other words: `false` means pixellated, `true` means smoother.
-			 * @option fadeInDuration: Number = 250
-			 * Duration, in milliseconds, of the tile fade-in animation.
-			 * @option maxLoadedLevels: Number = 3
-			 * Number of maximum tile levels to keep loaded in their textures.
-			 * Higher values can provide a slightly better experience when
-			 * zooming in and out, but will use more GPU RAM.
-			 * @option resizablePlatina: Boolean = true
-			 * Whether the platina can be expected to be resized up to the size
-			 * of the screen. When `false`, less GPU RAM is used for the textures.
-			 */
+			
 			fadeInDuration = 250,
 
 			...opts

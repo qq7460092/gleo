@@ -6,21 +6,6 @@ import { default as SequentialIndices } from "../Indices/SequentialIndices.mjs";
 import { default as prettifyGlslError } from "../util/prettifyGlslError.mjs";
 import { parseGlslVaryingType, parseGlslUniformType } from "../util/parseGlslType.mjs";
 
-/**
- * @class WebGL1Program
- *
- * Represents a draw call using only WebGL1 APIs.
- *
- * A `WebGL1Program` compiles the shader strings and binding textures,
- * indices, attributes and the framebuffer together (even though most
- * functionality is delegated).
- *
- * @relationship compositionOf SequentialIndices, 1..1, 0..n
- * @relationship compositionOf BindableAttribute, 0..n, 0..n
- * @relationship compositionOf Texture, 0..n, 0..n
- * @relationship compositionOf FrameBuffer, 0..1, 0..n
- */
-
 export default class WebGL1Program {
 	// TODO: alias "vertexShaderSource" to "vert"?
 	// TODO: alias "fragmentShaderSource" to "frag"?
@@ -43,69 +28,28 @@ export default class WebGL1Program {
 		gl,
 		gliiFactory,
 		{
-			/**
-			 * @section
-			 * @aka WebGL1Program options
-			 * @option vertexShaderSource: String; GLSL v1.00 source code for the vertex shader
-			 */
+			
 			vertexShaderSource,
-			/**
-			 * @option varyings: [Object]; A key-value map of varying names and their GLSL v1.00 types
-			 */
+			
 			varyings = {},
-			/**
-			 * @option fragmentShaderSource: String; GLSL v1.00 source code for the fragment shader
-			 */
+			
 			fragmentShaderSource,
-			/**
-			 * @option indexBuffer: IndexBuffer
-			 * The `IndexBuffer` containing which vertices to draw.
-			 */
+			
 			indexBuffer,
-			/**
-			 * @option attributes: Object = {}; A key-value map of attribute names and their `BindableAttribute`
-			 */
+			
 			attributes = {},
-			/**
-			 * @option uniforms: Object = {}; A key-value map of uniform names and their GLSL v1.00 types
-			 */
+			
 			uniforms = {},
-			/**
-			 * @option textures: Object = {}; A key-value map of texture names and their `Texture` counterpart
-			 */
+			
 			textures = {},
-			/**
-			 * @option target: FrameBuffer = null
-			 * When `target` is null or not specified, the program
-			 * will draw to the default framebuffer (the one attached to the `<canvas>` being used).		 * @alternative
-			 * @option target: FrameBuffer = null; The `FrameBuffer` to draw to.
-			 */
+			
 			target = null,
-			/**
-			 * @option depth: Comparison constant = glii.ALWAYS
-			 * Initial value for the `depth` property.
-			 * @property depth: Comparison constant = glii.ALWAYS
-			 * Whether this program performs depth testing, and how. Can be changed during runtime.
-			 *
-			 * `gl.ALWAYS` is the same as disabling depth testing.
-			 *
-			 * Has no effect if the `FrameBuffer` for this program has no depth attachment.
-			 */
+			
 			depth = 0x0207, /// 0x207 = gl.ALWAYS
-			/**
-			 * @option blend: Boolean = false
-			 * Disables fragment blending
-			 * @alternative
-			 * @option blend: BlendDefinition
-			 * Enables fragment blending, with the provided configuration.
-			 */
+			
 			blend = false,
 
-			/**
-			 * @option unusedWarning: Boolean = true
-			 * Whether to display warnings in the browser's console about
-			 * unused attributes, unused textures and unused uniforms.
-			 */
+			
 			unusedWarning = true,
 		}
 	) {
@@ -367,52 +311,21 @@ export default class WebGL1Program {
 		}
 	}
 
-	/**
-	 * @section Draw methods
-	 * @method run():this
-	 * Runs the draw call for this program
-	 * @alternative
-	 * @method run(lod: Number): this
-	 * If the program's index buffer is a `LodIndices`, then this runs the
-	 * draw call for this program, but only for the primitives in the given LoD.
-	 * @alternative
-	 * @method run(lod: String): this
-	 * Idem, but for `String` LoD identifiers.
-	 */
+	
 	run(lod) {
 		this._preRun();
 		this._indexBuff.drawMe(lod);
 		return this;
 	}
 
-	/**
-	 * @method runPartial(start: Number, count: Number):this
-	 * Runs the draw call for this program, but explicitly only for
-	 * the slots given as parameter (instead of using the information
-	 * of slots in use from the `IndexBuffer` of this program).
-	 *
-	 * Beware that `runPartial` does not perform any validity checks
-	 * on the given range. This should only be used when the programmer
-	 * is really really sure of what vertex slots to draw.
-	 */
+	
 	runPartial(start, count) {
 		this._preRun();
 		this._indexBuff.drawMePartial(start, count);
 		return this;
 	}
 
-	/**
-	 * @section Mutation methods
-	 *
-	 * The following methods allow changing some of the components of a program
-	 * during runtime.
-	 *
-	 * @method setUniform(name: String, value: Number): this
-	 * (Re-)sets the value of a uniform in this program, for `float`/`int` uniforms.
-	 * @alternative
-	 * @method setUniform(name: String, value: [Number]): this
-	 * (Re-)sets the value of a uniform in this program, for `vecN`/`ivecN`/`matN` uniforms.
-	 */
+	
 	setUniform(name, value) {
 		// TODO: mark self as dirty
 		this._gl.useProgram(this._program);
@@ -425,11 +338,7 @@ export default class WebGL1Program {
 		}
 	}
 
-	/**
-	 * @method getUniform(name: String): *
-	 * Returns the value of the uniform with the given name. Return value will
-	 * be a `Number` or a `TypedArray` depending on the uniform's type.
-	 */
+	
 	getUniform(name) {
 		const location = this._unifsMap[name];
 		if (location) {
@@ -441,30 +350,19 @@ export default class WebGL1Program {
 		}
 	}
 
-	/**
-	 * @method setTexture(name: String, texture: Texture): this
-	 * (Re-)sets the value of a texture in this program.
-	 */
+	
 	setTexture(name, texture) {
 		this._texs[name] = texture;
 		return this;
 	}
 
-	/**
-	 * @method setIndexBuffer(buf: IndexBuffer): this
-	 * Changes the index buffer that this program uses.
-	 */
+	
 	setIndexBuffer(buf) {
 		this._indexBuff = buf;
 		return this;
 	}
 
-	/**
-	 * @method setAttribute(name: Stringattr: BindableAttribute): this
-	 * (Re-)sets one of the named attributes to a new `BindableAttribute`.
-	 *
-	 * The GLSL type of the new attribute must match the old one.
-	 */
+	
 	setAttribute(name, attr) {
 		if (this._attrs[name].getGlslType() !== attr.getGlslType()) {
 			throw new Error(
@@ -477,39 +375,18 @@ export default class WebGL1Program {
 		return this;
 	}
 
-	/**
-	 * @method setTarget(target: FrameBuffer): this
-	 * Sets the `FrameBuffer` that this program should draw into.
-	 * @alternative
-	 * @method setTarget(target: null): this
-	 * Setting the draw target to `null` (or a falsy value) will make the program
-	 * draw to the default framebuffer (the one attached to the `<canvas>` used
-	 * to spawn the Glii instance).
-	 */
+	
 	setTarget(target) {
 		this._target = target;
 		return this;
 	}
 
-	/**
-	 * @section Lifetime methods
-	 *
-	 * @method destroy(): this
-	 * Tells WebGL to free resources associated with this `WebGL1Program`. Use
-	 * when the `WebGL1Program` won't be used anymore.
-	 */
+	
 	destroy() {
 		this._gl.deleteProgram(this._program);
 	}
 
-	/**
-	 * @section
-	 * @method debugDumpAttributes(): Array of Object of TypedArray
-	 * Returns a readable representation of the current attribute values. This is
-	 * only possible when all attribute storages are growable (i.e. those defined with
-	 * a `growFactor` greater than zero).
-	 *
-	 * This is a costly operation, and should be only used for manual debugging purposes.	 */
+	
 	debugDumpAttributes(start, length) {
 
 		const attrValues = {};
@@ -542,13 +419,6 @@ export default class WebGL1Program {
 	}
 }
 
-/**
- * @factory GliiFactory.WebGL1Program(options: WebGL1Program options)
- * @class Glii
- * @section Class wrappers
- * @property WebGL1Program(options: WebGL1Program options): Prototype of WebGL1Program
- * Wrapped `WebGL1Program` class
- */
 registerFactory("WebGL1Program", function (gl, gliiFactory) {
 	return class WrappedWebGL1Program extends WebGL1Program {
 		constructor(opts) {

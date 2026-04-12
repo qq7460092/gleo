@@ -1,45 +1,13 @@
 import { registerActuator } from "../core/Map.mjs";
 import Geometry from "../geometry/Geometry.mjs";
 
-/**
- * @class BoundsClampActuator
- * @inherits Actuator
- *
- * Bounds clamping actuator. Forces the values of the center so that the it's
- * always within a bounding box - either ehe CRS's `viewableBounds` or a set
- * of user-defined `maxBounds`.
- */
-
 class BoundsClampActuator {
-	/**
-	 * @constructor BoundsClampActuator(map: GleoMap)
-	 */
+	
 	constructor(map) {
 		this.map = map;
 		this.#boundFilter = this.boundsClampFilterSetView.bind(this);
 
-		/**
-		 * @class GleoMap
-		 * @section Interaction behaviour options
-		 * @option maxBounds: Array of Number
-		 * An array of the form `[minX, minY, maxX, maxY]` defining a bounding
-		 * box, **in CRS units**. User interactions will be constrained to this
-		 * bounding box.
-		 *
-		 * This option depends on `BoundsClampActuator` being loaded.
-		 * @alternative
-		 * @option maxBounds: undefined = undefined
-		 * Setting `maxBounds` to `undefined` (or any falsy value) will make
-		 * the `BoundsClampActuator` use the CRS's `viewableBounds` default
-		 * instead.
-		 *
-		 * This is the default.
-		 * @section Interaction behaviour properties
-		 * @property maxBounds
-		 * Runtime value of the `maxBounds` initialization option.
-		 *
-		 * Updating its value will affect future map panning operations.
-		 */
+		
 		this.map.maxBounds ??= this.map.options.maxBounds;
 	}
 

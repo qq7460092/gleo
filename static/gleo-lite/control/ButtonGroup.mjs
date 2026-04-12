@@ -51,13 +51,6 @@ css(`
 }
 `);
 
-/**
- * @class ButtonGroup
- * @inherits Control
- * @relationship compositionOf Button, 0..1, 0..n
- *
- * A control for nesting `Button` controls inside.
- */
 export default class ButtonGroup extends Control {
 	constructor({
 		// @option direction: String = 'vertical'

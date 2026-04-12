@@ -18,21 +18,10 @@ css(`
 }
 `);
 
-/**
- * @class ScaleBar
- * @inherits Control
- * An informative scale bar control.
- */
 export default class ScaleBar extends Control {
-	/**
-	 * @constructor ScaleBar(opts: Scalebar Options)
-	 */
+	
 	constructor({
-		/**
-		 * @section Scalebar Options
-		 * @option maxSize: Number = 100
-		 * Maximum size, in CSS pixels, of the scalebar line.
-		 */
+		
 		maxSize = 200,
 		position = "bl",
 		...opts

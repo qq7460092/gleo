@@ -24,31 +24,15 @@ button.gleo-control:active {
 }
 `);
 
-/**
- * @class Button
- * @inherits Control
- * A single UI button.
- */
 export default class Button extends Control {
 	constructor({
-		/**
-		 * @option string: String
-		 * The (text) label to be shown inside the button.
-		 */
+		
 		string,
 
-		/**
-		 * @option svgString: String
-		 * The icon for the button, as a string containing a SVG document.
-		 * Mutually exclusive with `string`.
-		 */
+		
 		svgString,
 
-		/**
-		 * @option title: String
-		 * The text for the [`title` HTML attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/title)
-		 * of the button.
-		 */
+		
 		title,
 		...opts
 	} = {}) {
@@ -72,13 +56,7 @@ export default class Button extends Control {
 		// TODO: ARIA stuff.
 	}
 
-	/**
-	 * @section Button event handlers
-	 * @method on(eventName: String, handler: Function): this
-	 * Alias to `addEventListener`.
-	 * @method off(eventName: String, handler: Function): this
-	 * Alias to `removeEventListener`.
-	 */
+	
 	on() {
 		return this.addEventListener.apply(this, arguments);
 	}
@@ -86,21 +64,13 @@ export default class Button extends Control {
 		return this.removeEventListener.apply(this, arguments);
 	}
 
-	/**
-	 * @method addEventListener(eventName: String, handler: Function): this
-	 * Attaches an event handler to a DOM event of the `HTMLButtonElement` for
-	 * the control.
-	 */
+	
 	addEventListener(eventName, handler) {
 		this.button.addEventListener(eventName, handler);
 		return this;
 	}
 
-	/**
-	 * @method addEventListener(eventName: String, handler: Function): this
-	 * Detaches an event handler to a DOM event from the `HTMLButtonElement` for
-	 * the control.
-	 */
+	
 	removeEventListener(eventName, handler) {
 		this.button.removeEventListener(eventName, handler);
 		return this;

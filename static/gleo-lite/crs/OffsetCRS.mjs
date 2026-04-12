@@ -1,43 +1,7 @@
 import BaseCRS from "./BaseCRS.mjs";
 
-/**
- * @class OffsetCRS
- * @inherits BaseCRS
- *
- * Represents a Coordinate Reference System, with the same properties than a
- * `BaseCRS`, but with the `[0,0]` center of coordinates being offset.
- *
- * The rationale is the difference of precision between numbers.
- * A Gleo coordinate is a floating point number, which typically
- * will be represented by:
- * - 8 bytes / 64 bits (`Number`) when defined by the programmer or red by an API
- * - 4 bytes / 32 bits (`Float32Array`) when stored in a WebGL-friendly typed array
- * - 3 bytes / 24 bits (`highp float`) when running inside a GLSL 1.00 shader
- *
- * In order to keep the numerical precision, it's important to keep the numbers low
- * (so the mantissa has a precision of less than one screen pixel).
- *
- * The way to do so is to offset the coordinates. A system based on vector tiles
- * does this implicitly (coordinates inside a typical vector tile range from 0 to 4096,
- * and the CRS coordinate of each tile's corner is the implicit CRS offset).
- *
- * Gleo does this explicitly, translating coordinates to a `offsetCRS` which has a center
- * relatively near the screen center. In other words, when the user pans or zooms the map
- * far enough from the CRS' origin, then Gleo shall establish a new origin near
- * the updated user's viewport, and translate (AKA "offset") all `Geometry`s.
- * This doesn't lose (significant) precision since numbers are originally stored
- * in 64-bit floats (`Number`s).
- *
- */
-
 export default class OffsetCRS extends BaseCRS {
-	/**
-	 * @section
-	 * Build a new offset CRS, given a point `Geometry`. The CRS name, wrap
-	 * periods and other `BaseCRS Options` are taken from the `Geometry`'s CRS,
-	 * and the offset is the *absolute* value of the `Geometry`'s coordinates.
-	 * @constructor OffsetCRS(offset: Geometry)
-	 */
+	
 	constructor(offset) {
 		super(offset.crs.name, {
 			wrapPeriodX: offset.crs.wrapPeriodX,
@@ -65,12 +29,7 @@ export default class OffsetCRS extends BaseCRS {
 		/// i.e. `offsetToBase()` is applied.
 	}
 
-	/**
-	 * @method offsetToBase(xys: Array of Number): Array of Number
-	 * Given a set of coordinates `[x1, y1, x2, y2, ... xn, yn]`, returns
-	 * those coordinates as if they were using the `BaseCRS`'s (0,0) origin
-	 * of coordinates.
-	 */
+	
 	offsetToBase(xys) {
 		const l = xys.length;
 		const out = new Array(l);
@@ -83,12 +42,7 @@ export default class OffsetCRS extends BaseCRS {
 		return out;
 	}
 
-	/**
-	 * @method offsetFromBase(xy: Array of Number): Array of Number
-	 * Given a set of coordinates `[x1, y1, x2, y2, ... xn, yn]` in the
-	 * `BaseCRS` of this CRS, returns those coordinates as if they were using
-	 * the origin of coordinates of this offset CRS.
-	 */
+	
 	offsetFromBase(xys) {
 		const l = xys.length;
 		const out = new Array(l);

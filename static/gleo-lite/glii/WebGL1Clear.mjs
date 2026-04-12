@@ -1,21 +1,5 @@
 import { registerFactory } from "./GliiFactory.mjs";
 
-/**
- * @class WebGL1Clear
- * @relationship compositionOf FrameBuffer, 0..1, 0..n
- *
- * Represents a clear call using only WebGL1 APIs.
- *
- * Optionally specify a target `FrameBuffer` and values to clear the depth and
- * stencil parts of said framebuffer. Specify `false` values to *not* clear
- * colour, depth or stencil parts of a framebuffer.
- *
- * A `WebGL1Clear` operation is not needed when the `target` is `null` and the
- * `WebGLRenderingContext` has been instantiated with `preserveDrawingBuffer`
- * set to `false` (the default); in this case, an implicit clear operation is
- * performed prior to every draw call (i.e. every time a `WebGL1Program` `run()`s).
- */
-
 export default class WebGL1Clear {
 	constructor(
 		gl,
@@ -50,10 +34,7 @@ export default class WebGL1Clear {
 		this.target = target || null;
 	}
 
-	/**
-	 * @method run(): this
-	 * Runs the clear call
-	 */
+	
 	run() {
 		const gl = this._gl;
 
@@ -83,13 +64,6 @@ export default class WebGL1Clear {
 	}
 }
 
-/**
- * @factory GliiFactory.WebGL1Clear(options: WebGL1Clear options)
- * @class Glii
- * @section Class wrappers
- * @property WebGL1Clear(options: WebGL1Clear options): Prototype of WebGL1Clear
- * Wrapped `WebGL1Clear` class
- */
 registerFactory("WebGL1Clear", function (gl) {
 	return class WrappedWebGL1Clear extends WebGL1Clear {
 		constructor(opts) {

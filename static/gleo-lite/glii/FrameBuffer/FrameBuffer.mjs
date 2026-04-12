@@ -1,53 +1,5 @@
 import { default as reverseTypeMap } from "../util/reverseTypeMap.mjs";
 
-/**
- * @class FrameBuffer
- * @relationship compositionOf AbstractFrameBufferAttachment, 0..n, 1..n
- *
- * Wraps a [`WebGLFramebuffer`](https://developer.mozilla.org/en-US/docs/Web/API/WebGLFramebuffer)
- * and offers convenience methods.
- *
- * A `FrameBuffer` is a collection of `Texture`s/`RenderBuffer`s: (at least) one for
- * colour (RGBA), an optional one for depth and an optional one for stencil.
- *
- * In GL parlance, each of the `Texture`/`RenderBuffer`s that make up a `FrameBuffer`
- * is called an "attachment". Each attachment must have an `internalFormat` fitting its
- * colour/depth/stencil role.
- *
- * In any operations that allow a `FrameBuffer`, not giving one (or explicitly setting it
- * to `null`) shall work on the "default" framebuffer - in the usual case, this means an
- * internally-created framebuffer with the colour attachment linked to the `<canvas>`
- * that the GL context was created out of.
- *
- * Multiple colour attachments are only possible in WebGL2, or in WebGL1 when the
- * [`WEBGL_draw_buffers`](https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_draw_buffers) extension is available.
- *
- * Note that (in most combinations of drivers&hardware) the colour attachment(s) **must**
- * be textures using the `RGBA`/`UNSIGNED_BYTE` format+type combination.
- *
- * @example
- *
- * ```
- * var fb1 = new gliiFactory.FrameBuffer({
- * 	size: new XY(1024, 1024),
- * 	color: [new gliiFactory.Texture( ... )],
- * 	stencil: new gliiFactory.RenderBuffer( ... ),
- * 	depth: new gliiFactory.RenderBuffer( ... ),
- * });
- *
- * var size = new XY(1024, 1024);
- * var fb2 = new gliiFactory.FrameBuffer({
- * 	size: size,
- * 	color: [
- * 		new gliiFactory.Texture( size: size, ... ),
- * 		new gliiFactory.Texture( size: size, ... )
- * 	],
- * 	stencil: false,
- * 	depth: false,
- * });
- * ```
- */
-
 /// TODO: depth format for textures, only available with extension:
 /// https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture
 
@@ -163,35 +115,22 @@ export default class FrameBuffer {
 		this.#checkStatus();
 	}
 
-	/**
-	 * @property fb: WebGLFramebuffer
-	 * The underlying instance of `WebGLFramebuffer`. Read-only.
-	 */
+	
 	get fb() {
 		return this.#fb;
 	}
 
-	/**
-	 * @property width: Number
-	 * The width of the framebuffer (and all its attachments), in pixels. Read-only.
-	 */
+	
 	get width() {
 		return this.#width;
 	}
 
-	/**
-	 * @property height: Number
-	 * The height of the framebuffer (and all its attachments), in pixels. Read-only.
-	 */
+	
 	get height() {
 		return this.#height;
 	}
 
-	/**
-	 * @method resize(x: Number, y: Number): this
-	 * Sets a new size for the framebuffer's attachments (textures/renderbuffers),
-	 * destroying their data in the process.
-	 */
+	
 	resize(x, y) {
 		this.#height = y;
 		this.#width = x;
@@ -219,14 +158,7 @@ export default class FrameBuffer {
 		return this;
 	}
 
-	/**
-	 * @method destroy(): this
-	 * Tells WebGL to free resources associated with this framebuffer. Use
-	 * when the framebuffer won't be used anymore.
-	 *
-	 * After being destroyed, the framebuffer should not be used in a program.
-	 * Does not destroy any associated textures or renderbuffers.
-	 */
+	
 	destroy() {
 		this.#gl.deleteFramebuffer(this.#fb);
 	}
@@ -257,20 +189,7 @@ For valid format/type combinations of framebuffer attachments, see https://www.k
 		}
 	}
 
-	/**
-	 * @method readPixels: TypedArray
-	 * @param x?: Number
-	 * @param y?: Number
-	 * @param width?: Number
-	 * @return TypedArray
-	 *
-	 * Reads pixels from the colour attachment of the framebuffer, and returns a `TypedArray`
-	 * (e.g. a `Uint8Array` for 8-bit RGBA textures) with the data.
-	 *
-	 * Defaults to reading the entire colour attachment (from `0,0` to its witdh-height),
-	 * handles the datatypes, and creates a new `TypedArray` of the appropriate kind.
-	 *
-	 */
+	
 	/// TODO: How are float32 readbacks handled?? It seems that they neccesarily need an extension,
 	/// but the documentation is scarce about the issue.
 
@@ -351,14 +270,7 @@ For valid format/type combinations of framebuffer attachments, see https://www.k
 		return out;
 	}
 
-	/**
-	 * @method debugIntoConsole(): this
-	 *
-	 * Dumps the contents of the (first) colour attachment into the developer
-	 * tools' console, with some `<canvas>` and `console.log("%c")` trickery.
-	 *
-	 * This is an expensive operation and is meant only for debugging purposes.
-	 */
+	
 	debugIntoConsole() {
 		let canvas = document.createElement("canvas");
 		const data = this.#colourAttachs[0].asImageData();
@@ -386,13 +298,6 @@ For valid format/type combinations of framebuffer attachments, see https://www.k
 	}
 }
 
-/**
- * @factory GliiFactory.FrameBuffer(options: FrameBuffer options)
- * @class Glii
- * @section Class wrappers
- * @property FrameBuffer(options: FrameBuffer options): Prototype of FrameBuffer
- * Wrapped `FrameBuffer` class
- */
 registerFactory("FrameBuffer", function (gl) {
 	return class WrappedFrameBuffer extends FrameBuffer {
 		constructor(opts) {

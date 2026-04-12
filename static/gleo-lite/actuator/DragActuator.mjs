@@ -9,15 +9,6 @@ css(`
 }
 `);
 
-/**
- * @class DragActuator
- * @inherits Actuator
- *
- * Pointer drag actuator. This includes mouse drag, one-touch drag and box zoom.
- *
- * Dragging a pointer through the map canvas shall drag the map around.
- */
-
 /// TODO: Hack this actuator so that the DOM position of the `GleoMap`'s `<canvas>`
 /// is moved on `_onPointerMove`, then reset to zero on `_onPreRender`. This
 /// *should* prevent some of the movement lag when dragging.
@@ -37,24 +28,12 @@ class DragActuator {
 
 	#downPointers = new Set();
 
-	/**
-	 * @constructor DragActuator(map: GleoMap)
-	 */
+	
 	constructor(map) {
 		this.map = map;
 		this.platina = map.platina;
 
-		/**
-		 * @class GleoMap
-		 * @section Interaction behaviour options
-		 * @option boxZoomModifier: String = "shift"
-		 * One of `"shift"`, `"control"`, `"alt"` or `"meta"`. Defines the
-		 * modifier key that must be pressed during a map drag so it performs
-		 * a box zoom instead.
-		 * @alternative
-		 * @option boxZoomModifier: Boolean
-		 * Explicitly set to `false` to disable box zooming.
-		 */
+		
 
 		this.#boundDown = this.#onPointerDown.bind(this);
 		this.#boundUp = this.#onPointerUp.bind(this);
@@ -87,11 +66,7 @@ class DragActuator {
 		}
 	}
 
-	/**
-	 * @method enable(): this
-	 * Enables this actuator. This will capture `pointerdown`, `pointerup` and
-	 * `pointermove` (between `pointerdown` and `pointerup`) DOM events.
-	 */
+	
 	enable() {
 		this.platina.canvas.classList.add("nodrag");
 		this.platina.addEventListener("pointerdown", this.#boundDown);
@@ -99,11 +74,7 @@ class DragActuator {
 		this.platina.addEventListener("pointerout", this.#boundUp);
 	}
 
-	/**
-	 * @method disable(): this
-	 * Disables this actuator. Stops capturing `pointerdown`, `pointermove`, `pointerup`
-	 * DOM events.
-	 */
+	
 	disable() {
 		this.platina.canvas.classList.remove("nodrag");
 		this.platina.removeEventListener("pointerdown", this.#boundDown);
