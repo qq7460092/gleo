@@ -1564,6 +1564,621 @@ registerFactory("TriangleIndices", function (gl, gliiFactory) {
 	};
 });
 
+/**
+ * @class LoDAllocator
+ *
+ * An expansion of `Allocator`; its purpose is to allocate blocks linked to
+ * an identifier; and instead of iterating through allocated blocks, can
+ * iterate through a filtered subset of blocks.
+ *
+ * The idea is to allow for level-of-detail (LoD) triangle meshes. Several
+ * meshes with different LoD IDs can be allocated on the same underlying
+ * `IndexBuffer`, and then one specific LoD can be filtered out to be drawn.
+ *
+ * @example
+ *
+ * The `LoDAllocator` class is `import`ed directly from the `glii` module:
+ *
+ * ```
+ * import { default as Glii } from "path_to_glii/index.mjs";
+ * import { default as LoDAllocator } from "path_to_glii/LoDAllocator.mjs";
+ *
+ * const glii = GliiFactory(// etc //);
+ *
+ * const myAllocator = new LoDAllocator();
+ * ```
+ *
+ * Trying to spawn an `LoDAllocator` from a `GliiFactory` will fail:
+ *
+ * ```
+ * import { default as Glii, LoDAllocator } from "path_to_glii/index.mjs";
+ * const glii = GliiFactory(// etc //);
+ *
+ * const myAllocator = new glii.LoDAllocator();	// BAD!
+ * ```
+ *
+ */
+
+class LoDAllocator {
+	constructor(max = Number.MAX_SAFE_INTEGER) {
+		/**
+		 * @constructor Allocator(max: Number)
+		 * Creates a new `Allocator` instance, given the upper limit
+		 * of the allocatable area.
+		 */
+
+		this._max = max;
+		// The 'points' structure is effectively a linked list of
+		// start points of free/allocated regions.
+		this._points = new Map();
+		this._points.set(0, {
+			free: true,
+			next: max,
+			data: undefined,
+		});
+	}
+
+	/**
+	 * @method allocateBlock(size:Number, data: Number): Number
+	 * Given the count of IDs to allocate, returns a `Number` with the
+	 * first ID of the allocated block (last would be return + count - 1).
+	 *
+	 * Receives an numerical `data` parameter that will be attached
+	 * internally to the allocation (and shall be used for filtering
+	 * allocation blocks later on). This should be the LoD (if the LoD is
+	 * numerical)
+	 * @alternative
+	 * @method allocateBlock(size:Number, data: String): Number
+	 * Can take a `String` as the LoD identifier as well.
+	 * @method allocateBlock(size:Number, data: Object): Number
+	 * Can take any `Object` as the LoD identifier as well. Do note that,
+	 * internally, the `===` equality operator is used to check equality
+	 * of LoD identifiers among allocation blocks.
+	 */
+	allocateBlock(size, data) {
+		let prev = 0;
+		let prevBlock;
+		let ptr = 0;
+
+		while (true) {
+			const block = this._points.get(ptr);
+			const end = ptr + size;
+
+			if (block.free) {
+				if (ptr === 0 && end < block.next) {
+					// Allocate at the very beginning, leave gap
+					this._points.set(0, { free: false, next: end, data });
+					this._points.set(end, { free: true, next: block.next });
+					return 0;
+				}
+
+				const nextBlock = this._points.get(end);
+
+				if (ptr === 0 && end === block.next) {
+					if (data === nextBlock.data) {
+						// Allocate at the very beginning, merge with next block
+						this._points.set(0, { free: false, next: nextBlock.next, data });
+						this._points.delete(block.next);
+						return 0;
+					} else {
+						// Allocate at the very beginning, do not merge with next block
+						this._points.set(0, { free: false, next: end, data });
+						//this._points.set(end, { free: true, next: block.next });
+						return 0;
+					}
+				}
+				if (end < block.next) {
+					if (prevBlock.data === data) {
+						// Increase the size of the previous, used, block
+						this._points.set(prev, { free: false, next: end, data });
+						this._points.delete(ptr);
+						this._points.set(end, { free: true, next: block.next });
+						return ptr;
+					} else {
+						// Allocate next to previous, used, block
+						this._points.set(ptr, { free: false, next: end, data });
+						this._points.set(end, { free: true, next: block.next });
+						return ptr;
+					}
+				}
+				if (end === block.next) {
+					if (prevBlock.data === data && nextBlock.data === data) {
+						// Allocate an entire free block,
+						// merge neighbouring used blocks
+						this._points.set(prev, { free: false, next: nextBlock.next });
+						this._points.delete(ptr);
+						this._points.delete(block.next);
+						return ptr;
+					} else if (prevBlock.data === data && nextBlock.data !== data) {
+						// Merge with the previous block
+						this._points.set(prev, { free: false, next: block.next });
+						this._points.delete(ptr);
+						return ptr;
+					} else if (prevBlock.data !== data && nextBlock.data === data) {
+						// Merge with the next block
+						this._points.set(ptr, {
+							free: false,
+							next: nextBlock.next,
+							data,
+						});
+						this._points.delete(block.next);
+					} else {
+						// Set block as allocated, do not merge anything
+						this._points.set(ptr, { free: false, next: end, data });
+						return ptr;
+					}
+				}
+			}
+
+			prev = ptr;
+			prevBlock = block;
+			ptr = block.next;
+			if (ptr <= prev) {
+				throw new Error(`Bad allocation map: tried to go backwards`);
+			}
+			// 			if (ptr === Number.MAX_SAFE_INTEGER) {
+			if (ptr >= this._max) {
+				throw new Error(`No allocatable space`);
+			}
+		}
+	}
+
+	/**
+	 * @method deallocateBlock(start: Number, size: Number): this
+	 * Given a starting ID and the size of a block, deallocates that block
+	 * (marks it as allocatable again).
+	 *
+	 * The given start and size must fall within the same allocation block (i.e.
+	 * the deallocation must correspond to just one LoD).
+	 */
+	deallocateBlock(start, size) {
+		let prev = 0;
+		let prevBlock;
+		let ptr = 0;
+		const end = start + size;
+
+		while (true) {
+			const block = this._points.get(ptr);
+
+			if (!block.free) {
+				const nextBlock = this._points.get(end);
+
+				if (ptr === 0 && start === 0 && end === block.next) {
+					if (nextBlock.free) {
+						// Deallocate entire block at beginning, grow
+						// next free block
+						this._points.set(0, { free: true, next: nextBlock.next });
+						this._points.delete(end);
+						return this;
+					} else {
+						// Deallocate entire block at beginning, ignore
+						// next used block
+						this._points.set(0, { free: true, next: block.next });
+						return this;
+					}
+				} else if (ptr === 0 && start === 0 && end < block.next) {
+					// Deallocate partial block at beginning,
+					// lower next block start
+					this._points.set(0, { free: true, next: end });
+					this._points.set(end, {
+						free: false,
+						next: block.next,
+						data: block.data,
+					});
+					return this;
+				} else if (ptr === start && end < block.next) {
+					if (prevBlock.free) {
+						// Deallocate at the beginning of a used block
+						// Grow the previous free block
+						this._points.set(prev, { free: true, next: end });
+						this._points.delete(ptr);
+						this._points.set(end, {
+							free: false,
+							next: block.next,
+							data: block.data,
+						});
+						return this;
+					} else {
+						// Deallocate at the beginning of a used block,
+						// ignore previous free block
+						this._points.set(ptr, { free: true, next: end });
+						this._points.set(end, {
+							free: false,
+							next: block.next,
+							data: block.data,
+						});
+						return this;
+					}
+				} else if (ptr === start && end === block.next) {
+					if (prevBlock.free && nextBlock.free) {
+						// Deallocate the entire block
+						// Merge neighbouring free blocks
+						this._points.set(prev, { free: true, next: nextBlock.next });
+						this._points.delete(ptr);
+						this._points.delete(block.next);
+						return this;
+					} else if (!prevBlock.free && !nextBlock.free) {
+						// Deallocate the entire block
+						// Ignore neighbouring used blocks
+						this._points.set(ptr, { free: true, next: block.next });
+						return this;
+					} else if (prevBlock.free && !nextBlock.free) {
+						// Deallocate the entire block
+						// Merge previous free block
+						this._points.set(prev, { free: true, next: block.next });
+						this._points.delete(ptr);
+						return this;
+					} else if (!prevBlock.free && nextBlock.free) {
+						// Deallocate the entire block
+						// Merge next free block
+						this._points.set(ptr, { free: true, next: nextBlock.next });
+						this._points.delete(block.next);
+						return this;
+					}
+				} else if (ptr < start && end === block.next) {
+					if (nextBlock.free) {
+						// Deallocate the end of the block
+						// Grow the next free block
+						this._points.set(ptr, {
+							free: false,
+							next: start,
+							data: block.data,
+						});
+						this._points.delete(block.next);
+						this._points.set(start, { free: true, next: nextBlock.next });
+						return this;
+					} else {
+						// Deallocate the end of the block
+						// Ignore next used block
+						this._points.set(ptr, {
+							free: false,
+							next: start,
+							data: block.data,
+						});
+						this._points.set(start, { free: true, next: block.next });
+						return this;
+					}
+				} else if (ptr < start && end < block.next) {
+					// Deallocate middle of a block
+					this._points.set(ptr, { free: false, next: start, data: block.data });
+					this._points.set(start, { free: true, next: end });
+					this._points.set(end, {
+						free: false,
+						next: block.next,
+						data: block.data,
+					});
+					return this;
+				}
+			}
+
+			prev = ptr;
+			prevBlock = block;
+			ptr = block.next;
+			if (ptr <= prev) {
+				throw new Error(`Bad allocation map: tried to go backwards`);
+			}
+			// if (start === Number.MAX_SAFE_INTEGER) {
+			if (ptr >= this._max) {
+				throw new Error(`Could not deallocate. Sparse?`);
+			}
+		}
+	}
+
+	/**
+	 * @method forEachBlock(fn: Function, data: Number): this
+	 * Runs the given callback `Function` `fn`, only on blocks allocated with
+	 * an LoD identifier (`data`) exactly equal (`===`) to the given one. `fn`
+	 * receives the start and length of each allocated block as its two
+	 * parameters.
+	 * @alternative
+	 * @method forEachBlock(fn: Function, data: String): this
+	 * @alternative
+	 * @method forEachBlock(fn: Function, data: undefined): this
+	 * Runs the given fallback `Function` `fn` on all allocated blocks.
+	 */
+	forEachBlock(fn, data) {
+		let ptr = 0;
+		while (true) {
+			const block = this._points.get(ptr);
+			if (!block.free && (data === undefined || block.data === data)) {
+				fn(ptr, block.next - ptr);
+			}
+			if (block.next <= ptr) {
+				throw new Error(`Bad allocation map: tried to go backwards`);
+			}
+			ptr = block.next;
+			if (ptr >= this._max) {
+				return this;
+			}
+		}
+	}
+}
+
+/**
+ * @class LoDIndices
+ * @inherits IndexBuffer
+ * @relationship compositionOf LoDAllocator, 0..1, 1..1
+ *
+ * Similar to `SparseIndices`, a `LoDIndices` allows for allocating and
+ * deallocating blocks of primitive slots via `allocateSlots` and `deallocateSlots`.
+ *
+ * The main difference is that each allocation must be done with a level-of-detail
+ * (LoD) identifier, commonly a `Number` or a `String` (but also a `Symbol`).
+ *
+ * Like `SparseIndices`, calling `drawMe` will make a WebGL draw call per
+ * allocation block. Unlike `SparseIndices`, only those blocks with a specific
+ * LoD will be drawn.
+ *
+ */
+
+class LoDIndices extends IndexBuffer {
+	constructor(gl, gliiFactory, options = {}) {
+		super(gl, gliiFactory, options);
+
+		// Allocator instance for blocks in self's `ELEMENT_ARRAY_BUFFER`.
+		if (this._growFactor) {
+			this._slotAllocator = new LoDAllocator();
+		} else {
+			this._slotAllocator = new LoDAllocator(this._size);
+		}
+	}
+
+	/**
+	 * @method allocateSlots(count: Number, lod: Number): Number
+	 * Allocates `count` slots for indices. Returns the offset of the first
+	 * slot.
+	 *
+	 * For `gl.TRIANGLES` (`gl.LINES`), allocate 3 (2) slots per triangle (line).
+	 * @alternative
+	 * @method allocateSlots(count: Number, lod: String): Number
+	 */
+	allocateSlots(count, lod) {
+		return this._slotAllocator.allocateBlock(count, lod);
+	}
+
+	/**
+	 * @method allocateSet(indices: Array of Number, lod: Number, relative?:Boolean): Number
+	 * Combination of `allocate()` and `set()`. Allocates the neccesary
+	 * space for the given indices in the given LoD, and sets their values.
+	 *
+	 * If `relative` is set to `true`, then indices are considered to be
+	 * relative to the allocation start (otherwise, they're absolute).
+	 *
+	 * Returns the offset of the allocation block start.
+	 * @alternative
+	 * @method allocateSet(indices: Array of Number, lod: String, relative?:Boolean): Number
+	 */
+	allocateSet(lod, indices, relative = false) {
+		const start = this.allocateSlots(indices.length, lod);
+		if (relative) {
+			this.set(
+				start,
+				indices.map((i) => start + i)
+			);
+		} else {
+			this.set(start, indices);
+		}
+		return start;
+	}
+
+	/**
+	 * @method deallocateSlots(start, count: Number): this
+	 * Deallocates `count` slots for indices, started with the `start`th slot.
+	 *
+	 * For `gl.TRIANGLES` (`gl.LINES`), allocate 3 (2) slots per triangle (line).
+	 *
+	 * All deallocated slots must belong to the same LoD. Otherwose, behaviour
+	 * may be unpredictable.
+	 * @alternative
+	 * @method deallocateSlots(start, count: Number): this
+	 */
+	deallocateSlots(start, count) {
+		this._slotAllocator.deallocateBlock(start, count);
+		return this;
+	}
+
+	/**
+	 * @method deallocateLoD(lod: Number): this
+	 * Deallocates all the slots of the given LoD.
+	 * @alternative
+	 * @method deallocateLoD(lod: String): this
+	 */
+	deallocateLoD(lod) {
+		return this.forEachBlock(lod, this.deallocateSlots.bind(this));
+	}
+
+	/**
+	 * @method forEachBlock(lod: Number, fn: Function): this
+	 * Runs the given callback `Function` `fn` once per allocated block, but
+	 * only for blocks with the given LoD.
+	 *
+	 * The callback function shall receive the start and length of each
+	 * allocated block. Both figures are given in number of *vertex slots*
+	 * and not in primitives (i.e. divide by 3 when working with triangles).
+	 * @alternative
+	 * @method forEachBlock(lod: String, count: Number): Number
+	 */
+	forEachBlock(fn, lod) {
+		this._slotAllocator.forEachBlock(fn, lod);
+		return this;
+	}
+
+	/**
+	 * @method copyWithin(target: Number, start: Number, end: Number): this
+	 * Akin to `TypedArray.copyWithin()` copies indices from `start` to `end`
+	 * into a section of itself, starting at `target`.
+	 *
+	 * Unlike `TypedArray.copyWithin()`, it will grow the data structures if needed.
+	 *
+	 * The typical use case is to copy a portion of a LoD into another LoD.
+	 */
+	copyWithin(target, start, end) {
+		if (!this._ramData) {
+			throw new Error("Cannot copyWithin() in a non-growable LoDIndices.");
+		}
+		this.grow(target + end - start);
+		this._ramData.copyWithin(target, start, end);
+
+		this._gl.bufferSubData(
+			this._gl.ELEMENT_ARRAY_BUFFER,
+			target * this._bytesPerSlot,
+			this._ramData.subarray(start, end)
+		);
+		return this;
+	}
+
+	// Internal only. Does the GL drawElement() calls, but assumes that everyhing else
+	// (bound program, textures, attribute name-locations, uniform name-locations-values)
+	// has been set up already.
+	drawMe(lod) {
+		this.bindMe();
+		this._slotAllocator.forEachBlock((start, length) => {
+			const startByte = start * this._bytesPerSlot;
+			this._gl.drawElements(this._drawMode, length, this._type, startByte);
+		}, lod);
+	}
+
+	// Internal only. Does the GL drawElement() calls, but assumes that everyhing else
+	// (bound program, textures, attribute name-locations, uniform name-locations-values)
+	// has been set up already.
+	drawMePartial(start, count) {
+		this.bindMe();
+		this._gl.drawElements(
+			this._drawMode,
+			count,
+			this._type,
+			start * this._bytesPerSlot
+		);
+	}
+}
+
+/**
+ * @factory GliiFactory.LoDIndices(options: LoDIndices options)
+ * @class Glii
+ * @section Class wrappers
+ * @property LoDIndices(options: LoDIndices options): Prototype of LoDIndices
+ * Wrapped `LoDIndices` class
+ */
+registerFactory("LoDIndices", function (gl, gliiFactory) {
+	return class WrappedLoDIndices extends LoDIndices {
+		constructor(options) {
+			super(gl, gliiFactory, options);
+		}
+	};
+});
+
+/**
+ * @class WireframeTriangleIndices
+ * @inherits TriangleIndices
+ *
+ * A decorated flavour of `TriangleIndices`; draws each triplet of vertices as a
+ * `gl.LINE_LOOP` to produce a wireframe result.
+ *
+ * The width of the wireframe can be configured via the `width` constructor option.
+ * Otherwise, this class works as a drop-in replacement for `TriangleIndices`.
+ *
+ * Note that the available line widths depend on your platform (i.e. graphics card +
+ * web browser + OpenGL software stack). You should not assume that line widths
+ * greater than 1 are available.
+ */
+
+class WireframeTriangleIndices extends TriangleIndices {
+	constructor(gl, gliiFactory, options = {}) {
+		super(gl, gliiFactory, options);
+		/**
+		 * @section
+		 * @aka WireframeTriangleIndices options
+		 * @option width: Number = 1; Width of the wireframe lines, in pixels.
+		 */
+		this._width = options.width || 1;
+	}
+
+	// Internal only. Does the GL drawElement() calls, but assumes that everyhing else
+	// (bound program, textures, attribute name-locations, uniform name-locations-values)
+	// has been set up already.
+	drawMe() {
+		this.bindMe();
+		this._gl.lineWidth(this._width);
+		this._slotAllocator.forEachBlock((start, length) => {
+			for (let i = 0; i < length; i += 3) {
+				const startByte = (start + i) * this._bytesPerSlot;
+				this._gl.drawElements(this._gl.LINE_LOOP, 3, this._type, startByte);
+			}
+		});
+	}
+
+	drawMePartial(start, count) {
+		this.bindMe();
+		this._gl.lineWidth(this._width);
+		for (let i = 0; i < count; i += 3) {
+			const startByte = (start + i) * this._bytesPerSlot;
+			this._gl.drawElements(this._gl.LINE_LOOP, 3, this._type, startByte);
+		}
+	}
+}
+
+/**
+ * @class WireframeTriangleIndices
+ * @factory GliiFactory.WireframeTriangleIndices(options: WireframeTriangleIndices options)
+ * @class Glii
+ * @section Class wrappers
+ * @property WireframeTriangleIndices(options: WireframeTriangleIndices options): Prototype of WireframeTriangleIndices
+ * Wrapped `WireframeTriangleIndices` class
+ */
+registerFactory("WireframeTriangleIndices", function (gl, gliiFactory) {
+	return class WrappedWireframeTriangleIndices extends WireframeTriangleIndices {
+		constructor(options) {
+			super(gl, gliiFactory, options);
+		}
+	};
+});
+
+/**
+ * @class PointIndices
+ * @inherits SparseIndices
+ *
+ * Represents a set of vertex indices for point primitives (i.e. one vertex per point).
+ *
+ * The draw mode of a `PointIndices` is forced into being `gl.POINTS`.
+ */
+
+class PointIndices extends SparseIndices {
+	constructor(gl, gliiFactory, options = {}) {
+		options.drawMode = gl.POINTS;
+		super(gl, gliiFactory, options);
+	}
+
+	/**
+	 * @method allocatePoints(count: Number): Number
+	 */
+	allocatePoints(count) {
+		// For points, there shall be one slot per point = vertex.
+		return super.allocateSlots(count);
+	}
+
+	/**
+	 * @method deallocatePoints(start, count: Number): this
+	 */
+	deallocatePoints(start, count) {
+		return super.deallocateSlots(start, count);
+	}
+}
+
+/**
+ * @factory GliiFactory.PointIndices(options: PointIndices options)
+ * @class Glii
+ * @section Class wrappers
+ * @property PointIndices(options: PointIndices options): Prototype of PointIndices
+ * Wrapped `PointIndices` class
+ */
+registerFactory("PointIndices", function (gl, gliiFactory) {
+	return class WrappedPointIndices extends PointIndices {
+		constructor(options) {
+			super(gl, gliiFactory, options);
+		}
+	};
+});
+
 // Akin to typeMap, but in reverse: maps GL constants to TypedArray prototypes intead.
 
 // Includes constants for texture pixel types as well (same kind of mapping, constant
@@ -2786,6 +3401,176 @@ class WebGL1Program {
 
 registerFactory("WebGL1Program", function (gl, gliiFactory) {
 	return class WrappedWebGL1Program extends WebGL1Program {
+		constructor(opts) {
+			super(gl, gliiFactory, opts);
+		}
+	};
+});
+
+/**
+ * @class MultiProgram
+ * @relationship compositionOf WebGL1Program, 0..n, 1..n
+ *
+ * Represents a bundle of several `WebGL1Program`s. Sets their uniforms and
+ * runs them all at once.
+ *
+ */
+class MultiProgram {
+	constructor(gl, gliiFactory, programs) {
+		this._gl = gl;
+
+		this._programs = programs || [];
+	}
+
+	/**
+	 * @section
+	 * @method addProgram(program: WebGL1Program): this
+	 * Adds another program to the bundle.
+	 */
+	addProgram(program) {
+		this._programs.push(program);
+	}
+
+
+	/**
+	 * @method removeProgram(program: WebGL1Program): this
+	 * Removes a program from the bundle
+	 */
+	removeProgram(program) {
+		const i = this._programs.indexOf(program);
+		if (i < 0) {
+			throw new Error("Tried to remove a GL program that is not in a MultiProgram.");
+		}
+		this._programs.splice(i, 1);
+		return this;
+	}
+
+	/**
+	 * @method replaceProgram(oldProgram: WebGL1Program, newProgram: WebGL1Program): this
+	 * Replaces a program, ensuring that the execution order of the rest of
+	 * programs in the bundle will stay the same.
+	 */
+	replaceProgram(oldProgram, newProgram) {
+		const i = this._programs.indexOf(oldProgram);
+		if (i < 0) {
+			throw new Error("Tried to remove a GL program that is not in a MultiProgram.");
+		}
+		this._programs.splice(i, 1, newProgram);
+		return this;
+	}
+
+	/**
+	 * @section Draw methods
+	 * @method run():this
+	 * Runs the draw call for all the bundled programs
+	 * @alternative
+	 * @method run(lod: Number):this
+	 * Runs the draw call for all the bundled programs, passing a LoD for
+	 * those programs which use a `LoDIndices`
+	 * @alternative
+	 * @method run(lod: String):this
+	 * Idem, but for `String` LoD identifiers
+	 */
+	run(lod) {
+		this._programs.forEach((p) => p.run(lod));
+		return this;
+	}
+
+	/**
+	 * @method runPartial(start: Number, count: Number):this
+	 * Runs a partial draw call for all the bundled programs.
+	 *
+	 * This should be used only when all the bundled programs share the same `IndexBuffer`.
+	 */
+	runPartial(start, count) {
+		this._programs.forEach((p) => p.runPartial(start, count));
+		return this;
+	}
+
+	/**
+	 * @section Mutation methods
+	 * The following methods allow changing some of the components (uniforms/textures/bindable
+	 * attributes) of the bundled programs during runtime. These change the components of all
+	 * bundled programs, but will fail silently *if* a program doesn't have a given component.
+	 *
+	 * Note that `setTarget` is missing from the set of methods - there is no (known) use
+	 * case where that would be useful, since `run()`ning all bundled programs at the same time
+	 * would mean overwriting their outputs, defeating the purpose.
+	 *
+	 * @method setUniform(name: String, value: Number): this
+	 * (Re-)sets the value of a uniform in the bundled programs, for `float`/`int` uniforms.
+	 * @alternative
+	 * @method setUniform(name: String, value: [Number]): this
+	 * (Re-)sets the value of a uniform in the bundled programs, for `vecN`/`ivecN`/`matN` uniforms.
+	 */
+	setUniform(name, value) {
+		this._programs.forEach((p) => {
+			if (name in p._unifSetters) {
+				p.setUniform(name, value);
+			}
+		});
+		return this;
+	}
+
+	/**
+	 * @method setTexture(name: String, texture: Texture): this
+	 * (Re-)sets the value of a texture in the bundled programs.
+	 */
+	setTexture(name, texture) {
+		this._programs.forEach((p) => {
+			if (name in p._texs) {
+				p.setTexture(name, texture);
+			}
+		});
+		return this;
+	}
+
+	/**
+	 * @method setIndexBuffer(buf: IndexBuffer): this
+	 * Changes the index buffer that the bundled programs use.
+	 */
+	setIndexBuffer(buf) {
+		this._programs.forEach((p) => p.setIndexBuffer(buf));
+		return this;
+	}
+
+	/**
+	 * @method setAttribute(name: Stringattr: BindableAttribute): this
+	 * (Re-)sets one of the named attributes to a new `BindableAttribute`.
+	 *
+	 * The GLSL type of the new attribute must match the old one.
+	 */
+	setAttribute(name, attr) {
+		this._programs.forEach((p) => {
+			if (name in p._attrs) {
+				p.setAttribute(name, attr);
+			}
+		});
+		return this;
+	}
+
+	/**
+	 * @section Lifetime methods
+	 *
+	 * @method destroy(): this
+	 * Tells WebGL to free resources associated with **all** the programs
+	 * in this `MultiProgram`. Use when **none** of the programs
+	 * will be used anymore.
+	 */
+	destroy() {
+		this._programs.forEach((p) => p.destroy());
+	}
+}
+
+/**
+ * @factory GliiFactory.MultiProgram(programs: [WebGL1Program])
+ * @class Glii
+ * @section Class wrappers
+ * @property MultiProgram(programs: [WebGL1Program]): Prototype of MultiProgram
+ * Wrapped `MultiProgram` class
+ */
+registerFactory("MultiProgram", function (gl, gliiFactory) {
+	return class WrappedMultiProgram extends MultiProgram {
 		constructor(opts) {
 			super(gl, gliiFactory, opts);
 		}
