@@ -1,6 +1,8 @@
 import { fileURLToPath } from "url";
 import { dirname, resolve, relative, basename } from "path";
 import { readdirSync, readFileSync, statSync } from "fs";
+import nodeResolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const gleoDir = resolve(__dirname, "static/js/gleo");
@@ -88,7 +90,7 @@ export default {
   output: {
     file: "static/js/gleo_all.js",
     format: "es",
+    inlineDynamicImports: true,
   },
-  external: ["geotiff", "pmtiles"],
-  plugins: [gleoAutoEntry()],
+  plugins: [gleoAutoEntry(), nodeResolve(), commonjs()],
 };

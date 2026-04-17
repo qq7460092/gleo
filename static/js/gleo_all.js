@@ -1,5 +1,6 @@
-import { GeoTIFFImage, fromUrl, GeoTIFF as GeoTIFF$1 } from 'geotiff';
-import { PMTiles } from 'pmtiles';
+import http from 'http';
+import https from 'https';
+import urlMod from 'url';
 
 // © Dean McNamee <dean@gmail.com>, 2012.
 // © Iván Sánchez Ortega <ivan@sanchezortega, 2017.
@@ -1015,7 +1016,6 @@ window.GeoTIFF.fromUrl;
  * @module glMatrix
  */
 // Configuration Constants
-var EPSILON$1 = 0.000001;
 var ARRAY_TYPE = typeof Float32Array !== "undefined" ? Float32Array : Array;
 if (!Math.hypot) Math.hypot = function () {
   var y = 0,
@@ -1028,34 +1028,6 @@ if (!Math.hypot) Math.hypot = function () {
   return Math.sqrt(y);
 };
 
-/**
- * 3x3 Matrix
- * @module mat3
- */
-
-/**
- * Creates a new identity mat3
- *
- * @returns {mat3} a new 3x3 matrix
- */
-
-function create$4() {
-  var out = new ARRAY_TYPE(9);
-
-  if (ARRAY_TYPE != Float32Array) {
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 0;
-    out[5] = 0;
-    out[6] = 0;
-    out[7] = 0;
-  }
-
-  out[0] = 1;
-  out[4] = 1;
-  out[8] = 1;
-  return out;
-}
 /**
  * Transpose the values of a mat3
  *
@@ -1228,7 +1200,7 @@ function fromTranslation(out, v) {
  * @returns {vec3} a new 3D vector
  */
 
-function create$3() {
+function create() {
   var out = new ARRAY_TYPE(3);
 
   if (ARRAY_TYPE != Float32Array) {
@@ -1237,91 +1209,6 @@ function create$3() {
     out[2] = 0;
   }
 
-  return out;
-}
-/**
- * Calculates the length of a vec3
- *
- * @param {ReadonlyVec3} a vector to calculate length of
- * @returns {Number} length of a
- */
-
-function length(a) {
-  var x = a[0];
-  var y = a[1];
-  var z = a[2];
-  return Math.hypot(x, y, z);
-}
-/**
- * Creates a new vec3 initialized with the given values
- *
- * @param {Number} x X component
- * @param {Number} y Y component
- * @param {Number} z Z component
- * @returns {vec3} a new 3D vector
- */
-
-function fromValues(x, y, z) {
-  var out = new ARRAY_TYPE(3);
-  out[0] = x;
-  out[1] = y;
-  out[2] = z;
-  return out;
-}
-/**
- * Normalize a vec3
- *
- * @param {vec3} out the receiving vector
- * @param {ReadonlyVec3} a vector to normalize
- * @returns {vec3} out
- */
-
-function normalize$2(out, a) {
-  var x = a[0];
-  var y = a[1];
-  var z = a[2];
-  var len = x * x + y * y + z * z;
-
-  if (len > 0) {
-    //TODO: evaluate use of glm_invsqrt here?
-    len = 1 / Math.sqrt(len);
-  }
-
-  out[0] = a[0] * len;
-  out[1] = a[1] * len;
-  out[2] = a[2] * len;
-  return out;
-}
-/**
- * Calculates the dot product of two vec3's
- *
- * @param {ReadonlyVec3} a the first operand
- * @param {ReadonlyVec3} b the second operand
- * @returns {Number} dot product of a and b
- */
-
-function dot(a, b) {
-  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-/**
- * Computes the cross product of two vec3's
- *
- * @param {vec3} out the receiving vector
- * @param {ReadonlyVec3} a the first operand
- * @param {ReadonlyVec3} b the second operand
- * @returns {vec3} out
- */
-
-function cross(out, a, b) {
-  var ax = a[0],
-      ay = a[1],
-      az = a[2];
-  var bx = b[0],
-      by = b[1],
-      bz = b[2];
-  out[0] = ay * bz - az * by;
-  out[1] = az * bx - ax * bz;
-  out[2] = ax * by - ay * bx;
   return out;
 }
 /**
@@ -1343,12 +1230,6 @@ function transformMat3(out, a, m) {
   return out;
 }
 /**
- * Alias for {@link vec3.length}
- * @function
- */
-
-var len = length;
-/**
  * Perform some operation over an array of vec3s.
  *
  * @param {Array} a the array of vectors to iterate over
@@ -1362,7 +1243,7 @@ var len = length;
  */
 
 (function () {
-  var vec = create$3();
+  var vec = create();
   return function (a, stride, offset, count, fn, arg) {
     var i, l;
 
@@ -1388,408 +1269,6 @@ var len = length;
       a[i] = vec[0];
       a[i + 1] = vec[1];
       a[i + 2] = vec[2];
-    }
-
-    return a;
-  };
-})();
-
-/**
- * 4 Dimensional Vector
- * @module vec4
- */
-
-/**
- * Creates a new, empty vec4
- *
- * @returns {vec4} a new 4D vector
- */
-
-function create$2() {
-  var out = new ARRAY_TYPE(4);
-
-  if (ARRAY_TYPE != Float32Array) {
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 0;
-  }
-
-  return out;
-}
-/**
- * Normalize a vec4
- *
- * @param {vec4} out the receiving vector
- * @param {ReadonlyVec4} a vector to normalize
- * @returns {vec4} out
- */
-
-function normalize$1(out, a) {
-  var x = a[0];
-  var y = a[1];
-  var z = a[2];
-  var w = a[3];
-  var len = x * x + y * y + z * z + w * w;
-
-  if (len > 0) {
-    len = 1 / Math.sqrt(len);
-  }
-
-  out[0] = x * len;
-  out[1] = y * len;
-  out[2] = z * len;
-  out[3] = w * len;
-  return out;
-}
-/**
- * Perform some operation over an array of vec4s.
- *
- * @param {Array} a the array of vectors to iterate over
- * @param {Number} stride Number of elements between the start of each vec4. If 0 assumes tightly packed
- * @param {Number} offset Number of elements to skip at the beginning of the array
- * @param {Number} count Number of vec4s to iterate over. If 0 iterates over entire array
- * @param {Function} fn Function to call for each vector in the array
- * @param {Object} [arg] additional argument to pass to fn
- * @returns {Array} a
- * @function
- */
-
-(function () {
-  var vec = create$2();
-  return function (a, stride, offset, count, fn, arg) {
-    var i, l;
-
-    if (!stride) {
-      stride = 4;
-    }
-
-    if (!offset) {
-      offset = 0;
-    }
-
-    if (count) {
-      l = Math.min(count * stride + offset, a.length);
-    } else {
-      l = a.length;
-    }
-
-    for (i = offset; i < l; i += stride) {
-      vec[0] = a[i];
-      vec[1] = a[i + 1];
-      vec[2] = a[i + 2];
-      vec[3] = a[i + 3];
-      fn(vec, vec, arg);
-      a[i] = vec[0];
-      a[i + 1] = vec[1];
-      a[i + 2] = vec[2];
-      a[i + 3] = vec[3];
-    }
-
-    return a;
-  };
-})();
-
-/**
- * Quaternion in the format XYZW
- * @module quat
- */
-
-/**
- * Creates a new identity quat
- *
- * @returns {quat} a new quaternion
- */
-
-function create$1() {
-  var out = new ARRAY_TYPE(4);
-
-  if (ARRAY_TYPE != Float32Array) {
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-  }
-
-  out[3] = 1;
-  return out;
-}
-/**
- * Sets a quat from the given angle and rotation axis,
- * then returns it.
- *
- * @param {quat} out the receiving quaternion
- * @param {ReadonlyVec3} axis the axis around which to rotate
- * @param {Number} rad the angle in radians
- * @returns {quat} out
- **/
-
-function setAxisAngle(out, axis, rad) {
-  rad = rad * 0.5;
-  var s = Math.sin(rad);
-  out[0] = s * axis[0];
-  out[1] = s * axis[1];
-  out[2] = s * axis[2];
-  out[3] = Math.cos(rad);
-  return out;
-}
-/**
- * Performs a spherical linear interpolation between two quat
- *
- * @param {quat} out the receiving quaternion
- * @param {ReadonlyQuat} a the first operand
- * @param {ReadonlyQuat} b the second operand
- * @param {Number} t interpolation amount, in the range [0-1], between the two inputs
- * @returns {quat} out
- */
-
-function slerp(out, a, b, t) {
-  // benchmarks:
-  //    http://jsperf.com/quaternion-slerp-implementations
-  var ax = a[0],
-      ay = a[1],
-      az = a[2],
-      aw = a[3];
-  var bx = b[0],
-      by = b[1],
-      bz = b[2],
-      bw = b[3];
-  var omega, cosom, sinom, scale0, scale1; // calc cosine
-
-  cosom = ax * bx + ay * by + az * bz + aw * bw; // adjust signs (if necessary)
-
-  if (cosom < 0.0) {
-    cosom = -cosom;
-    bx = -bx;
-    by = -by;
-    bz = -bz;
-    bw = -bw;
-  } // calculate coefficients
-
-
-  if (1.0 - cosom > EPSILON$1) {
-    // standard case (slerp)
-    omega = Math.acos(cosom);
-    sinom = Math.sin(omega);
-    scale0 = Math.sin((1.0 - t) * omega) / sinom;
-    scale1 = Math.sin(t * omega) / sinom;
-  } else {
-    // "from" and "to" quaternions are very close
-    //  ... so we can do a linear interpolation
-    scale0 = 1.0 - t;
-    scale1 = t;
-  } // calculate final values
-
-
-  out[0] = scale0 * ax + scale1 * bx;
-  out[1] = scale0 * ay + scale1 * by;
-  out[2] = scale0 * az + scale1 * bz;
-  out[3] = scale0 * aw + scale1 * bw;
-  return out;
-}
-/**
- * Creates a quaternion from the given 3x3 rotation matrix.
- *
- * NOTE: The resultant quaternion is not normalized, so you should be sure
- * to renormalize the quaternion yourself where necessary.
- *
- * @param {quat} out the receiving quaternion
- * @param {ReadonlyMat3} m rotation matrix
- * @returns {quat} out
- * @function
- */
-
-function fromMat3(out, m) {
-  // Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
-  // article "Quaternion Calculus and Fast Animation".
-  var fTrace = m[0] + m[4] + m[8];
-  var fRoot;
-
-  if (fTrace > 0.0) {
-    // |w| > 1/2, may as well choose w > 1/2
-    fRoot = Math.sqrt(fTrace + 1.0); // 2w
-
-    out[3] = 0.5 * fRoot;
-    fRoot = 0.5 / fRoot; // 1/(4w)
-
-    out[0] = (m[5] - m[7]) * fRoot;
-    out[1] = (m[6] - m[2]) * fRoot;
-    out[2] = (m[1] - m[3]) * fRoot;
-  } else {
-    // |w| <= 1/2
-    var i = 0;
-    if (m[4] > m[0]) i = 1;
-    if (m[8] > m[i * 3 + i]) i = 2;
-    var j = (i + 1) % 3;
-    var k = (i + 2) % 3;
-    fRoot = Math.sqrt(m[i * 3 + i] - m[j * 3 + j] - m[k * 3 + k] + 1.0);
-    out[i] = 0.5 * fRoot;
-    fRoot = 0.5 / fRoot;
-    out[3] = (m[j * 3 + k] - m[k * 3 + j]) * fRoot;
-    out[j] = (m[j * 3 + i] + m[i * 3 + j]) * fRoot;
-    out[k] = (m[k * 3 + i] + m[i * 3 + k]) * fRoot;
-  }
-
-  return out;
-}
-/**
- * Normalize a quat
- *
- * @param {quat} out the receiving quaternion
- * @param {ReadonlyQuat} a quaternion to normalize
- * @returns {quat} out
- * @function
- */
-
-var normalize = normalize$1;
-/**
- * Sets a quaternion to represent the shortest rotation from one
- * vector to another.
- *
- * Both vectors are assumed to be unit length.
- *
- * @param {quat} out the receiving quaternion.
- * @param {ReadonlyVec3} a the initial vector
- * @param {ReadonlyVec3} b the destination vector
- * @returns {quat} out
- */
-
-(function () {
-  var tmpvec3 = create$3();
-  var xUnitVec3 = fromValues(1, 0, 0);
-  var yUnitVec3 = fromValues(0, 1, 0);
-  return function (out, a, b) {
-    var dot$1 = dot(a, b);
-
-    if (dot$1 < -0.999999) {
-      cross(tmpvec3, xUnitVec3, a);
-      if (len(tmpvec3) < 0.000001) cross(tmpvec3, yUnitVec3, a);
-      normalize$2(tmpvec3, tmpvec3);
-      setAxisAngle(out, tmpvec3, Math.PI);
-      return out;
-    } else if (dot$1 > 0.999999) {
-      out[0] = 0;
-      out[1] = 0;
-      out[2] = 0;
-      out[3] = 1;
-      return out;
-    } else {
-      cross(tmpvec3, a, b);
-      out[0] = tmpvec3[0];
-      out[1] = tmpvec3[1];
-      out[2] = tmpvec3[2];
-      out[3] = 1 + dot$1;
-      return normalize(out, out);
-    }
-  };
-})();
-/**
- * Performs a spherical linear interpolation with two control points
- *
- * @param {quat} out the receiving quaternion
- * @param {ReadonlyQuat} a the first operand
- * @param {ReadonlyQuat} b the second operand
- * @param {ReadonlyQuat} c the third operand
- * @param {ReadonlyQuat} d the fourth operand
- * @param {Number} t interpolation amount, in the range [0-1], between the two inputs
- * @returns {quat} out
- */
-
-(function () {
-  var temp1 = create$1();
-  var temp2 = create$1();
-  return function (out, a, b, c, d, t) {
-    slerp(temp1, a, d, t);
-    slerp(temp2, b, c, t);
-    slerp(out, temp1, temp2, 2 * t * (1 - t));
-    return out;
-  };
-})();
-/**
- * Sets the specified quaternion with values corresponding to the given
- * axes. Each axis is a vec3 and is expected to be unit length and
- * perpendicular to all other specified axes.
- *
- * @param {ReadonlyVec3} view  the vector representing the viewing direction
- * @param {ReadonlyVec3} right the vector representing the local "right" direction
- * @param {ReadonlyVec3} up    the vector representing the local "up" direction
- * @returns {quat} out
- */
-
-(function () {
-  var matr = create$4();
-  return function (out, view, right, up) {
-    matr[0] = right[0];
-    matr[3] = right[1];
-    matr[6] = right[2];
-    matr[1] = up[0];
-    matr[4] = up[1];
-    matr[7] = up[2];
-    matr[2] = -view[0];
-    matr[5] = -view[1];
-    matr[8] = -view[2];
-    return normalize(out, fromMat3(out, matr));
-  };
-})();
-
-/**
- * 2 Dimensional Vector
- * @module vec2
- */
-
-/**
- * Creates a new, empty vec2
- *
- * @returns {vec2} a new 2D vector
- */
-
-function create() {
-  var out = new ARRAY_TYPE(2);
-
-  if (ARRAY_TYPE != Float32Array) {
-    out[0] = 0;
-    out[1] = 0;
-  }
-
-  return out;
-}
-/**
- * Perform some operation over an array of vec2s.
- *
- * @param {Array} a the array of vectors to iterate over
- * @param {Number} stride Number of elements between the start of each vec2. If 0 assumes tightly packed
- * @param {Number} offset Number of elements to skip at the beginning of the array
- * @param {Number} count Number of vec2s to iterate over. If 0 iterates over entire array
- * @param {Function} fn Function to call for each vector in the array
- * @param {Object} [arg] additional argument to pass to fn
- * @returns {Array} a
- * @function
- */
-
-(function () {
-  var vec = create();
-  return function (a, stride, offset, count, fn, arg) {
-    var i, l;
-
-    if (!stride) {
-      stride = 2;
-    }
-
-    if (!offset) {
-      offset = 0;
-    }
-
-    if (count) {
-      l = Math.min(count * stride + offset, a.length);
-    } else {
-      l = a.length;
-    }
-
-    for (i = offset; i < l; i += stride) {
-      vec[0] = a[i];
-      vec[1] = a[i + 1];
-      fn(vec, vec, arg);
-      a[i] = vec[0];
-      a[i + 1] = vec[1];
     }
 
     return a;
@@ -7313,18 +6792,18 @@ function registerProjectionFunction(sCRS, dCRS, fn) {
 	}
 }
 
-const R$2 = 6378137; // Earth's radius as per spherical mercator
-const D$2 = Math.PI / 180; // One degree, in radians
+const R$3 = 6378137; // Earth's radius as per spherical mercator
+const D$3 = Math.PI / 180; // One degree, in radians
 const rad$3 = 180 / Math.PI; // One radian, in degrees
 const halfPi$1 = Math.PI / 2;
 
 function lnglat2webmercator$1([lng, lat]) {
-	const sin = Math.sin(lat * D$2);
-	return [R$2 * D$2 * lng, (R$2 * Math.log((1 + sin) / (1 - sin))) / 2];
+	const sin = Math.sin(lat * D$3);
+	return [R$3 * D$3 * lng, (R$3 * Math.log((1 + sin) / (1 - sin))) / 2];
 }
 
 function webmercator2lnglat$1([x, y]) {
-	return [(x * rad$3) / R$2, (2 * Math.atan(Math.exp(y / R$2)) - halfPi$1) * rad$3];
+	return [(x * rad$3) / R$3, (2 * Math.atan(Math.exp(y / R$3)) - halfPi$1) * rad$3];
 }
 
 /**
@@ -10212,7 +9691,7 @@ class Acetate extends Evented {
 
 // import Glii from 'glii';
 
-const { log2, abs, max } = Math;
+const { log2, abs, max: max$1 } = Math;
 
 const pointerEvents = [
 	"click",
@@ -10985,9 +10464,9 @@ class Platina extends Evented {
 		/// If not, create a `OffsetCRS`.
 
 		const log2scale = log2(this.#scale);
-		const log2size = log2(max(h, w));
+		const log2size = log2(max$1(h, w));
 		const log2distance = log2(
-			max(abs(this.#center.coords[0]), abs(this.#center.coords[1]))
+			max$1(abs(this.#center.coords[0]), abs(this.#center.coords[1]))
 		);
 
 		if (
@@ -13936,7 +13415,7 @@ const cartesian = new BaseCRS("cartesian", {
  */
 
 const rad$2 = Math.PI / 180;
-const R$1 = 6371000;
+const R$2 = 6371000;
 
 const epsg4326$1 = new BaseCRS("EPSG:4326", {
 	wrapPeriodX: 360,
@@ -13950,7 +13429,7 @@ const epsg4326$1 = new BaseCRS("EPSG:4326", {
 			sinDLon = Math.sin(((p2.coords[0] - p1.coords[0]) * rad$2) / 2),
 			a = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon,
 			c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		return R$1 * c;
+		return R$2 * c;
 	},
 	ogcUri: "http://www.opengis.net/def/crs/EPSG/0/4326",
 	flipAxes: true,
@@ -14028,7 +13507,7 @@ const A1 = 1.340264,
 	A2 = -0.081106,
 	A3 = 0.000893,
 	A4 = 0.003796,
-	M = Math.sqrt(3) / 2,
+	M$1 = Math.sqrt(3) / 2,
 	iterations = 12,
 	ε = 1e-12,
 	rad$1 = 180 / Math.PI, // Degrees in a radian (i.e. ~57)
@@ -14039,11 +13518,11 @@ function asin(x) {
 }
 
 function lnglat2equalearth([λ, φ]) {
-	var l = asin(M * Math.sin(φ * deg)),
+	var l = asin(M$1 * Math.sin(φ * deg)),
 		l2 = l * l,
 		l6 = l2 * l2 * l2;
 	return [
-		(λ * deg * Math.cos(l)) / (M * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))),
+		(λ * deg * Math.cos(l)) / (M$1 * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))),
 		l * (A1 + A2 * l2 + l6 * (A3 + A4 * l2)),
 	];
 }
@@ -14059,8 +13538,8 @@ function equalearth2lnglat([x, y]) {
 		if (Math.abs(Δ) < ε) break;
 	}
 	return [
-		(rad$1 * M * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / Math.cos(l),
-		rad$1 * asin(Math.sin(l) / M),
+		(rad$1 * M$1 * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / Math.cos(l),
+		rad$1 * asin(Math.sin(l) / M$1),
 	];
 }
 
@@ -14104,18 +13583,18 @@ function denormalizeMercator([x, y]) {
 }
 
 // Copied from epsg3857.mjs
-const R = 6378137; // Earth's radius as per spherical mercator
-const D$1 = Math.PI / 180; // One degree, in radians
+const R$1 = 6378137; // Earth's radius as per spherical mercator
+const D$2 = Math.PI / 180; // One degree, in radians
 const rad = 180 / Math.PI; // One radian, in degrees
 const halfPi = Math.PI / 2;
 
 function lnglat2webmercator([lng, lat]) {
-	const sin = Math.sin(lat * D$1);
-	return [R * D$1 * lng, (R * Math.log((1 + sin) / (1 - sin))) / 2];
+	const sin = Math.sin(lat * D$2);
+	return [R$1 * D$2 * lng, (R$1 * Math.log((1 + sin) / (1 - sin))) / 2];
 }
 
 function webmercator2lnglat([x, y]) {
-	return [(x * rad) / R, (2 * Math.atan(Math.exp(y / R)) - halfPi) * rad];
+	return [(x * rad) / R$1, (2 * Math.atan(Math.exp(y / R$1)) - halfPi) * rad];
 }
 
 registerProjectionFunction("EPSG:4326", "maplibremercator", ([x, y]) => {
@@ -32652,6 +32131,4819 @@ class ArrugatedRaster extends ConformalRaster {
 	}
 }
 
+/* eslint-disable no-restricted-globals, no-restricted-syntax */
+/* global SharedArrayBuffer */
+
+
+/** @type {<T extends (...args: any) => any>(target: T) => (thisArg: ThisType<T>, ...args: any[]) => any} */
+function uncurryThis(target) {
+  return (thisArg, ...args) => {
+    return ReflectApply(target, thisArg, args);
+  };
+}
+
+/** @type {(target: any, key: string | symbol) => (thisArg: any, ...args: any[]) => any} */
+function uncurryThisGetter(target, key) {
+  return uncurryThis(
+    ReflectGetOwnPropertyDescriptor(
+      target,
+      key
+    ).get
+  );
+}
+
+// Reflect
+const {
+  apply: ReflectApply,
+  getOwnPropertyDescriptor: ReflectGetOwnPropertyDescriptor,
+  getPrototypeOf: ReflectGetPrototypeOf,
+  ownKeys: ReflectOwnKeys} = Reflect;
+
+// Symbol
+const {
+  iterator: SymbolIterator,
+  toStringTag: SymbolToStringTag} = Symbol;
+
+// Object
+const NativeObject = Object;
+const {
+  create: ObjectCreate,
+  defineProperty: ObjectDefineProperty} = NativeObject;
+
+// Array
+const NativeArray = Array;
+const ArrayPrototype = NativeArray.prototype;
+const NativeArrayPrototypeSymbolIterator = ArrayPrototype[SymbolIterator];
+/** @type {<T>(array: T[]) => IterableIterator<T>} */
+const ArrayPrototypeSymbolIterator = uncurryThis(NativeArrayPrototypeSymbolIterator);
+
+// ArrayBuffer
+const NativeArrayBuffer = ArrayBuffer;
+const ArrayBufferPrototype = NativeArrayBuffer.prototype;
+/** @type {(buffer: ArrayBuffer) => ArrayBuffer} */
+uncurryThisGetter(ArrayBufferPrototype, "byteLength");
+
+// SharedArrayBuffer
+const NativeSharedArrayBuffer = typeof SharedArrayBuffer !== "undefined" ? SharedArrayBuffer : null;
+/** @type {(buffer: SharedArrayBuffer) => SharedArrayBuffer} */
+NativeSharedArrayBuffer
+  && uncurryThisGetter(NativeSharedArrayBuffer.prototype, "byteLength");
+
+// TypedArray
+/** @typedef {Uint8Array|Uint8ClampedArray|Uint16Array|Uint32Array|Int8Array|Int16Array|Int32Array|Float32Array|Float64Array|BigUint64Array|BigInt64Array} TypedArray */
+/** @type {any} */
+const TypedArray = ReflectGetPrototypeOf(Uint8Array);
+TypedArray.from;
+const TypedArrayPrototype = TypedArray.prototype;
+TypedArrayPrototype[SymbolIterator];
+/** @type {(typedArray: TypedArray) => IterableIterator<number>} */
+uncurryThis(TypedArrayPrototype.keys);
+/** @type {(typedArray: TypedArray) => IterableIterator<number>} */
+uncurryThis(
+  TypedArrayPrototype.values
+);
+/** @type {(typedArray: TypedArray) => IterableIterator<[number, number]>} */
+uncurryThis(
+  TypedArrayPrototype.entries
+);
+/** @type {(typedArray: TypedArray, array: ArrayLike<number>, offset?: number) => void} */
+uncurryThis(TypedArrayPrototype.set);
+/** @type {<T extends TypedArray>(typedArray: T) => T} */
+uncurryThis(
+  TypedArrayPrototype.reverse
+);
+/** @type {<T extends TypedArray>(typedArray: T, value: number, start?: number, end?: number) => T} */
+uncurryThis(TypedArrayPrototype.fill);
+/** @type {<T extends TypedArray>(typedArray: T, target: number, start: number, end?: number) => T} */
+uncurryThis(
+  TypedArrayPrototype.copyWithin
+);
+/** @type {<T extends TypedArray>(typedArray: T, compareFn?: (a: number, b: number) => number) => T} */
+uncurryThis(TypedArrayPrototype.sort);
+/** @type {<T extends TypedArray>(typedArray: T, start?: number, end?: number) => T} */
+uncurryThis(TypedArrayPrototype.slice);
+/** @type {<T extends TypedArray>(typedArray: T, start?: number, end?: number) => T} */
+uncurryThis(
+  TypedArrayPrototype.subarray
+);
+/** @type {((typedArray: TypedArray) => ArrayBuffer)} */
+uncurryThisGetter(
+  TypedArrayPrototype,
+  "buffer"
+);
+/** @type {((typedArray: TypedArray) => number)} */
+uncurryThisGetter(
+  TypedArrayPrototype,
+  "byteOffset"
+);
+/** @type {((typedArray: TypedArray) => number)} */
+uncurryThisGetter(
+  TypedArrayPrototype,
+  "length"
+);
+/** @type {(target: unknown) => string} */
+uncurryThisGetter(
+  TypedArrayPrototype,
+  SymbolToStringTag
+);
+
+// Uint8Array
+const NativeUint8Array = Uint8Array;
+
+// Uint16Array
+const NativeUint16Array = Uint16Array;
+
+// Uint32Array
+const NativeUint32Array = Uint32Array;
+
+// Float32Array
+const NativeFloat32Array = Float32Array;
+
+// ArrayIterator
+/** @type {any} */
+const ArrayIteratorPrototype = ReflectGetPrototypeOf([][SymbolIterator]());
+/** @type {<T>(arrayIterator: IterableIterator<T>) => IteratorResult<T>} */
+const ArrayIteratorPrototypeNext = uncurryThis(ArrayIteratorPrototype.next);
+
+// Generator
+/** @type {<T = unknown, TReturn = any, TNext = unknown>(generator: Generator<T, TReturn, TNext>, value?: TNext) => T} */
+const GeneratorPrototypeNext = uncurryThis((function* () {})().next);
+
+// Iterator
+const IteratorPrototype = ReflectGetPrototypeOf(ArrayIteratorPrototype);
+
+// DataView
+const DataViewPrototype = DataView.prototype;
+/** @type {(dataView: DataView, byteOffset: number, littleEndian?: boolean) => number} */
+const DataViewPrototypeGetUint16 = uncurryThis(
+  DataViewPrototype.getUint16
+);
+
+// WeakMap
+/**
+ * Do not construct with arguments to avoid calling the "set" method
+ * @type {{new <K extends {}, V>(): WeakMap<K, V>}}
+ */
+const NativeWeakMap = WeakMap;
+const WeakMapPrototype = NativeWeakMap.prototype;
+/** @type {<K extends {}, V>(weakMap: WeakMap<K, V>, key: K) => V} */
+const WeakMapPrototypeGet = uncurryThis(WeakMapPrototype.get);
+/** @type {<K extends {}, V>(weakMap: WeakMap<K, V>, key: K, value: V) => WeakMap} */
+const WeakMapPrototypeSet = uncurryThis(WeakMapPrototype.set);
+
+/** @type {WeakMap<{}, IterableIterator<any>>} */
+const arrayIterators = new NativeWeakMap();
+
+const SafeIteratorPrototype = ObjectCreate(null, {
+  next: {
+    value: function next() {
+      const arrayIterator = WeakMapPrototypeGet(arrayIterators, this);
+      return ArrayIteratorPrototypeNext(arrayIterator);
+    },
+  },
+
+  [SymbolIterator]: {
+    value: function values() {
+      return this;
+    },
+  },
+});
+
+/**
+ * Wrap the Array around the SafeIterator If Array.prototype [@@iterator] has been modified
+ * @type {<T>(array: T[]) => Iterable<T>}
+ */
+function safeIfNeeded(array) {
+  if (
+    array[SymbolIterator] === NativeArrayPrototypeSymbolIterator &&
+    ArrayIteratorPrototype.next === ArrayIteratorPrototypeNext
+  ) {
+    return array;
+  }
+
+  const safe = ObjectCreate(SafeIteratorPrototype);
+  WeakMapPrototypeSet(arrayIterators, safe, ArrayPrototypeSymbolIterator(array));
+  return safe;
+}
+
+/** @type {WeakMap<{}, Generator<any>>} */
+const generators = new NativeWeakMap();
+
+/** @see https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object */
+const DummyArrayIteratorPrototype = ObjectCreate(IteratorPrototype, {
+  next: {
+    value: function next() {
+      const generator = WeakMapPrototypeGet(generators, this);
+      return GeneratorPrototypeNext(generator);
+    },
+    writable: true,
+    configurable: true,
+  },
+});
+
+for (const key of ReflectOwnKeys(ArrayIteratorPrototype)) {
+  // next method has already defined
+  if (key === "next") {
+    continue;
+  }
+
+  // Copy ArrayIteratorPrototype descriptors to DummyArrayIteratorPrototype
+  ObjectDefineProperty(DummyArrayIteratorPrototype, key, ReflectGetOwnPropertyDescriptor(ArrayIteratorPrototype, key));
+}
+
+// base algorithm: http://fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+
+const buffer = new NativeArrayBuffer(4);
+const floatView = new NativeFloat32Array(buffer);
+const uint32View = new NativeUint32Array(buffer);
+
+const baseTable = new NativeUint16Array(512);
+const shiftTable = new NativeUint8Array(512);
+
+for (let i = 0; i < 256; ++i) {
+  const e = i - 127;
+
+  // very small number (0, -0)
+  if (e < -24) {
+    baseTable[i]         = 0x0000;
+    baseTable[i | 0x100] = 0x8000;
+    shiftTable[i]         = 24;
+    shiftTable[i | 0x100] = 24;
+
+  // small number (denorm)
+  } else if (e < -14) {
+    baseTable[i]         =  0x0400 >> (-e - 14);
+    baseTable[i | 0x100] = (0x0400 >> (-e - 14)) | 0x8000;
+    shiftTable[i]         = -e - 1;
+    shiftTable[i | 0x100] = -e - 1;
+
+  // normal number
+  } else if (e <= 15) {
+    baseTable[i]         =  (e + 15) << 10;
+    baseTable[i | 0x100] = ((e + 15) << 10) | 0x8000;
+    shiftTable[i]         = 13;
+    shiftTable[i | 0x100] = 13;
+
+  // large number (Infinity, -Infinity)
+  } else if (e < 128) {
+    baseTable[i]         = 0x7c00;
+    baseTable[i | 0x100] = 0xfc00;
+    shiftTable[i]         = 24;
+    shiftTable[i | 0x100] = 24;
+
+  // stay (NaN, Infinity, -Infinity)
+  } else {
+    baseTable[i]         = 0x7c00;
+    baseTable[i | 0x100] = 0xfc00;
+    shiftTable[i]         = 13;
+    shiftTable[i | 0x100] = 13;
+  }
+}
+
+const mantissaTable = new NativeUint32Array(2048);
+for (let i = 1; i < 1024; ++i) {
+  let m = i << 13; // zero pad mantissa bits
+  let e = 0; // zero exponent
+
+  // normalized
+  while ((m & 0x00800000) === 0) {
+    m <<= 1;
+    e -= 0x00800000; // decrement exponent
+  }
+
+  m &= -8388609; // clear leading 1 bit
+  e += 0x38800000; // adjust bias
+
+  mantissaTable[i] = m | e;
+}
+for (let i = 1024; i < 2048; ++i) {
+  mantissaTable[i] = 0x38000000 + ((i - 1024) << 13);
+}
+
+const exponentTable = new NativeUint32Array(64);
+for (let i = 1; i < 31; ++i) {
+  exponentTable[i] = i << 23;
+}
+exponentTable[31] = 0x47800000;
+exponentTable[32] = 0x80000000;
+for (let i = 33; i < 63; ++i) {
+  exponentTable[i] = 0x80000000 + ((i - 32) << 23);
+}
+exponentTable[63] = 0xc7800000;
+
+const offsetTable = new NativeUint16Array(64);
+for (let i = 1; i < 64; ++i) {
+  if (i !== 32) {
+    offsetTable[i] = 1024;
+  }
+}
+
+/**
+ * convert a half float number bits to a number
+ * @param {number} float16bits - half float number bits
+ * @returns {number} double float
+ */
+function convertToNumber(float16bits) {
+  const i = float16bits >> 10;
+  uint32View[0] = mantissaTable[offsetTable[i] + (float16bits & 0x3ff)] + exponentTable[i];
+  return floatView[0];
+}
+
+/**
+ * returns an unsigned 16-bit float at the specified byte offset from the start of the DataView
+ * @param {DataView} dataView
+ * @param {number} byteOffset
+ * @param {[boolean]} opts
+ * @returns {number}
+ */
+function getFloat16(dataView, byteOffset, ...opts) {
+  return convertToNumber(
+    DataViewPrototypeGetUint16(dataView, byteOffset, ...safeIfNeeded(opts))
+  );
+}
+
+function getAttribute(tag, attributeName, options) {
+
+  const xml = typeof tag === "object" ? tag.outer : tag;
+
+  // only search for attributes in the opening tag
+  const opening = xml.slice(0, xml.indexOf(">") + 1);
+
+  const quotechars = ['"', "'"];
+  for (let i = 0; i < quotechars.length; i++) {
+    const char = quotechars[i];
+    const pattern = attributeName + "\\=" + char + "([^" + char + "]*)" + char;
+
+    const re = new RegExp(pattern);
+    const match = re.exec(opening);
+    if (match) return match[1];
+  }
+}
+
+function indexOfMatch(xml, pattern, startIndex) {
+  const re = new RegExp(pattern);
+  const match = re.exec(xml.slice(startIndex));
+  if (match) return startIndex + match.index;
+  else return -1;
+}
+
+function indexOfMatchEnd(xml, pattern, startIndex) {
+  const re = new RegExp(pattern);
+  const match = re.exec(xml.slice(startIndex));
+  if (match) return startIndex + match.index + match[0].length - 1;
+  else return -1;
+}
+
+function countSubstring(string, substring) {
+  const pattern = new RegExp(substring, "g");
+  const match = string.match(pattern);
+  return match ? match.length : 0;
+}
+
+function findTagByName(xml, tagName, options) {
+  const debug = (options && options.debug) || false;
+  const nested = !(options && typeof options.nested === false);
+
+  const startIndex = (options && options.startIndex) || 0;
+
+  if (debug) console.log("[xml-utils] starting findTagByName with", tagName, " and ", options);
+
+  const start = indexOfMatch(xml, `\<${tagName}[ \n\>\/]`, startIndex);
+  if (debug) console.log("[xml-utils] start:", start);
+  if (start === -1) return undefined;
+
+  const afterStart = xml.slice(start + tagName.length);
+
+  let relativeEnd = indexOfMatchEnd(afterStart, "^[^<]*[ /]>", 0);
+
+  const selfClosing = relativeEnd !== -1 && afterStart[relativeEnd - 1] === "/";
+  if (debug) console.log("[xml-utils] selfClosing:", selfClosing);
+
+  if (selfClosing === false) {
+    // check if tag has subtags with the same name
+    if (nested) {
+      let startIndex = 0;
+      let openings = 1;
+      let closings = 0;
+      while ((relativeEnd = indexOfMatchEnd(afterStart, "[ /]" + tagName + ">", startIndex)) !== -1) {
+        const clip = afterStart.substring(startIndex, relativeEnd + 1);
+        openings += countSubstring(clip, "<" + tagName + "[ \n\t>]");
+        closings += countSubstring(clip, "</" + tagName + ">");
+        // we can't have more openings than closings
+        if (closings >= openings) break;
+        startIndex = relativeEnd;
+      }
+    } else {
+      relativeEnd = indexOfMatchEnd(afterStart, "[ /]" + tagName + ">", 0);
+    }
+  }
+
+  const end = start + tagName.length + relativeEnd + 1;
+  if (debug) console.log("[xml-utils] end:", end);
+  if (end === -1) return undefined;
+
+  const outer = xml.slice(start, end);
+  // tag is like <gml:identifier codeSpace="OGP">urn:ogc:def:crs:EPSG::32617</gml:identifier>
+
+  let inner;
+  if (selfClosing) {
+    inner = null;
+  } else {
+    inner = outer.slice(outer.indexOf(">") + 1, outer.lastIndexOf("<"));
+  }
+
+  return { inner, outer, start, end };
+}
+
+function findTagsByName(xml, tagName, options) {
+  const tags = [];
+  const debug = false;
+  let startIndex = 0;
+  let tag;
+  while ((tag = findTagByName(xml, tagName, { debug, startIndex }))) {
+    {
+      startIndex = tag.start + 1 + tagName.length;
+    }
+    tags.push(tag);
+  }
+  return tags;
+}
+
+/** @import {TypedArray} from './geotiff.js' */
+const fieldTypes = {
+    BYTE: /** @type {1} */ (0x0001),
+    ASCII: /** @type {2} */ (0x0002),
+    SHORT: /** @type {3} */ (0x0003),
+    LONG: /** @type {4} */ (0x0004),
+    RATIONAL: /** @type {5} */ (0x0005),
+    SBYTE: /** @type {6} */ (0x0006),
+    UNDEFINED: /** @type {7} */ (0x0007),
+    SSHORT: /** @type {8} */ (0x0008),
+    SLONG: /** @type {9} */ (0x0009),
+    SRATIONAL: /** @type {10} */ (0x000a),
+    FLOAT: /** @type {11} */ (0x000b),
+    DOUBLE: /** @type {12} */ (0x000c),
+    // IFD offset, suggested by https://owl.phy.queensu.ca/~phil/exiftool/standards.html
+    IFD: /** @type {13} */ (0x000d),
+    // introduced by BigTIFF
+    LONG8: /** @type {16} */ (0x0010),
+    SLONG8: /** @type {17} */ (0x0011),
+    IFD8: /** @type {18} */ (0x0012),
+};
+/** @typedef {keyof fieldTypes} FieldTypeName */
+/** @typedef {fieldTypes[keyof typeof fieldTypes]} FieldType */
+/** @typedef {Record<FieldTypeName, number>} FieldTypeSizes */
+const fieldTypeSizes = /** @type {const} */ ({
+    [fieldTypes.BYTE]: 1,
+    [fieldTypes.ASCII]: 1,
+    [fieldTypes.SBYTE]: 1,
+    [fieldTypes.UNDEFINED]: 1,
+    [fieldTypes.SHORT]: 2,
+    [fieldTypes.SSHORT]: 2,
+    [fieldTypes.LONG]: 4,
+    [fieldTypes.SLONG]: 4,
+    [fieldTypes.FLOAT]: 4,
+    [fieldTypes.IFD]: 4,
+    [fieldTypes.RATIONAL]: 8,
+    [fieldTypes.SRATIONAL]: 8,
+    [fieldTypes.DOUBLE]: 8,
+    [fieldTypes.LONG8]: 8,
+    [fieldTypes.SLONG8]: 8,
+    [fieldTypes.IFD8]: 8,
+});
+/** @typedef {fieldTypeSizes[keyof typeof fieldTypeSizes]} FieldTypeSize */
+/**
+ * Get the byte size for a given field type.
+ * @param {FieldType} fieldType The TIFF field type constant
+ * @returns {number} The size in bytes
+ * @throws {RangeError} If the field type is invalid
+ */
+function getFieldTypeSize(fieldType) {
+    const size = fieldTypeSizes[fieldType];
+    if (size === undefined) {
+        throw new RangeError(`Invalid field type: ${fieldType}`);
+    }
+    return size;
+}
+/**
+ * @typedef {Object} TagDictionaryEntry
+ * @property {number} tag
+ * @property {string} [name]
+ * @property {number} [type]
+ * @property {boolean} [isArray]
+ * @property {boolean} [eager]
+ */
+const tagDictionary = /** @type {const} */ ({
+    NewSubfileType: { tag: 254, type: fieldTypes.LONG, eager: true },
+    SubfileType: { tag: 255, type: fieldTypes.SHORT, eager: true },
+    ImageWidth: { tag: 256, type: fieldTypes.SHORT, eager: true },
+    ImageLength: { tag: 257, type: fieldTypes.SHORT, eager: true },
+    BitsPerSample: { tag: 258, type: fieldTypes.SHORT, isArray: true, eager: true },
+    Compression: { tag: 259, type: fieldTypes.SHORT, eager: true },
+    PhotometricInterpretation: { tag: 262, type: fieldTypes.SHORT, eager: true },
+    Threshholding: { tag: 263, type: fieldTypes.SHORT },
+    CellWidth: { tag: 264, type: fieldTypes.SHORT },
+    CellLength: { tag: 265, type: fieldTypes.SHORT },
+    FillOrder: { tag: 266, type: fieldTypes.SHORT },
+    DocumentName: { tag: 269, type: fieldTypes.ASCII },
+    ImageDescription: { tag: 270, type: fieldTypes.ASCII },
+    Make: { tag: 271, type: fieldTypes.ASCII },
+    Model: { tag: 272, type: fieldTypes.ASCII },
+    StripOffsets: { tag: 273, type: fieldTypes.SHORT, isArray: true },
+    Orientation: { tag: 274, type: fieldTypes.SHORT },
+    SamplesPerPixel: { tag: 277, type: fieldTypes.SHORT, eager: true },
+    RowsPerStrip: { tag: 278, type: fieldTypes.SHORT, eager: true },
+    StripByteCounts: { tag: 279, type: fieldTypes.LONG, isArray: true },
+    MinSampleValue: { tag: 280, type: fieldTypes.SHORT, isArray: true },
+    MaxSampleValue: { tag: 281, type: fieldTypes.SHORT, isArray: true },
+    XResolution: { tag: 282, type: fieldTypes.RATIONAL },
+    YResolution: { tag: 283, type: fieldTypes.RATIONAL },
+    PlanarConfiguration: { tag: 284, type: fieldTypes.SHORT, eager: true },
+    PageName: { tag: 285, type: fieldTypes.ASCII },
+    XPosition: { tag: 286, type: fieldTypes.RATIONAL },
+    YPosition: { tag: 287, type: fieldTypes.RATIONAL },
+    FreeOffsets: { tag: 288, type: fieldTypes.LONG },
+    FreeByteCounts: { tag: 289, type: fieldTypes.LONG },
+    GrayResponseUnit: { tag: 290, type: fieldTypes.SHORT },
+    GrayResponseCurve: { tag: 291, type: fieldTypes.SHORT, isArray: true },
+    T4Options: { tag: 292, type: fieldTypes.LONG },
+    T6Options: { tag: 293, type: fieldTypes.LONG },
+    ResolutionUnit: { tag: 296, type: fieldTypes.SHORT },
+    PageNumber: { tag: 297, type: fieldTypes.SHORT, isArray: true },
+    TransferFunction: { tag: 301, type: fieldTypes.SHORT, isArray: true },
+    Software: { tag: 305, type: fieldTypes.ASCII },
+    DateTime: { tag: 306, type: fieldTypes.ASCII },
+    Artist: { tag: 315, type: fieldTypes.ASCII },
+    HostComputer: { tag: 316, type: fieldTypes.ASCII },
+    Predictor: { tag: 317, type: fieldTypes.SHORT },
+    WhitePoint: { tag: 318, type: fieldTypes.RATIONAL, isArray: true },
+    PrimaryChromaticities: { tag: 319, type: fieldTypes.RATIONAL, isArray: true },
+    ColorMap: { tag: 320, type: fieldTypes.SHORT, isArray: true },
+    HalftoneHints: { tag: 321, type: fieldTypes.SHORT, isArray: true },
+    TileWidth: { tag: 322, type: fieldTypes.SHORT, eager: true },
+    TileLength: { tag: 323, type: fieldTypes.SHORT, eager: true },
+    TileOffsets: { tag: 324, type: fieldTypes.LONG, isArray: true },
+    TileByteCounts: { tag: 325, type: fieldTypes.SHORT, isArray: true },
+    InkSet: { tag: 332, type: fieldTypes.SHORT },
+    InkNames: { tag: 333, type: fieldTypes.ASCII },
+    NumberOfInks: { tag: 334, type: fieldTypes.SHORT },
+    DotRange: { tag: 336, type: fieldTypes.BYTE, isArray: true },
+    TargetPrinter: { tag: 337, type: fieldTypes.ASCII },
+    ExtraSamples: { tag: 338, type: fieldTypes.BYTE, isArray: true, eager: true },
+    SampleFormat: { tag: 339, type: fieldTypes.SHORT, isArray: true, eager: true },
+    SMinSampleValue: { tag: 340, isArray: true },
+    SMaxSampleValue: { tag: 341, isArray: true },
+    TransferRange: { tag: 342, type: fieldTypes.SHORT, isArray: true },
+    JPEGProc: { tag: 512, type: fieldTypes.SHORT },
+    JPEGInterchangeFormat: { tag: 513, type: fieldTypes.LONG },
+    JPEGInterchangeFormatLngth: { tag: 514, type: fieldTypes.LONG },
+    JPEGRestartInterval: { tag: 515, type: fieldTypes.SHORT },
+    JPEGLosslessPredictors: { tag: 517, type: fieldTypes.SHORT, isArray: true },
+    JPEGPointTransforms: { tag: 518, type: fieldTypes.SHORT, isArray: true },
+    JPEGQTables: { tag: 519, type: fieldTypes.LONG, isArray: true },
+    JPEGDCTables: { tag: 520, type: fieldTypes.LONG, isArray: true },
+    JPEGACTables: { tag: 521, type: fieldTypes.LONG, isArray: true },
+    YCbCrCoefficients: { tag: 529, type: fieldTypes.RATIONAL, isArray: true },
+    YCbCrSubSampling: { tag: 530, type: fieldTypes.SHORT, isArray: true },
+    YCbCrPositioning: { tag: 531, type: fieldTypes.SHORT },
+    ReferenceBlackWhite: { tag: 532, type: fieldTypes.LONG, isArray: true },
+    Copyright: { tag: 33432, type: fieldTypes.ASCII },
+    BadFaxLines: { tag: 326 },
+    CleanFaxData: { tag: 327 },
+    ClipPath: { tag: 343 },
+    ConsecutiveBadFaxLines: { tag: 328 },
+    Decode: { tag: 433 },
+    DefaultImageColor: { tag: 434 },
+    Indexed: { tag: 346 },
+    JPEGTables: { tag: 347, isArray: true, eager: true },
+    StripRowCounts: { tag: 559, isArray: true },
+    SubIFDs: { tag: 330, isArray: true },
+    XClipPathUnits: { tag: 344 },
+    YClipPathUnits: { tag: 345 },
+    ApertureValue: { tag: 37378 },
+    ColorSpace: { tag: 40961 },
+    DateTimeDigitized: { tag: 36868 },
+    DateTimeOriginal: { tag: 36867 },
+    ExifIFD: { tag: 34665, name: 'Exif IFD', type: fieldTypes.LONG },
+    ExifVersion: { tag: 36864 },
+    ExposureTime: { tag: 33434 },
+    FileSource: { tag: 41728 },
+    Flash: { tag: 37385 },
+    FlashpixVersion: { tag: 40960 },
+    FNumber: { tag: 33437 },
+    ImageUniqueID: { tag: 42016 },
+    LightSource: { tag: 37384 },
+    MakerNote: { tag: 37500 },
+    ShutterSpeedValue: { tag: 37377 },
+    UserComment: { tag: 37510 },
+    IPTC: { tag: 33723 },
+    CZ_LSMINFO: { tag: 34412 },
+    ICCProfile: { tag: 34675, name: 'ICC Profile' },
+    XMP: { tag: 700 },
+    GDAL_METADATA: { tag: 42112 },
+    GDAL_NODATA: { tag: 42113, type: fieldTypes.ASCII, eager: true },
+    Photoshop: { tag: 34377 },
+    ModelPixelScale: { tag: 33550, type: fieldTypes.DOUBLE, isArray: true, eager: true },
+    ModelTiepoint: { tag: 33922, type: fieldTypes.DOUBLE, isArray: true, eager: true },
+    ModelTransformation: { tag: 34264, type: fieldTypes.DOUBLE, isArray: true, eager: true },
+    GeoKeyDirectory: { tag: 34735, type: fieldTypes.SHORT, isArray: true, eager: true },
+    GeoDoubleParams: { tag: 34736, type: fieldTypes.DOUBLE, isArray: true, eager: true },
+    GeoAsciiParams: { tag: 34737, type: fieldTypes.ASCII, eager: true },
+    LercParameters: { tag: 50674, eager: true },
+});
+/** @typedef {keyof typeof tagDictionary} TagName */
+/** @typedef {typeof tagDictionary[keyof typeof tagDictionary]['tag']} Tag */
+/**
+ * @typedef {Extract<keyof typeof tagDictionary,
+ *   { [K in keyof typeof tagDictionary]: (typeof tagDictionary)[K] extends { eager: true }
+ *   ? K : never }[keyof typeof tagDictionary]>} EagerTagName
+ */
+/**
+ * @typedef {Extract<Tag, { [K in keyof typeof tagDictionary]: (typeof tagDictionary)[K] extends { eager: true }
+ *   ? (typeof tagDictionary)[K]['tag'] : never }[keyof typeof tagDictionary]>} EagerTag
+ */
+/** @typedef {Extract<typeof tagDictionary[keyof typeof tagDictionary], {type: any}>['type']} TagType */
+/**
+ * @template {number} T
+ * @typedef {T extends 2 ? string : number} GeoTiffPrimitive
+ */
+/**
+ * @template {TagName} T
+ * @typedef {typeof tagDictionary[T]} TagDef
+ */
+/**
+ * @typedef {{
+ *   1: number;
+ *   2: string;
+ *   3: number;
+ *   4: number;
+ *   5: number;
+ *   6: number;
+ *   7: ArrayBuffer;
+ *   8: number;
+ *   9: number;
+ *   10: number;
+ *   11: number;
+ *   12: number;
+ *   16: number;
+ *   17: number;
+ *   18: number;
+ * }} FieldTypeMap
+ */
+/**
+ * @template {TagName} T
+ * @typedef {TagDef<T> extends { isArray: true }
+ *   ? (TagDef<T> extends { type: typeof fieldTypes.DOUBLE } ? number[] :
+ *      TagDef<T> extends { type: typeof fieldTypes.ASCII } ? string[] :
+ *      TagDef<T> extends { type: typeof fieldTypes.BYTE | typeof fieldTypes.SBYTE | typeof fieldTypes.UNDEFINED }
+ *        ? Uint8Array | Int8Array :
+ *      (number[] | TypedArray))
+ *   : (TagDef<T> extends { type: keyof FieldTypeMap } ? FieldTypeMap[TagDef<T>['type']] : any)} TagValue
+ */
+/**
+ * Maps tag names to their numeric values
+ * @type {Record<string, number>}
+ */
+const tags = {};
+/**
+ * Maps tag numbers to their definitions
+ * @type {Record<number, { tag: number, name: string, type: string|number|undefined, isArray: boolean, eager: boolean }>}
+ */
+const tagDefinitions = {};
+/**
+ * Registers a new field tag
+ * @param {number} tag the numeric tiff tag
+ * @param {string} name the name of the tag that will be reported in the IFD
+ * @param {keyof fieldTypes|number|undefined} type the tags data type
+ * @param {Boolean} isArray whether the tag is an array
+ * @param {boolean} [eager=false] whether to eagerly fetch deferred fields.
+ *                                 When false (default), tags are loaded lazily on-demand.
+ *                                 When true, all tags are loaded immediately during parsing.
+ */
+function registerTag(tag, name, type, isArray = false, eager = false) {
+    tags[name] = tag;
+    tagDefinitions[tag] = { tag, name, type: typeof type === 'string' ? fieldTypes[type] : type, isArray, eager };
+}
+for (const [key, value] of Object.entries(tagDictionary)) {
+    const entry = /** @type {TagDictionaryEntry} */ (value);
+    registerTag(entry.tag, entry.name || key, entry.type, entry.isArray, entry.eager);
+}
+/**
+ * @param {number|string} tagIdentifier The field tag ID or name
+ * @returns {number} the resolved tag ID
+ */
+function resolveTag(tagIdentifier) {
+    if (typeof tagIdentifier === 'number') {
+        return tagIdentifier;
+    }
+    return tags[tagIdentifier];
+}
+const photometricInterpretations = {
+    WhiteIsZero: 0,
+    BlackIsZero: 1,
+    RGB: 2,
+    Palette: 3,
+    CMYK: 5,
+    YCbCr: 6,
+    CIELab: 8};
+const ExtraSamplesValues = {
+    Unspecified: 0};
+const LercParameters = {
+    AddCompression: 1,
+};
+const LercAddCompression = {
+    None: 0,
+    Deflate: 1,
+    Zstandard: 2,
+};
+const geoKeyNames = /** @type {const} */ ({
+    1024: 'GTModelTypeGeoKey',
+    1025: 'GTRasterTypeGeoKey',
+    1026: 'GTCitationGeoKey',
+    2048: 'GeographicTypeGeoKey',
+    2049: 'GeogCitationGeoKey',
+    2050: 'GeogGeodeticDatumGeoKey',
+    2051: 'GeogPrimeMeridianGeoKey',
+    2052: 'GeogLinearUnitsGeoKey',
+    2053: 'GeogLinearUnitSizeGeoKey',
+    2054: 'GeogAngularUnitsGeoKey',
+    2055: 'GeogAngularUnitSizeGeoKey',
+    2056: 'GeogEllipsoidGeoKey',
+    2057: 'GeogSemiMajorAxisGeoKey',
+    2058: 'GeogSemiMinorAxisGeoKey',
+    2059: 'GeogInvFlatteningGeoKey',
+    2060: 'GeogAzimuthUnitsGeoKey',
+    2061: 'GeogPrimeMeridianLongGeoKey',
+    2062: 'GeogTOWGS84GeoKey',
+    3072: 'ProjectedCSTypeGeoKey',
+    3073: 'PCSCitationGeoKey',
+    3074: 'ProjectionGeoKey',
+    3075: 'ProjCoordTransGeoKey',
+    3076: 'ProjLinearUnitsGeoKey',
+    3077: 'ProjLinearUnitSizeGeoKey',
+    3078: 'ProjStdParallel1GeoKey',
+    3079: 'ProjStdParallel2GeoKey',
+    3080: 'ProjNatOriginLongGeoKey',
+    3081: 'ProjNatOriginLatGeoKey',
+    3082: 'ProjFalseEastingGeoKey',
+    3083: 'ProjFalseNorthingGeoKey',
+    3084: 'ProjFalseOriginLongGeoKey',
+    3085: 'ProjFalseOriginLatGeoKey',
+    3086: 'ProjFalseOriginEastingGeoKey',
+    3087: 'ProjFalseOriginNorthingGeoKey',
+    3088: 'ProjCenterLongGeoKey',
+    3089: 'ProjCenterLatGeoKey',
+    3090: 'ProjCenterEastingGeoKey',
+    3091: 'ProjCenterNorthingGeoKey',
+    3092: 'ProjScaleAtNatOriginGeoKey',
+    3093: 'ProjScaleAtCenterGeoKey',
+    3094: 'ProjAzimuthAngleGeoKey',
+    3095: 'ProjStraightVertPoleLongGeoKey',
+    3096: 'ProjRectifiedGridAngleGeoKey',
+    4096: 'VerticalCSTypeGeoKey',
+    4097: 'VerticalCitationGeoKey',
+    4098: 'VerticalDatumGeoKey',
+    4099: 'VerticalUnitsGeoKey',
+});
+for (const [key, name] of Object.entries(geoKeyNames)) {
+}
+
+function fromWhiteIsZero(raster, max) {
+    const { width, height } = raster;
+    const rgbRaster = new Uint8Array(width * height * 3);
+    let value;
+    for (let i = 0, j = 0; i < raster.length; ++i, j += 3) {
+        value = 256 - (raster[i] / max) * 256;
+        rgbRaster[j] = value;
+        rgbRaster[j + 1] = value;
+        rgbRaster[j + 2] = value;
+    }
+    return rgbRaster;
+}
+function fromBlackIsZero(raster, max) {
+    const { width, height } = raster;
+    const rgbRaster = new Uint8Array(width * height * 3);
+    let value;
+    for (let i = 0, j = 0; i < raster.length; ++i, j += 3) {
+        value = (raster[i] / max) * 256;
+        rgbRaster[j] = value;
+        rgbRaster[j + 1] = value;
+        rgbRaster[j + 2] = value;
+    }
+    return rgbRaster;
+}
+function fromPalette(raster, colorMap) {
+    const { width, height } = raster;
+    const rgbRaster = new Uint8Array(width * height * 3);
+    const greenOffset = colorMap.length / 3;
+    const blueOffset = (colorMap.length / 3) * 2;
+    for (let i = 0, j = 0; i < raster.length; ++i, j += 3) {
+        const mapIndex = raster[i];
+        rgbRaster[j] = (colorMap[mapIndex] / 65536) * 256;
+        rgbRaster[j + 1] = (colorMap[mapIndex + greenOffset] / 65536) * 256;
+        rgbRaster[j + 2] = (colorMap[mapIndex + blueOffset] / 65536) * 256;
+    }
+    return rgbRaster;
+}
+function fromCMYK(cmykRaster) {
+    const { width, height } = cmykRaster;
+    const rgbRaster = new Uint8Array(width * height * 3);
+    for (let i = 0, j = 0; i < cmykRaster.length; i += 4, j += 3) {
+        const c = cmykRaster[i];
+        const m = cmykRaster[i + 1];
+        const y = cmykRaster[i + 2];
+        const k = cmykRaster[i + 3];
+        rgbRaster[j] = 255 * ((255 - c) / 256) * ((255 - k) / 256);
+        rgbRaster[j + 1] = 255 * ((255 - m) / 256) * ((255 - k) / 256);
+        rgbRaster[j + 2] = 255 * ((255 - y) / 256) * ((255 - k) / 256);
+    }
+    return rgbRaster;
+}
+function fromYCbCr(yCbCrRaster) {
+    const { width, height } = yCbCrRaster;
+    const rgbRaster = new Uint8ClampedArray(width * height * 3);
+    for (let i = 0, j = 0; i < yCbCrRaster.length; i += 3, j += 3) {
+        const y = yCbCrRaster[i];
+        const cb = yCbCrRaster[i + 1];
+        const cr = yCbCrRaster[i + 2];
+        rgbRaster[j] = y + 1.402 * (cr - 0x80);
+        rgbRaster[j + 1] = y - 0.34414 * (cb - 0x80) - 0.71414 * (cr - 0x80);
+        rgbRaster[j + 2] = y + 1.772 * (cb - 0x80);
+    }
+    return rgbRaster;
+}
+const Xn = 0.95047;
+const Yn = 1.0;
+const Zn = 1.08883;
+// from https://github.com/antimatter15/rgb-lab/blob/master/color.js
+function fromCIELab(cieLabRaster) {
+    const { width, height } = cieLabRaster;
+    const rgbRaster = new Uint8Array(width * height * 3);
+    for (let i = 0, j = 0; i < cieLabRaster.length; i += 3, j += 3) {
+        const L = cieLabRaster[i + 0];
+        const a_ = (cieLabRaster[i + 1] << 24) >> 24; // conversion from uint8 to int8
+        const b_ = (cieLabRaster[i + 2] << 24) >> 24; // same
+        let y = (L + 16) / 116;
+        let x = a_ / 500 + y;
+        let z = y - b_ / 200;
+        let r;
+        let g;
+        let b;
+        x = Xn * (x * x * x > 0.008856 ? x * x * x : (x - 16 / 116) / 7.787);
+        y = Yn * (y * y * y > 0.008856 ? y * y * y : (y - 16 / 116) / 7.787);
+        z = Zn * (z * z * z > 0.008856 ? z * z * z : (z - 16 / 116) / 7.787);
+        r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+        g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+        b = x * 0.0557 + y * -0.204 + z * 1.057;
+        r = r > 0.0031308 ? 1.055 * r ** (1 / 2.4) - 0.055 : 12.92 * r;
+        g = g > 0.0031308 ? 1.055 * g ** (1 / 2.4) - 0.055 : 12.92 * g;
+        b = b > 0.0031308 ? 1.055 * b ** (1 / 2.4) - 0.055 : 12.92 * b;
+        rgbRaster[j] = Math.max(0, Math.min(1, r)) * 255;
+        rgbRaster[j + 1] = Math.max(0, Math.min(1, g)) * 255;
+        rgbRaster[j + 2] = Math.max(0, Math.min(1, b)) * 255;
+    }
+    return rgbRaster;
+}
+
+/** @import BaseDecoder, {BaseDecoderParameters} from "./basedecoder.js" */
+/**
+ * @typedef {Object} RegistryEntry
+ * @property {function():Promise<typeof BaseDecoder>} importFn
+ * @property {function(import("../imagefiledirectory.js").ImageFileDirectory):Promise<BaseDecoderParameters>} decoderParameterFn
+ * @property {boolean} preferWorker
+ */
+/** @type {Map<number | undefined, RegistryEntry>} */
+const registry = new Map();
+/**
+ * Default decoder parameter retrieval function
+ * @param {import("../imagefiledirectory.js").ImageFileDirectory} fileDirectory
+ * @returns {Promise<BaseDecoderParameters>}
+ */
+async function defaultDecoderParameterFn(fileDirectory) {
+    const isTiled = !fileDirectory.hasTag('StripOffsets');
+    return /** @type {BaseDecoderParameters} */ ({
+        tileWidth: isTiled
+            ? await fileDirectory.loadValue('TileWidth')
+            : await fileDirectory.loadValue('ImageWidth'),
+        tileHeight: isTiled
+            ? await fileDirectory.loadValue('TileLength')
+            : (await fileDirectory.loadValue('RowsPerStrip')
+                || await fileDirectory.loadValue('ImageLength')),
+        planarConfiguration: await fileDirectory.loadValue('PlanarConfiguration'),
+        bitsPerSample: await fileDirectory.loadValue('BitsPerSample'),
+        predictor: await fileDirectory.loadValue('Predictor') || 1,
+    });
+}
+/**
+ * Register a decoder for a specific compression method or a range of compressions
+ * @param {(number|undefined|(number|undefined)[])} cases ids of the compression methods to register for
+ * @param {function():Promise<typeof BaseDecoder>} importFn the function to import the decoder
+ * @param {function(import("../imagefiledirectory.js").ImageFileDirectory):Promise<BaseDecoderParameters>} decoderParameterFn
+ * @param {boolean} preferWorker_ Whether to prefer running the decoder in a worker
+ */
+function addDecoder(cases, importFn, decoderParameterFn = defaultDecoderParameterFn, preferWorker_ = true) {
+    if (!Array.isArray(cases)) {
+        cases = [cases]; // eslint-disable-line no-param-reassign
+    }
+    cases.forEach((c) => {
+        registry.set(c, { importFn, decoderParameterFn, preferWorker: preferWorker_ });
+    });
+}
+/**
+ * Get the required decoder parameters for a specific compression method
+ * @param {number|undefined} compression
+ * @param {import('../imagefiledirectory.js').ImageFileDirectory} fileDirectory
+ */
+async function getDecoderParameters(compression, fileDirectory) {
+    if (!registry.has(compression)) {
+        throw new Error(`Unknown compression method identifier: ${compression}`);
+    }
+    const { decoderParameterFn } = /** @type {RegistryEntry} */ (registry.get(compression));
+    return decoderParameterFn(fileDirectory);
+}
+/**
+ * Get a decoder for a specific compression and parameters
+ * @param {number} compression the compression method identifier
+ * @param {BaseDecoderParameters} decoderParameters the parameters for the decoder
+ * @returns {Promise<import('./basedecoder.js').default>}
+ */
+async function getDecoder(compression, decoderParameters) {
+    if (!registry.has(compression)) {
+        throw new Error(`Unknown compression method identifier: ${compression}`);
+    }
+    const { importFn } = /** @type {RegistryEntry} */ (registry.get(compression));
+    const Decoder = await importFn();
+    return new Decoder(decoderParameters);
+}
+const defaultDecoderDefinitions = [
+    // No compression
+    {
+        cases: [undefined, 1],
+        importFn: () => Promise.resolve().then(function () { return raw; }).then((m) => m.default),
+        preferWorker: false,
+    },
+    // LZW
+    {
+        cases: 5,
+        importFn: () => Promise.resolve().then(function () { return lzw; }).then((m) => m.default),
+    },
+    // Old-style JPEG
+    {
+        cases: 6,
+        importFn: () => {
+            throw new Error('old style JPEG compression is not supported.');
+        },
+    },
+    // JPEG
+    {
+        cases: 7,
+        importFn: () => Promise.resolve().then(function () { return jpeg; }).then((m) => m.default),
+        /**
+         * @param {import("../imagefiledirectory.js").ImageFileDirectory} fileDirectory
+         */
+        decoderParameterFn: async (fileDirectory) => {
+            return {
+                ...await defaultDecoderParameterFn(fileDirectory),
+                JPEGTables: await fileDirectory.loadValue('JPEGTables'),
+            };
+        },
+    },
+    // Deflate / Adobe Deflate
+    {
+        cases: [8, 32946],
+        importFn: () => Promise.resolve().then(function () { return deflate; }).then((m) => m.default),
+    },
+    // PackBits
+    {
+        cases: 32773,
+        importFn: () => Promise.resolve().then(function () { return packbits; }).then((m) => m.default),
+    },
+    // LERC
+    {
+        cases: 34887,
+        importFn: () => Promise.resolve().then(function () { return lerc; })
+            .then(async (m) => {
+            await m.zstd.init();
+            return m;
+        })
+            .then((m) => m.default),
+        /**
+         * @param {import("../imagefiledirectory.js").ImageFileDirectory} fileDirectory
+         */
+        decoderParameterFn: async (fileDirectory) => {
+            return {
+                ...await defaultDecoderParameterFn(fileDirectory),
+                LercParameters: await fileDirectory.loadValue('LercParameters'),
+            };
+        },
+    },
+    // zstd
+    {
+        cases: 50000,
+        importFn: () => Promise.resolve().then(function () { return zstd$1; })
+            .then(async (m) => {
+            await m.zstd.init();
+            return m;
+        })
+            .then((m) => m.default),
+    },
+    // WebP Images
+    {
+        cases: 50001,
+        importFn: () => Promise.resolve().then(function () { return webimage; }).then((m) => m.default),
+        /**
+         * @param {import("../imagefiledirectory.js").ImageFileDirectory} fileDirectory
+         */
+        decoderParameterFn: async (fileDirectory) => {
+            return {
+                ...await defaultDecoderParameterFn(fileDirectory),
+                samplesPerPixel: Number(await fileDirectory.loadValue('SamplesPerPixel')) || 4,
+            };
+        },
+        preferWorker: false,
+    },
+];
+// Add default decoders to registry (end-user may override with other implementations)
+for (const decoderDefinition of defaultDecoderDefinitions) {
+    const { cases, importFn, decoderParameterFn, preferWorker: preferWorker_ } = decoderDefinition;
+    addDecoder(cases, importFn, decoderParameterFn, preferWorker_);
+}
+
+/**
+ * @module resample
+ */
+/**
+ * @param {import("./geotiff.js").TypedArray} array
+ * @param {number} width
+ * @param {number} height
+ * @param {number} [samplesPerPixel=1]
+ */
+function copyNewSize(array, width, height, samplesPerPixel = 1) {
+    return new (Object.getPrototypeOf(array).constructor)(width * height * samplesPerPixel);
+}
+/**
+ * Resample the input arrays using nearest neighbor value selection.
+ * @param {import("./geotiff.js").TypedArray[]} valueArrays The input arrays to resample
+ * @param {number} inWidth The width of the input rasters
+ * @param {number} inHeight The height of the input rasters
+ * @param {number} outWidth The desired width of the output rasters
+ * @param {number} outHeight The desired height of the output rasters
+ * @returns {import("./geotiff.js").TypedArray[]} The resampled rasters
+ */
+function resampleNearest(valueArrays, inWidth, inHeight, outWidth, outHeight) {
+    const relX = inWidth / outWidth;
+    const relY = inHeight / outHeight;
+    return valueArrays.map((array) => {
+        const newArray = copyNewSize(array, outWidth, outHeight);
+        for (let y = 0; y < outHeight; ++y) {
+            const cy = Math.min(Math.round(relY * y), inHeight - 1);
+            for (let x = 0; x < outWidth; ++x) {
+                const cx = Math.min(Math.round(relX * x), inWidth - 1);
+                const value = array[(cy * inWidth) + cx];
+                newArray[(y * outWidth) + x] = value;
+            }
+        }
+        return newArray;
+    });
+}
+// simple linear interpolation, code from:
+// https://en.wikipedia.org/wiki/Linear_interpolation#Programming_language_support
+/**
+ * @param {number} v0
+ * @param {number} v1
+ * @param {number} t
+ */
+function lerp(v0, v1, t) {
+    return ((1 - t) * v0) + (t * v1);
+}
+/**
+ * Resample the input arrays using bilinear interpolation.
+ * @param {import("./geotiff.js").TypedArray[]} valueArrays The input arrays to resample
+ * @param {number} inWidth The width of the input rasters
+ * @param {number} inHeight The height of the input rasters
+ * @param {number} outWidth The desired width of the output rasters
+ * @param {number} outHeight The desired height of the output rasters
+ * @returns {import("./geotiff.js").TypedArray[]} The resampled rasters
+ */
+function resampleBilinear(valueArrays, inWidth, inHeight, outWidth, outHeight) {
+    const relX = inWidth / outWidth;
+    const relY = inHeight / outHeight;
+    return valueArrays.map((array) => {
+        const newArray = copyNewSize(array, outWidth, outHeight);
+        for (let y = 0; y < outHeight; ++y) {
+            const rawY = relY * y;
+            const yl = Math.floor(rawY);
+            const yh = Math.min(Math.ceil(rawY), (inHeight - 1));
+            for (let x = 0; x < outWidth; ++x) {
+                const rawX = relX * x;
+                const tx = rawX % 1;
+                const xl = Math.floor(rawX);
+                const xh = Math.min(Math.ceil(rawX), (inWidth - 1));
+                const ll = array[(yl * inWidth) + xl];
+                const hl = array[(yl * inWidth) + xh];
+                const lh = array[(yh * inWidth) + xl];
+                const hh = array[(yh * inWidth) + xh];
+                const value = lerp(lerp(ll, hl, tx), lerp(lh, hh, tx), rawY % 1);
+                newArray[(y * outWidth) + x] = value;
+            }
+        }
+        return newArray;
+    });
+}
+/**
+ * Resample the input arrays using the selected resampling method.
+ * @param {import("./geotiff.js").TypedArray[]} valueArrays The input arrays to resample
+ * @param {number} inWidth The width of the input rasters
+ * @param {number} inHeight The height of the input rasters
+ * @param {number} outWidth The desired width of the output rasters
+ * @param {number} outHeight The desired height of the output rasters
+ * @param {string} [method = 'nearest'] The desired resampling method
+ * @returns {import("./geotiff.js").TypedArray[]} The resampled rasters
+ */
+function resample(valueArrays, inWidth, inHeight, outWidth, outHeight, method = 'nearest') {
+    switch (method.toLowerCase()) {
+        case 'nearest':
+            return resampleNearest(valueArrays, inWidth, inHeight, outWidth, outHeight);
+        case 'bilinear':
+        case 'linear':
+            return resampleBilinear(valueArrays, inWidth, inHeight, outWidth, outHeight);
+        default:
+            throw new Error(`Unsupported resampling method: '${method}'`);
+    }
+}
+/**
+ * Resample the pixel interleaved input array using nearest neighbor value selection.
+ * @param {import("./geotiff.js").TypedArray} valueArray The input array to resample
+ * @param {number} inWidth The width of the input rasters
+ * @param {number} inHeight The height of the input rasters
+ * @param {number} outWidth The desired width of the output rasters
+ * @param {number} outHeight The desired height of the output rasters
+ * @param {number} samples The number of samples per pixel for pixel
+ *                         interleaved data
+ * @returns {import("./geotiff.js").TypedArray} The resampled raster
+ */
+function resampleNearestInterleaved(valueArray, inWidth, inHeight, outWidth, outHeight, samples) {
+    const relX = inWidth / outWidth;
+    const relY = inHeight / outHeight;
+    const newArray = copyNewSize(valueArray, outWidth, outHeight, samples);
+    for (let y = 0; y < outHeight; ++y) {
+        const cy = Math.min(Math.round(relY * y), inHeight - 1);
+        for (let x = 0; x < outWidth; ++x) {
+            const cx = Math.min(Math.round(relX * x), inWidth - 1);
+            for (let i = 0; i < samples; ++i) {
+                const value = valueArray[(cy * inWidth * samples) + (cx * samples) + i];
+                newArray[(y * outWidth * samples) + (x * samples) + i] = value;
+            }
+        }
+    }
+    return newArray;
+}
+/**
+ * Resample the pixel interleaved input array using bilinear interpolation.
+ * @param {import("./geotiff.js").TypedArray} valueArray The input array to resample
+ * @param {number} inWidth The width of the input rasters
+ * @param {number} inHeight The height of the input rasters
+ * @param {number} outWidth The desired width of the output rasters
+ * @param {number} outHeight The desired height of the output rasters
+ * @param {number} samples The number of samples per pixel for pixel
+ *                         interleaved data
+ * @returns {import("./geotiff.js").TypedArray} The resampled raster
+ */
+function resampleBilinearInterleaved(valueArray, inWidth, inHeight, outWidth, outHeight, samples) {
+    const relX = inWidth / outWidth;
+    const relY = inHeight / outHeight;
+    const newArray = copyNewSize(valueArray, outWidth, outHeight, samples);
+    for (let y = 0; y < outHeight; ++y) {
+        const rawY = relY * y;
+        const yl = Math.floor(rawY);
+        const yh = Math.min(Math.ceil(rawY), (inHeight - 1));
+        for (let x = 0; x < outWidth; ++x) {
+            const rawX = relX * x;
+            const tx = rawX % 1;
+            const xl = Math.floor(rawX);
+            const xh = Math.min(Math.ceil(rawX), (inWidth - 1));
+            for (let i = 0; i < samples; ++i) {
+                const ll = valueArray[(yl * inWidth * samples) + (xl * samples) + i];
+                const hl = valueArray[(yl * inWidth * samples) + (xh * samples) + i];
+                const lh = valueArray[(yh * inWidth * samples) + (xl * samples) + i];
+                const hh = valueArray[(yh * inWidth * samples) + (xh * samples) + i];
+                const value = lerp(lerp(ll, hl, tx), lerp(lh, hh, tx), rawY % 1);
+                newArray[(y * outWidth * samples) + (x * samples) + i] = value;
+            }
+        }
+    }
+    return newArray;
+}
+/**
+ * Resample the pixel interleaved input array using the selected resampling method.
+ * @param {import("./geotiff.js").TypedArray} valueArray The input array to resample
+ * @param {number} inWidth The width of the input rasters
+ * @param {number} inHeight The height of the input rasters
+ * @param {number} outWidth The desired width of the output rasters
+ * @param {number} outHeight The desired height of the output rasters
+ * @param {number} samples The number of samples per pixel for pixel
+ *                                 interleaved data
+ * @param {string} [method = 'nearest'] The desired resampling method
+ * @returns {import("./geotiff.js").TypedArray} The resampled rasters
+ */
+function resampleInterleaved(valueArray, inWidth, inHeight, outWidth, outHeight, samples, method = 'nearest') {
+    switch (method.toLowerCase()) {
+        case 'nearest':
+            return resampleNearestInterleaved(valueArray, inWidth, inHeight, outWidth, outHeight, samples);
+        case 'bilinear':
+        case 'linear':
+            return resampleBilinearInterleaved(valueArray, inWidth, inHeight, outWidth, outHeight, samples);
+        default:
+            throw new Error(`Unsupported resampling method: '${method}'`);
+    }
+}
+
+/** @module geotiffimage */
+/** @import {DecoderWorker, TypedArray} from "./geotiff.js" */
+/** @import {ReadRasterResult} from "./geotiff.js" */
+/** @import {ReadRastersOptions} from "./geotiff.js" */
+/** @import {ReadRGBOptions} from "./geotiff.js" */
+/**
+ * @param {Array<number>|TypedArray} array
+ * @param {number} start
+ * @param {number} end
+ * @returns {number}
+ */
+function sum$1(array, start, end) {
+    let s = 0;
+    for (let i = start; i < end; ++i) {
+        s += array[i];
+    }
+    return s;
+}
+/**
+ * @param {1|2|3} format
+ * @param {number} bitsPerSample
+ * @param {number|ArrayBufferLike} sizeOrData
+ * @returns {TypedArray}
+ */
+function arrayForType(format, bitsPerSample, sizeOrData) {
+    let TypedArrayConstructor;
+    switch (format) {
+        case 1: // unsigned integer data
+            if (bitsPerSample <= 8) {
+                TypedArrayConstructor = Uint8Array;
+            }
+            else if (bitsPerSample <= 16) {
+                TypedArrayConstructor = Uint16Array;
+            }
+            else if (bitsPerSample <= 32) {
+                TypedArrayConstructor = Uint32Array;
+            }
+            break;
+        case 2: // twos complement signed integer data
+            if (bitsPerSample === 8) {
+                TypedArrayConstructor = Int8Array;
+            }
+            else if (bitsPerSample === 16) {
+                TypedArrayConstructor = Int16Array;
+            }
+            else if (bitsPerSample === 32) {
+                TypedArrayConstructor = Int32Array;
+            }
+            break;
+        case 3: // floating point data
+            switch (bitsPerSample) {
+                case 16:
+                case 32:
+                    TypedArrayConstructor = Float32Array;
+                    break;
+                case 64:
+                    TypedArrayConstructor = Float64Array;
+                    break;
+            }
+            break;
+    }
+    if (TypedArrayConstructor) {
+        if (typeof sizeOrData === 'number') {
+            return new TypedArrayConstructor(sizeOrData);
+        }
+        else if (sizeOrData instanceof ArrayBuffer) {
+            return new TypedArrayConstructor(sizeOrData);
+        }
+    }
+    throw Error('Unsupported data format/bitsPerSample');
+}
+/**
+ * @param {1|2|3} format
+ * @param {number} bitsPerSample
+ * @returns {boolean}
+ */
+function needsNormalization(format, bitsPerSample) {
+    if ((format === 1 || format === 2) && bitsPerSample <= 32 && bitsPerSample % 8 === 0) {
+        return false;
+    }
+    else if (format === 3 && (bitsPerSample === 16 || bitsPerSample === 32 || bitsPerSample === 64)) {
+        return false;
+    }
+    return true;
+}
+/**
+ * @param {ArrayBufferLike} inBuffer
+ * @param {1|2|3} format
+ * @param {1|2} planarConfiguration
+ * @param {number} samplesPerPixel
+ * @param {number} bitsPerSample
+ * @param {number} tileWidth
+ * @param {number} tileHeight
+ * @returns {ArrayBufferLike}
+ */
+function normalizeArray(inBuffer, format, planarConfiguration, samplesPerPixel, bitsPerSample, tileWidth, tileHeight) {
+    // const inByteArray = new Uint8Array(inBuffer);
+    const view = new DataView(inBuffer);
+    const outSize = planarConfiguration === 2
+        ? tileHeight * tileWidth
+        : tileHeight * tileWidth * samplesPerPixel;
+    const samplesToTransfer = planarConfiguration === 2
+        ? 1 : samplesPerPixel;
+    const outArray = arrayForType(format, bitsPerSample, outSize);
+    // let pixel = 0;
+    const bitMask = parseInt('1'.repeat(bitsPerSample), 2);
+    if (format === 1) { // unsigned integer
+        // translation of https://github.com/OSGeo/gdal/blob/master/gdal/frmts/gtiff/geotiff.cpp#L7337
+        let pixelBitSkip;
+        // let sampleBitOffset = 0;
+        if (planarConfiguration === 1) {
+            pixelBitSkip = samplesPerPixel * bitsPerSample;
+            // sampleBitOffset = (samplesPerPixel - 1) * bitsPerSample;
+        }
+        else {
+            pixelBitSkip = bitsPerSample;
+        }
+        // Bits per line rounds up to next byte boundary.
+        let bitsPerLine = tileWidth * pixelBitSkip;
+        if ((bitsPerLine & 7) !== 0) {
+            bitsPerLine = (bitsPerLine + 7) & (-8);
+        }
+        for (let y = 0; y < tileHeight; ++y) {
+            const lineBitOffset = y * bitsPerLine;
+            for (let x = 0; x < tileWidth; ++x) {
+                const pixelBitOffset = lineBitOffset + (x * samplesToTransfer * bitsPerSample);
+                for (let i = 0; i < samplesToTransfer; ++i) {
+                    const bitOffset = pixelBitOffset + (i * bitsPerSample);
+                    const outIndex = (((y * tileWidth) + x) * samplesToTransfer) + i;
+                    const byteOffset = Math.floor(bitOffset / 8);
+                    const innerBitOffset = bitOffset % 8;
+                    if (innerBitOffset + bitsPerSample <= 8) {
+                        outArray[outIndex] = (view.getUint8(byteOffset) >> (8 - bitsPerSample) - innerBitOffset) & bitMask;
+                    }
+                    else if (innerBitOffset + bitsPerSample <= 16) {
+                        outArray[outIndex] = (view.getUint16(byteOffset) >> (16 - bitsPerSample) - innerBitOffset) & bitMask;
+                    }
+                    else if (innerBitOffset + bitsPerSample <= 24) {
+                        const raw = (view.getUint16(byteOffset) << 8) | (view.getUint8(byteOffset + 2));
+                        outArray[outIndex] = (raw >> (24 - bitsPerSample) - innerBitOffset) & bitMask;
+                    }
+                    else {
+                        outArray[outIndex] = (view.getUint32(byteOffset) >> (32 - bitsPerSample) - innerBitOffset) & bitMask;
+                    }
+                    // let outWord = 0;
+                    // for (let bit = 0; bit < bitsPerSample; ++bit) {
+                    //   if (inByteArray[bitOffset >> 3]
+                    //     & (0x80 >> (bitOffset & 7))) {
+                    //     outWord |= (1 << (bitsPerSample - 1 - bit));
+                    //   }
+                    //   ++bitOffset;
+                    // }
+                    // outArray[outIndex] = outWord;
+                    // outArray[pixel] = outWord;
+                    // pixel += 1;
+                }
+                // bitOffset = bitOffset + pixelBitSkip - bitsPerSample;
+            }
+        }
+    }
+    return outArray.buffer;
+}
+/**
+ * GeoTIFF sub-file image.
+ */
+class GeoTIFFImage {
+    /**
+     * @constructor
+     * @param {import("./imagefiledirectory.js").ImageFileDirectory} fileDirectory The parsed file directory
+     * @param {Boolean} littleEndian Whether the file is encoded in little or big endian
+     * @param {Boolean} cache Whether or not decoded tiles shall be cached
+     * @param {import('./source/basesource.js').BaseSource} source The datasource to read from
+     */
+    constructor(fileDirectory, littleEndian, cache, source) {
+        this.fileDirectory = fileDirectory;
+        this.littleEndian = littleEndian;
+        /** @type {Array<Promise<ArrayBufferLike>>|null} */
+        this.tiles = cache ? [] : null;
+        this.isTiled = !fileDirectory.hasTag('StripOffsets');
+        const planarConfiguration = fileDirectory.getValue('PlanarConfiguration') ?? 1;
+        if (planarConfiguration !== 1 && planarConfiguration !== 2) {
+            throw new Error('Invalid planar configuration.');
+        }
+        /** @type {1 | 2} */
+        this.planarConfiguration = planarConfiguration;
+        this.source = source;
+    }
+    /**
+     * Returns the associated parsed file directory.
+     * @returns {import("./imagefiledirectory.js").ImageFileDirectory} the parsed file directory
+     */
+    getFileDirectory() {
+        return this.fileDirectory;
+    }
+    /**
+     * Returns the associated parsed geo keys.
+     * @returns {Partial<Record<import('./globals.js').GeoKeyName, *>>|null} the parsed geo keys
+     */
+    getGeoKeys() {
+        return this.fileDirectory.parseGeoKeyDirectory();
+    }
+    /**
+     * Returns the width of the image.
+     * @returns {Number} the width of the image
+     */
+    getWidth() {
+        return this.fileDirectory.getValue('ImageWidth') || 0;
+    }
+    /**
+     * Returns the height of the image.
+     * @returns {Number} the height of the image
+     */
+    getHeight() {
+        return this.fileDirectory.getValue('ImageLength') || 0;
+    }
+    /**
+     * Returns the number of samples per pixel.
+     * @returns {number} the number of samples per pixel
+     */
+    getSamplesPerPixel() {
+        return this.fileDirectory.getValue('SamplesPerPixel') ?? 1;
+    }
+    /**
+     * Returns the width of each tile.
+     * @returns {number} the width of each tile
+     */
+    getTileWidth() {
+        return this.isTiled ? (this.fileDirectory.getValue('TileWidth') || 0) : this.getWidth();
+    }
+    /**
+     * Returns the height of each tile.
+     * @returns {number} the height of each tile
+     */
+    getTileHeight() {
+        if (this.isTiled) {
+            return this.fileDirectory.getValue('TileLength') || 0;
+        }
+        const rowsPerStrip = this.fileDirectory.hasTag('RowsPerStrip') && this.fileDirectory.getValue('RowsPerStrip');
+        if (rowsPerStrip) {
+            return Math.min(rowsPerStrip, this.getHeight());
+        }
+        return this.getHeight();
+    }
+    getBlockWidth() {
+        return this.getTileWidth();
+    }
+    /**
+     * @param {number} y
+     * @returns {number}
+     */
+    getBlockHeight(y) {
+        if (this.isTiled || (y + 1) * this.getTileHeight() <= this.getHeight()) {
+            return this.getTileHeight();
+        }
+        else {
+            return this.getHeight() - (y * this.getTileHeight());
+        }
+    }
+    /**
+     * Calculates the number of bytes for each pixel across all samples. Only full
+     * bytes are supported, an exception is thrown when this is not the case.
+     * @returns {Number} the bytes per pixel
+     */
+    getBytesPerPixel() {
+        let bytes = 0;
+        // this is a short list, so we assume this is already loaded
+        const bitsPerSample = this.fileDirectory.getValue('BitsPerSample') || [];
+        for (let i = 0; i < bitsPerSample.length; ++i) {
+            bytes += this.getSampleByteSize(i);
+        }
+        return bytes;
+    }
+    /**
+     * @param {number} i
+     * @returns {number}
+     */
+    getSampleByteSize(i) {
+        const bitsPerSample = this.fileDirectory.getValue('BitsPerSample') || [];
+        if (i >= bitsPerSample.length) {
+            throw new RangeError(`Sample index ${i} is out of range.`);
+        }
+        return Math.ceil(bitsPerSample[i] / 8);
+    }
+    /**
+     * @param {number} sampleIndex
+     * @returns {(this: DataView, byteOffset: number, littleEndian: boolean) => number}
+     */
+    getReaderForSample(sampleIndex) {
+        const sampleFormat = this.fileDirectory.getValue('SampleFormat');
+        const format = sampleFormat
+            ? sampleFormat[sampleIndex] : 1;
+        const bitsPerSample = (this.fileDirectory.getValue('BitsPerSample') || [])[sampleIndex];
+        switch (format) {
+            case 1: // unsigned integer data
+                if (bitsPerSample <= 8) {
+                    return DataView.prototype.getUint8;
+                }
+                else if (bitsPerSample <= 16) {
+                    return DataView.prototype.getUint16;
+                }
+                else if (bitsPerSample <= 32) {
+                    return DataView.prototype.getUint32;
+                }
+                break;
+            case 2: // twos complement signed integer data
+                if (bitsPerSample <= 8) {
+                    return DataView.prototype.getInt8;
+                }
+                else if (bitsPerSample <= 16) {
+                    return DataView.prototype.getInt16;
+                }
+                else if (bitsPerSample <= 32) {
+                    return DataView.prototype.getInt32;
+                }
+                break;
+            case 3:
+                switch (bitsPerSample) {
+                    case 16:
+                        return function (offset, littleEndian) {
+                            return getFloat16(this, offset, littleEndian);
+                        };
+                    case 32:
+                        return DataView.prototype.getFloat32;
+                    case 64:
+                        return DataView.prototype.getFloat64;
+                }
+                break;
+        }
+        throw Error('Unsupported data format/bitsPerSample');
+    }
+    getSampleFormat(sampleIndex = 0) {
+        const sampleFormat = this.fileDirectory.getValue('SampleFormat');
+        return sampleFormat ? sampleFormat[sampleIndex] : 1;
+    }
+    getBitsPerSample(sampleIndex = 0) {
+        const bitsPerSample = this.fileDirectory.getValue('BitsPerSample');
+        return bitsPerSample ? bitsPerSample[sampleIndex] : 0;
+    }
+    /**
+     * @param {number} sampleIndex
+     * @param {number|ArrayBufferLike} sizeOrData
+     * @returns {TypedArray}
+     */
+    getArrayForSample(sampleIndex, sizeOrData) {
+        const format = /** @type {1|2|3} */ (this.getSampleFormat(sampleIndex));
+        const bitsPerSample = this.getBitsPerSample(sampleIndex);
+        return arrayForType(format, bitsPerSample, sizeOrData);
+    }
+    /**
+     * Returns the decoded strip or tile.
+     * @param {Number} x the strip or tile x-offset
+     * @param {Number} y the tile y-offset (0 for stripped images)
+     * @param {Number} sample the sample to get for separated samples
+     * @param {DecoderWorker|import("./geotiff.js").BaseDecoder} poolOrDecoder the decoder or decoder pool
+     * @param {AbortSignal} [signal] An AbortSignal that may be signalled if the request is
+     *                               to be aborted
+     * @returns {Promise.<{x: number, y: number, sample: number, data: ArrayBufferLike}>} the decoded strip or tile
+     */
+    async getTileOrStrip(x, y, sample, poolOrDecoder, signal) {
+        const numTilesPerRow = Math.ceil(this.getWidth() / this.getTileWidth());
+        const numTilesPerCol = Math.ceil(this.getHeight() / this.getTileHeight());
+        let index;
+        const { tiles } = this;
+        if (this.planarConfiguration === 1) {
+            index = (y * numTilesPerRow) + x;
+        }
+        else if (this.planarConfiguration === 2) {
+            index = (sample * numTilesPerRow * numTilesPerCol) + (y * numTilesPerRow) + x;
+        }
+        if (index === undefined) {
+            throw new Error('Could not determine tile or strip index.');
+        }
+        let offset;
+        let byteCount;
+        if (this.isTiled) {
+            offset = Number(await this.fileDirectory.loadValueIndexed('TileOffsets', index));
+            byteCount = Number(await this.fileDirectory.loadValueIndexed('TileByteCounts', index));
+        }
+        else {
+            offset = Number(await this.fileDirectory.loadValueIndexed('StripOffsets', index));
+            byteCount = Number(await this.fileDirectory.loadValueIndexed('StripByteCounts', index));
+        }
+        if (byteCount === 0) {
+            const nPixels = this.getBlockHeight(y) * this.getTileWidth();
+            const bytesPerPixel = (this.planarConfiguration === 2) ? this.getSampleByteSize(sample) : this.getBytesPerPixel();
+            const data = new ArrayBuffer(nPixels * bytesPerPixel);
+            const view = this.getArrayForSample(sample, data);
+            view.fill(this.getGDALNoData() || 0);
+            return { x, y, sample, data };
+        }
+        const slice = (await this.source.fetch([{ offset, length: byteCount }], signal))[0];
+        let request;
+        if (tiles === null || !tiles[index]) {
+            // resolve each request by potentially applying array normalization
+            request = (async () => {
+                let data = await poolOrDecoder.decode(slice);
+                const sampleFormat = /** @type {1|2|3} */ (this.getSampleFormat());
+                const bitsPerSample = this.getBitsPerSample();
+                if (needsNormalization(sampleFormat, bitsPerSample)) {
+                    data = normalizeArray(data, sampleFormat, this.planarConfiguration, this.getSamplesPerPixel(), bitsPerSample, this.getTileWidth(), this.getBlockHeight(y));
+                }
+                return data;
+            })();
+            // set the cache
+            if (tiles !== null) {
+                tiles[index] = request;
+            }
+        }
+        else {
+            // get from the cache
+            request = tiles[index];
+        }
+        // cache the tile request
+        return { x, y, sample, data: await request };
+    }
+    /**
+     * Internal read function.
+     * @private
+     * @param {Array<number>} imageWindow The image window in pixel coordinates
+     * @param {Array<number>} samples The selected samples (0-based indices)
+     * @param {TypedArray|TypedArray[]} valueArrays The array(s) to write into
+     * @param {boolean|undefined} interleave Whether or not to write in an interleaved manner
+     * @param {DecoderWorker|import("./geotiff.js").BaseDecoder} poolOrDecoder the decoder or decoder pool
+     * @param {number} [width] the width of window to be read into
+     * @param {number} [height] the height of window to be read into
+     * @param {string} [resampleMethod] the resampling method to be used when interpolating
+     * @param {AbortSignal} [signal] An AbortSignal that may be signalled if the request is
+     *                               to be aborted
+     * @returns {Promise<ReadRasterResult>}
+     */
+    async _readRaster(imageWindow, samples, valueArrays, interleave, poolOrDecoder, width, height, resampleMethod, signal) {
+        const tileWidth = this.getTileWidth();
+        const tileHeight = this.getTileHeight();
+        const imageWidth = this.getWidth();
+        const imageHeight = this.getHeight();
+        const minXTile = Math.max(Math.floor(imageWindow[0] / tileWidth), 0);
+        const maxXTile = Math.min(Math.ceil(imageWindow[2] / tileWidth), Math.ceil(imageWidth / tileWidth));
+        const minYTile = Math.max(Math.floor(imageWindow[1] / tileHeight), 0);
+        const maxYTile = Math.min(Math.ceil(imageWindow[3] / tileHeight), Math.ceil(imageHeight / tileHeight));
+        const windowWidth = imageWindow[2] - imageWindow[0];
+        let bytesPerPixel = this.getBytesPerPixel();
+        /** @type {Array<number>} */
+        const srcSampleOffsets = [];
+        /** @type {Array<(this: DataView, byteOffset: number, littleEndian: boolean) => number>} */
+        const sampleReaders = [];
+        for (let i = 0; i < samples.length; ++i) {
+            if (this.planarConfiguration === 1) {
+                const bitsPerSample = await this.fileDirectory.loadValue('BitsPerSample');
+                if (typeof bitsPerSample !== 'object') {
+                    throw new Error('Expected BitsPerSample to be an array or typed array.');
+                }
+                srcSampleOffsets.push(sum$1(bitsPerSample, 0, samples[i]) / 8);
+            }
+            else {
+                srcSampleOffsets.push(0);
+            }
+            sampleReaders.push(this.getReaderForSample(samples[i]));
+        }
+        const promises = [];
+        const { littleEndian } = this;
+        for (let yTile = minYTile; yTile < maxYTile; ++yTile) {
+            for (let xTile = minXTile; xTile < maxXTile; ++xTile) {
+                let getPromise;
+                if (this.planarConfiguration === 1) {
+                    getPromise = this.getTileOrStrip(xTile, yTile, 0, poolOrDecoder, signal);
+                }
+                for (let sampleIndex = 0; sampleIndex < samples.length; ++sampleIndex) {
+                    const si = sampleIndex;
+                    const sample = samples[sampleIndex];
+                    if (this.planarConfiguration === 2) {
+                        bytesPerPixel = this.getSampleByteSize(sample);
+                        getPromise = this.getTileOrStrip(xTile, yTile, sample, poolOrDecoder, signal);
+                    }
+                    if (!getPromise) {
+                        throw new Error('Could not get tile or strip data.');
+                    }
+                    const promise = getPromise.then((tile) => {
+                        const buffer = tile.data;
+                        const dataView = new DataView(buffer);
+                        const blockHeight = this.getBlockHeight(tile.y);
+                        const firstLine = tile.y * tileHeight;
+                        const firstCol = tile.x * tileWidth;
+                        const lastLine = firstLine + blockHeight;
+                        const lastCol = (tile.x + 1) * tileWidth;
+                        const reader = sampleReaders[si];
+                        const ymax = Math.min(blockHeight, blockHeight - (lastLine - imageWindow[3]), imageHeight - firstLine);
+                        const xmax = Math.min(tileWidth, tileWidth - (lastCol - imageWindow[2]), imageWidth - firstCol);
+                        for (let y = Math.max(0, imageWindow[1] - firstLine); y < ymax; ++y) {
+                            for (let x = Math.max(0, imageWindow[0] - firstCol); x < xmax; ++x) {
+                                const pixelOffset = ((y * tileWidth) + x) * bytesPerPixel;
+                                const value = reader.call(dataView, pixelOffset + srcSampleOffsets[si], littleEndian);
+                                let windowCoordinate;
+                                if (interleave) {
+                                    windowCoordinate = ((y + firstLine - imageWindow[1]) * windowWidth * samples.length)
+                                        + ((x + firstCol - imageWindow[0]) * samples.length)
+                                        + si;
+                                    valueArrays[windowCoordinate] = value;
+                                }
+                                else {
+                                    windowCoordinate = ((y + firstLine - imageWindow[1]) * windowWidth) + x + firstCol - imageWindow[0];
+                                    /** @type {TypedArray} */ (valueArrays[si])[windowCoordinate] = value;
+                                }
+                            }
+                        }
+                    });
+                    promises.push(promise);
+                }
+            }
+        }
+        await Promise.all(promises);
+        if ((width && (imageWindow[2] - imageWindow[0]) !== width)
+            || (height && (imageWindow[3] - imageWindow[1]) !== height)) {
+            let resampled;
+            if (interleave) {
+                resampled = resampleInterleaved(
+                /** @type {TypedArray} */ (valueArrays), imageWindow[2] - imageWindow[0], imageWindow[3] - imageWindow[1], 
+                /** @type {number} */ (width), /** @type {number} */ (height), samples.length, resampleMethod);
+            }
+            else {
+                resampled = resample(
+                /** @type {TypedArray[]} */ (valueArrays), imageWindow[2] - imageWindow[0], imageWindow[3] - imageWindow[1], 
+                /** @type {number} */ (width), /** @type {number} */ (height), resampleMethod);
+            }
+            const resampledWithDimensions = /** @type {ReadRasterResult} */ (resampled);
+            resampledWithDimensions.width = width ?? imageWindow[2] - imageWindow[0];
+            resampledWithDimensions.height = height ?? imageWindow[3] - imageWindow[1];
+            return resampledWithDimensions;
+        }
+        const valueArraysWithDimensions = /** @type {ReadRasterResult} */ (valueArrays);
+        valueArraysWithDimensions.width = width || imageWindow[2] - imageWindow[0];
+        valueArraysWithDimensions.height = height || imageWindow[3] - imageWindow[1];
+        return valueArraysWithDimensions;
+    }
+    /**
+     * @overload
+     * @param {ReadRastersOptions & {interleave: true}} options optional parameters
+     * @returns {Promise<import("./geotiff.js").TypedArrayWithDimensions>} the decoded arrays as a promise
+     */
+    /**
+     * @overload
+     * @param {ReadRastersOptions & {interleave: false}} options optional parameters
+     * @returns {Promise<import("./geotiff.js").TypedArrayArrayWithDimensions>} the decoded arrays as a promise
+     */
+    /**
+     * @overload
+     * @param {ReadRastersOptions & {interleave: boolean}} options optional parameters
+     * @returns {Promise<ReadRasterResult>} the decoded arrays as a promise
+     */
+    /**
+     * @overload
+     * @param {ReadRastersOptions} [options={}] optional parameters
+     * @returns {Promise<import("./geotiff.js").TypedArrayArrayWithDimensions>} the decoded arrays as a promise
+     */
+    /**
+     * Reads raster data from the image. This function reads all selected samples
+     * into separate arrays of the correct type for that sample or into a single
+     * combined array when `interleave` is set. When provided, only a subset
+     * of the raster is read for each sample.
+     *
+     * @param {ReadRastersOptions} [options={}] optional parameters
+     * @returns {Promise<ReadRasterResult>} the decoded arrays as a promise
+     */
+    async readRasters(options = {}) {
+        const { window: wnd, samples = [], pool = null, width, height, resampleMethod, fillValue, signal, } = options;
+        const interleave = 'interleave' in options && options.interleave;
+        const imageWindow = wnd || [0, 0, this.getWidth(), this.getHeight()];
+        // check parameters
+        if (imageWindow[0] > imageWindow[2] || imageWindow[1] > imageWindow[3]) {
+            throw new Error('Invalid subsets');
+        }
+        const imageWindowWidth = imageWindow[2] - imageWindow[0];
+        const imageWindowHeight = imageWindow[3] - imageWindow[1];
+        const numPixels = imageWindowWidth * imageWindowHeight;
+        const samplesPerPixel = this.getSamplesPerPixel();
+        if (!samples || !samples.length) {
+            for (let i = 0; i < samplesPerPixel; ++i) {
+                samples.push(i);
+            }
+        }
+        else {
+            for (let i = 0; i < samples.length; ++i) {
+                if (samples[i] >= samplesPerPixel) {
+                    return Promise.reject(new RangeError(`Invalid sample index '${samples[i]}'.`));
+                }
+            }
+        }
+        /** @type {TypedArray|TypedArray[]} */
+        let valueArrays;
+        if (interleave) {
+            const { fileDirectory } = this;
+            const sampleFormat = fileDirectory.getValue('SampleFormat');
+            const format = sampleFormat
+                ? Math.max.apply(null, Array.from(sampleFormat)) : 1;
+            if (format !== 1 && format !== 2 && format !== 3) {
+                throw new Error('Unsupported sample format for interleaved data. Must be 1, 2, or 3.');
+            }
+            const bitsPerSample_ = fileDirectory.getValue('BitsPerSample');
+            const bitsPerSample = bitsPerSample_
+                ? Math.max.apply(null, Array.from(bitsPerSample_)) : 8;
+            valueArrays = arrayForType(format, bitsPerSample, numPixels * samples.length);
+            if (fillValue) {
+                if (Array.isArray(fillValue)) {
+                    throw new Error('When reading interleaved data, fillValue must be a single number.');
+                }
+                valueArrays.fill(fillValue);
+            }
+        }
+        else {
+            valueArrays = [];
+            for (let i = 0; i < samples.length; ++i) {
+                const valueArray = this.getArrayForSample(samples[i], numPixels);
+                if (Array.isArray(fillValue) && i < fillValue.length) {
+                    valueArray.fill(fillValue[i]);
+                }
+                else if (fillValue && !Array.isArray(fillValue)) {
+                    valueArray.fill(fillValue);
+                }
+                valueArrays.push(valueArray);
+            }
+        }
+        const compression = this.fileDirectory.getValue('Compression') || 1;
+        const decoderParameters = await getDecoderParameters(compression, this.fileDirectory);
+        const poolOrDecoder = pool
+            ? pool.bindParameters(compression, decoderParameters)
+            : await getDecoder(compression, decoderParameters);
+        const result = await this._readRaster(imageWindow, samples, valueArrays, interleave, poolOrDecoder, width, height, resampleMethod, signal);
+        return result;
+    }
+    /**
+     * @overload
+     * @param {ReadRGBOptions & {interleave: true}} options optional parameters
+     * @returns {Promise<import("./geotiff.js").TypedArrayWithDimensions>} the RGB array as a Promise
+     */
+    /**
+     * @overload
+     * @param {ReadRGBOptions & {interleave: false}} options optional parameters
+     * @returns {Promise<import("./geotiff.js").TypedArrayArrayWithDimensions>} the RGB array as a Promise
+     */
+    /**
+     * @overload
+     * @param {ReadRGBOptions & {interleave: boolean}} options optional parameters
+     * @returns {Promise<ReadRasterResult>} the RGB array as a Promise
+     */
+    /**
+     * @overload
+     * @param {ReadRGBOptions} [options={}] optional parameters
+     * @returns {Promise<import("./geotiff.js").TypedArrayArrayWithDimensions>} the RGB array as a Promise
+     */
+    /**
+     * Reads raster data from the image as RGB.
+     * Colorspaces other than RGB will be transformed to RGB, color maps expanded.
+     * When no other method is applicable, the first sample is used to produce a
+     * grayscale image.
+     * When provided, only a subset of the raster is read for each sample.
+     *
+     * @param {ReadRGBOptions} [options] optional parameters
+     * @returns {Promise<ReadRasterResult>} the RGB array as a Promise
+     */
+    async readRGB(options = {}) {
+        const { window, pool = null, width, height, resampleMethod, enableAlpha = false, signal } = options;
+        const interleave = ('interleave' in options && options.interleave) ?? false;
+        const imageWindow = window || [0, 0, this.getWidth(), this.getHeight()];
+        // check parameters
+        if (imageWindow[0] > imageWindow[2] || imageWindow[1] > imageWindow[3]) {
+            throw new Error('Invalid subsets');
+        }
+        const pi = this.fileDirectory.getValue('PhotometricInterpretation');
+        if (pi === photometricInterpretations.RGB) {
+            let s = [0, 1, 2];
+            const extraSamples = this.fileDirectory.getValue('ExtraSamples');
+            if (extraSamples && extraSamples[0] !== ExtraSamplesValues.Unspecified && enableAlpha) {
+                s = [];
+                const bitsPerSample = this.fileDirectory.getValue('BitsPerSample') || [];
+                for (let i = 0; i < bitsPerSample.length; i += 1) {
+                    s.push(i);
+                }
+            }
+            return this.readRasters({
+                window,
+                interleave,
+                samples: s,
+                pool,
+                width,
+                height,
+                resampleMethod,
+                signal,
+            });
+        }
+        let samples;
+        switch (pi) {
+            case photometricInterpretations.WhiteIsZero:
+            case photometricInterpretations.BlackIsZero:
+            case photometricInterpretations.Palette:
+                samples = [0];
+                break;
+            case photometricInterpretations.CMYK:
+                samples = [0, 1, 2, 3];
+                break;
+            case photometricInterpretations.YCbCr:
+            case photometricInterpretations.CIELab:
+                samples = [0, 1, 2];
+                break;
+            default:
+                throw new Error('Invalid or unsupported photometric interpretation.');
+        }
+        const subOptions = {
+            window: imageWindow,
+            /** @type {true} */
+            interleave: true,
+            samples,
+            pool,
+            width,
+            height,
+            resampleMethod,
+            signal,
+        };
+        const { fileDirectory } = this;
+        const raster = await this.readRasters(subOptions);
+        const max = 2 ** this.getBitsPerSample(0);
+        let data;
+        switch (pi) {
+            case photometricInterpretations.WhiteIsZero:
+                data = fromWhiteIsZero(raster, max);
+                break;
+            case photometricInterpretations.BlackIsZero:
+                data = fromBlackIsZero(raster, max);
+                break;
+            case photometricInterpretations.Palette:
+                data = fromPalette(raster, /** @type {Uint16Array} */ (await fileDirectory.loadValue('ColorMap')));
+                break;
+            case photometricInterpretations.CMYK:
+                data = fromCMYK(raster);
+                break;
+            case photometricInterpretations.YCbCr:
+                data = fromYCbCr(raster);
+                break;
+            case photometricInterpretations.CIELab:
+                data = fromCIELab(raster);
+                break;
+            default:
+                throw new Error('Unsupported photometric interpretation.');
+        }
+        // if non-interleaved data is requested, we must split the channels
+        // into their respective arrays
+        if (!interleave) {
+            const red = new Uint8Array(data.length / 3);
+            const green = new Uint8Array(data.length / 3);
+            const blue = new Uint8Array(data.length / 3);
+            for (let i = 0, j = 0; i < data.length; i += 3, ++j) {
+                red[j] = data[i];
+                green[j] = data[i + 1];
+                blue[j] = data[i + 2];
+            }
+            data = [red, green, blue];
+        }
+        const dataWithDimensions = /** @type {import("./geotiff.js").ReadRasterResult} */ (data);
+        dataWithDimensions.width = raster.width;
+        dataWithDimensions.height = raster.height;
+        return dataWithDimensions;
+    }
+    /**
+     * Returns an array of tiepoints.
+     * @returns {Promise<Array<{i: number, j: number, k: number, x: number, y: number, z: number}>>} the tiepoints
+     */
+    async getTiePoints() {
+        if (!this.fileDirectory.hasTag('ModelTiepoint')) {
+            return [];
+        }
+        const modelTiePoint = await this.fileDirectory.loadValue('ModelTiepoint');
+        if (typeof modelTiePoint !== 'object') {
+            throw new Error('Expected ModelTiepoint to be an array or typed array.');
+        }
+        const tiePoints = [];
+        for (let i = 0; i < modelTiePoint.length; i += 6) {
+            tiePoints.push({
+                i: modelTiePoint[i],
+                j: modelTiePoint[i + 1],
+                k: modelTiePoint[i + 2],
+                x: modelTiePoint[i + 3],
+                y: modelTiePoint[i + 4],
+                z: modelTiePoint[i + 5],
+            });
+        }
+        return tiePoints;
+    }
+    /**
+     * Returns the parsed GDAL metadata items.
+     *
+     * If sample is passed to null, dataset-level metadata will be returned.
+     * Otherwise only metadata specific to the provided sample will be returned.
+     *
+     * @param {number|null} [sample=null] The sample index.
+     * @returns {Promise<Record<string, unknown>|null>} The GDAL metadata items
+     */
+    async getGDALMetadata(sample = null) {
+        /** @type {Record<string, unknown>} */
+        const metadata = {};
+        if (!this.fileDirectory.hasTag('GDAL_METADATA')) {
+            return null;
+        }
+        const string = await this.fileDirectory.loadValue('GDAL_METADATA');
+        /** @type {Array<{inner: unknown}>} */
+        let items = findTagsByName(string, 'Item');
+        if (sample === null) {
+            items = items.filter((item) => getAttribute(item, 'sample') === undefined);
+        }
+        else {
+            items = items.filter((item) => Number(getAttribute(item, 'sample')) === sample);
+        }
+        for (let i = 0; i < items.length; ++i) {
+            const item = items[i];
+            metadata[getAttribute(item, 'name')] = item.inner;
+        }
+        return metadata;
+    }
+    /**
+     * Returns the GDAL nodata value
+     * @returns {number|null}
+     */
+    getGDALNoData() {
+        const string = this.fileDirectory.hasTag('GDAL_NODATA') && this.fileDirectory.getValue('GDAL_NODATA');
+        if (!string) {
+            return null;
+        }
+        return Number(string.substring(0, string.length - 1));
+    }
+    /**
+     * Returns the image origin as a XYZ-vector. When the image has no affine
+     * transformation, then an exception is thrown.
+     * @returns {Array<number>} The origin as a vector
+     */
+    getOrigin() {
+        const tiePoints = this.fileDirectory.getValue('ModelTiepoint');
+        const modelTransformation = this.fileDirectory.getValue('ModelTransformation');
+        if (tiePoints && tiePoints.length === 6) {
+            return [
+                tiePoints[3],
+                tiePoints[4],
+                tiePoints[5],
+            ];
+        }
+        if (modelTransformation) {
+            return [
+                modelTransformation[3],
+                modelTransformation[7],
+                modelTransformation[11],
+            ];
+        }
+        throw new Error('The image does not have an affine transformation.');
+    }
+    /**
+     * Returns the image resolution as a XYZ-vector. When the image has no affine
+     * transformation, then an exception is thrown.
+     * @param {GeoTIFFImage|null} [referenceImage=null] A reference image to calculate the resolution from
+     *                                             in cases when the current image does not have the
+     *                                             required tags on its own.
+     * @returns {Array<number>} The resolution as a vector
+     */
+    getResolution(referenceImage = null) {
+        const modelPixelScale = this.fileDirectory.getValue('ModelPixelScale');
+        const modelTransformation = this.fileDirectory.getValue('ModelTransformation');
+        if (modelPixelScale) {
+            return [
+                modelPixelScale[0],
+                -modelPixelScale[1],
+                modelPixelScale[2],
+            ];
+        }
+        if (modelTransformation) {
+            if (modelTransformation[1] === 0 && modelTransformation[4] === 0) {
+                return [
+                    modelTransformation[0],
+                    -modelTransformation[5],
+                    modelTransformation[10],
+                ];
+            }
+            return [
+                Math.sqrt((modelTransformation[0] * modelTransformation[0])
+                    + (modelTransformation[4] * modelTransformation[4])),
+                -Math.sqrt((modelTransformation[1] * modelTransformation[1])
+                    + (modelTransformation[5] * modelTransformation[5])),
+                modelTransformation[10]
+            ];
+        }
+        if (referenceImage) {
+            const [refResX, refResY, refResZ] = referenceImage.getResolution();
+            return [
+                refResX * referenceImage.getWidth() / this.getWidth(),
+                refResY * referenceImage.getHeight() / this.getHeight(),
+                refResZ * referenceImage.getWidth() / this.getWidth(),
+            ];
+        }
+        throw new Error('The image does not have an affine transformation.');
+    }
+    /**
+     * Returns whether or not the pixels of the image depict an area (or point).
+     * @returns {Boolean} Whether the pixels are a point
+     */
+    pixelIsArea() {
+        return this.getGeoKeys()?.GTRasterTypeGeoKey === 1;
+    }
+    /**
+     * Returns the image bounding box as an array of 4 values: min-x, min-y,
+     * max-x and max-y. When the image has no affine transformation, then an
+     * exception is thrown.
+     * @param {boolean} [tilegrid=false] If true return extent for a tilegrid
+     *                                   without adjustment for ModelTransformation.
+     * @returns {Array<number>} The bounding box
+     */
+    getBoundingBox(tilegrid = false) {
+        const height = this.getHeight();
+        const width = this.getWidth();
+        const modelTransformation = this.fileDirectory.getValue('ModelTransformation');
+        if (modelTransformation && !tilegrid) {
+            const [a, b, , d, e, f, , h] = modelTransformation;
+            const corners = [
+                [0, 0],
+                [0, height],
+                [width, 0],
+                [width, height],
+            ];
+            const projected = corners.map(([I, J]) => [
+                d + (a * I) + (b * J),
+                h + (e * I) + (f * J),
+            ]);
+            const xs = projected.map((pt) => pt[0]);
+            const ys = projected.map((pt) => pt[1]);
+            return [
+                Math.min(...xs),
+                Math.min(...ys),
+                Math.max(...xs),
+                Math.max(...ys),
+            ];
+        }
+        else {
+            const origin = this.getOrigin();
+            const resolution = this.getResolution();
+            const x1 = origin[0];
+            const y1 = origin[1];
+            const x2 = x1 + (resolution[0] * width);
+            const y2 = y1 + (resolution[1] * height);
+            return [
+                Math.min(x1, x2),
+                Math.min(y1, y2),
+                Math.max(x1, x2),
+                Math.max(y1, y2),
+            ];
+        }
+    }
+}
+
+class DataView64 {
+    /**
+     * @param {ArrayBufferLike} arrayBuffer
+     */
+    constructor(arrayBuffer) {
+        this._dataView = new DataView(arrayBuffer);
+    }
+    get buffer() {
+        return this._dataView.buffer;
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getUint64(offset, littleEndian) {
+        const left = this.getUint32(offset, littleEndian);
+        const right = this.getUint32(offset + 4, littleEndian);
+        let combined;
+        if (littleEndian) {
+            combined = left + ((2 ** 32) * right);
+            if (!Number.isSafeInteger(combined)) {
+                throw new Error(`${combined} exceeds MAX_SAFE_INTEGER. `
+                    + 'Precision may be lost. Please report if you get this message to https://github.com/geotiffjs/geotiff.js/issues');
+            }
+            return combined;
+        }
+        combined = ((2 ** 32) * left) + right;
+        if (!Number.isSafeInteger(combined)) {
+            throw new Error(`${combined} exceeds MAX_SAFE_INTEGER. `
+                + 'Precision may be lost. Please report if you get this message to https://github.com/geotiffjs/geotiff.js/issues');
+        }
+        return combined;
+    }
+    /**
+     * Adapted from https://stackoverflow.com/a/55338384/8060591
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getInt64(offset, littleEndian) {
+        let value = 0;
+        const isNegative = (this._dataView.getUint8(offset + (littleEndian ? 7 : 0)) & 0x80) > 0;
+        let carrying = true;
+        for (let i = 0; i < 8; i++) {
+            let byte = this._dataView.getUint8(offset + (littleEndian ? i : 7 - i));
+            if (isNegative) {
+                if (carrying) {
+                    if (byte !== 0x00) {
+                        byte = ~(byte - 1) & 0xff;
+                        carrying = false;
+                    }
+                }
+                else {
+                    byte = ~byte & 0xff;
+                }
+            }
+            value += byte * (256 ** i);
+        }
+        if (isNegative) {
+            value = -value;
+        }
+        return value;
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    getUint8(offset) {
+        return this._dataView.getUint8(offset);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    getInt8(offset) {
+        return this._dataView.getInt8(offset);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getUint16(offset, littleEndian) {
+        return this._dataView.getUint16(offset, littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getInt16(offset, littleEndian) {
+        return this._dataView.getInt16(offset, littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getUint32(offset, littleEndian) {
+        return this._dataView.getUint32(offset, littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getInt32(offset, littleEndian) {
+        return this._dataView.getInt32(offset, littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getFloat16(offset, littleEndian) {
+        return getFloat16(this._dataView, offset, littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getFloat32(offset, littleEndian) {
+        return this._dataView.getFloat32(offset, littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @param {boolean} littleEndian
+     * @returns {number}
+     */
+    getFloat64(offset, littleEndian) {
+        return this._dataView.getFloat64(offset, littleEndian);
+    }
+}
+
+class DataSlice {
+    /**
+     * @param {ArrayBufferLike} arrayBuffer
+     * @param {number} sliceOffset
+     * @param {boolean} littleEndian
+     * @param {boolean} bigTiff
+     */
+    constructor(arrayBuffer, sliceOffset, littleEndian, bigTiff) {
+        this._dataView = new DataView(arrayBuffer);
+        this._sliceOffset = sliceOffset;
+        this._littleEndian = littleEndian;
+        this._bigTiff = bigTiff;
+    }
+    get sliceOffset() {
+        return this._sliceOffset;
+    }
+    get sliceTop() {
+        return this._sliceOffset + this.buffer.byteLength;
+    }
+    get littleEndian() {
+        return this._littleEndian;
+    }
+    get bigTiff() {
+        return this._bigTiff;
+    }
+    get buffer() {
+        return this._dataView.buffer;
+    }
+    /**
+     * @param {number} offset
+     * @param {number} length
+     * @returns {boolean}
+     */
+    covers(offset, length) {
+        return this.sliceOffset <= offset && this.sliceTop >= offset + length;
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readUint8(offset) {
+        return this._dataView.getUint8(offset - this._sliceOffset);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readInt8(offset) {
+        return this._dataView.getInt8(offset - this._sliceOffset);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readUint16(offset) {
+        return this._dataView.getUint16(offset - this._sliceOffset, this._littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readInt16(offset) {
+        return this._dataView.getInt16(offset - this._sliceOffset, this._littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readUint32(offset) {
+        return this._dataView.getUint32(offset - this._sliceOffset, this._littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readInt32(offset) {
+        return this._dataView.getInt32(offset - this._sliceOffset, this._littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readFloat32(offset) {
+        return this._dataView.getFloat32(offset - this._sliceOffset, this._littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readFloat64(offset) {
+        return this._dataView.getFloat64(offset - this._sliceOffset, this._littleEndian);
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readUint64(offset) {
+        const left = this.readUint32(offset);
+        const right = this.readUint32(offset + 4);
+        let combined;
+        if (this._littleEndian) {
+            combined = left + ((2 ** 32) * right);
+            if (!Number.isSafeInteger(combined)) {
+                throw new Error(`${combined} exceeds MAX_SAFE_INTEGER. `
+                    + 'Precision may be lost. Please report if you get this message to https://github.com/geotiffjs/geotiff.js/issues');
+            }
+            return combined;
+        }
+        combined = ((2 ** 32) * left) + right;
+        if (!Number.isSafeInteger(combined)) {
+            throw new Error(`${combined} exceeds MAX_SAFE_INTEGER. `
+                + 'Precision may be lost. Please report if you get this message to https://github.com/geotiffjs/geotiff.js/issues');
+        }
+        return combined;
+    }
+    /**
+     * Adapted from https://stackoverflow.com/a/55338384/8060591
+     * @param {number} offset
+     * @returns {number}
+     */
+    readInt64(offset) {
+        let value = 0;
+        const isNegative = (this._dataView.getUint8(offset + (this._littleEndian ? 7 : 0)) & 0x80)
+            > 0;
+        let carrying = true;
+        for (let i = 0; i < 8; i++) {
+            let byte = this._dataView.getUint8(offset + (this._littleEndian ? i : 7 - i));
+            if (isNegative) {
+                if (carrying) {
+                    if (byte !== 0x00) {
+                        byte = ~(byte - 1) & 0xff;
+                        carrying = false;
+                    }
+                }
+                else {
+                    byte = ~byte & 0xff;
+                }
+            }
+            value += byte * (256 ** i);
+        }
+        if (isNegative) {
+            value = -value;
+        }
+        return value;
+    }
+    /**
+     * @param {number} offset
+     * @returns {number}
+     */
+    readOffset(offset) {
+        if (this._bigTiff) {
+            return this.readUint64(offset);
+        }
+        return this.readUint32(offset);
+    }
+}
+
+const CRLFCRLF = '\r\n\r\n';
+/**
+ * Shim for 'Object.fromEntries'
+ * @template T
+ * @param {Array<[string, T]>} items
+ * @return {Record<string, T>}
+ */
+function itemsToObject(items) {
+    if (typeof Object.fromEntries !== 'undefined') {
+        return Object.fromEntries(items);
+    }
+    /** @type {Record<string, T>} */
+    const obj = {};
+    for (const [key, value] of items) {
+        obj[key.toLowerCase()] = value;
+    }
+    return obj;
+}
+/**
+ * Parse HTTP headers from a given string.
+ * @param {string} text the text to parse the headers from
+ * @returns {Record<string, string>} the parsed headers with lowercase keys
+ */
+function parseHeaders(text) {
+    /** @type {Array<[string, string]>} */
+    const items = text
+        .split('\r\n')
+        .map((line) => {
+        const kv = /** @type {[string, string]} */ (line.split(':').map((str) => str.trim()));
+        kv[0] = kv[0].toLowerCase();
+        return kv;
+    });
+    return itemsToObject(items);
+}
+/**
+ * Parse a 'Content-Type' header value to the content-type and parameters
+ * @param {string|undefined} rawContentType the raw string to parse from
+ * @returns {{type: string|null, params: Record<string, string>}}
+ *     the parsed content type with the fields: type and params
+ */
+function parseContentType(rawContentType) {
+    if (!rawContentType) {
+        return { type: null, params: {} };
+    }
+    const [type, ...rawParams] = rawContentType.split(';').map((s) => s.trim());
+    const paramsItems = /** @type {Array<[string, string]>} */ (rawParams.map((param) => param.split('=')));
+    return { type, params: itemsToObject(paramsItems) };
+}
+/**
+ * Parse a 'Content-Range' header value to its start, end, and total parts
+ * @param {string|undefined} rawContentRange the raw string to parse from
+ * @returns {{start: number, end: number, total: number}} the parsed parts
+ */
+function parseContentRange(rawContentRange) {
+    let start = NaN;
+    let end = NaN;
+    let total = NaN;
+    if (rawContentRange) {
+        [, start, end, total] = (rawContentRange.match(/bytes (\d+)-(\d+)\/(\d+)/) || []).map(Number);
+    }
+    return { start, end, total };
+}
+/**
+ * Parses a list of byteranges from the given 'multipart/byteranges' HTTP response.
+ * Each item in the list has the following properties:
+ * - headers: the HTTP headers
+ * - data: the sliced ArrayBuffer for that specific part
+ * - offset: the offset of the byterange within its originating file
+ * - length: the length of the byterange
+ * @param {ArrayBuffer} responseArrayBuffer the response to be parsed and split
+ * @param {string} boundary the boundary string used to split the sections
+ * @returns {Array<{headers: Record<string, string>, data: ArrayBuffer, offset: number, length: number, fileSize: number}>}
+ *     the parsed byteranges
+ */
+function parseByteRanges(responseArrayBuffer, boundary) {
+    let offset = -1;
+    const decoder = new TextDecoder('ascii');
+    const out = [];
+    const startBoundary = `--${boundary}`;
+    const endBoundary = `${startBoundary}--`;
+    // search for the initial boundary, may be offset by some bytes
+    // TODO: more efficient to check for `--` in bytes directly
+    for (let i = 0; i < 10; ++i) {
+        const text = decoder.decode(new Uint8Array(responseArrayBuffer, i, startBoundary.length));
+        if (text === startBoundary) {
+            offset = i;
+        }
+    }
+    if (offset === -1) {
+        throw new Error('Could not find initial boundary');
+    }
+    while (offset < responseArrayBuffer.byteLength) {
+        const text = decoder.decode(new Uint8Array(responseArrayBuffer, offset, Math.min(startBoundary.length + 1024, responseArrayBuffer.byteLength - offset)));
+        // break if we arrived at the end
+        if (text.length === 0 || text.startsWith(endBoundary)) {
+            break;
+        }
+        // assert that we are actually dealing with a byterange and are at the correct offset
+        if (!text.startsWith(startBoundary)) {
+            throw new Error('Part does not start with boundary');
+        }
+        // get a substring from where we read the headers
+        const innerText = text.substr(startBoundary.length + 2);
+        if (innerText.length === 0) {
+            break;
+        }
+        // find the double linebreak that denotes the end of the headers
+        const endOfHeaders = innerText.indexOf(CRLFCRLF);
+        // parse the headers to get the content range size
+        const headers = parseHeaders(innerText.substr(0, endOfHeaders));
+        const { start, end, total } = parseContentRange(headers['content-range']);
+        // calculate the length of the slice and the next offset
+        const startOfData = offset + startBoundary.length + endOfHeaders + CRLFCRLF.length;
+        const length = end + 1 - start;
+        out.push({
+            headers,
+            data: responseArrayBuffer.slice(startOfData, startOfData + length),
+            offset: start,
+            length,
+            fileSize: total,
+        });
+        offset = startOfData + length + 4;
+    }
+    return out;
+}
+
+/**
+ * @typedef {Object} Slice
+ * @property {number} offset
+ * @property {number} length
+ */
+/** @typedef {Slice & {data: ArrayBufferLike}} SliceWithData */
+class BaseSource {
+    /**
+     * @param {Array<Slice>} slices
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<ArrayBufferLike[]>}
+     */
+    async fetch(slices, signal) {
+        return Promise.all(slices.map(async (slice) => (await this.fetchSlice(slice, signal)).data));
+    }
+    /**
+     * @param {Slice} slice
+     * @param {AbortSignal} [_signal]
+     * @returns {Promise<SliceWithData>}
+     */
+    async fetchSlice(slice, _signal) {
+        throw new Error(`fetching of slice ${slice} not possible, not implemented`);
+    }
+    /**
+     * Returns the filesize if already determined and null otherwise
+     * @returns {number|null}
+     */
+    get fileSize() {
+        return null;
+    }
+    async close() {
+        // no-op by default
+    }
+}
+
+class QuickLRU extends Map {
+	constructor(options = {}) {
+		super();
+
+		if (!(options.maxSize && options.maxSize > 0)) {
+			throw new TypeError('`maxSize` must be a number greater than 0');
+		}
+
+		if (typeof options.maxAge === 'number' && options.maxAge === 0) {
+			throw new TypeError('`maxAge` must be a number greater than 0');
+		}
+
+		// TODO: Use private class fields when ESLint supports them.
+		this.maxSize = options.maxSize;
+		this.maxAge = options.maxAge || Number.POSITIVE_INFINITY;
+		this.onEviction = options.onEviction;
+		this.cache = new Map();
+		this.oldCache = new Map();
+		this._size = 0;
+	}
+
+	// TODO: Use private class methods when targeting Node.js 16.
+	_emitEvictions(cache) {
+		if (typeof this.onEviction !== 'function') {
+			return;
+		}
+
+		for (const [key, item] of cache) {
+			this.onEviction(key, item.value);
+		}
+	}
+
+	_deleteIfExpired(key, item) {
+		if (typeof item.expiry === 'number' && item.expiry <= Date.now()) {
+			if (typeof this.onEviction === 'function') {
+				this.onEviction(key, item.value);
+			}
+
+			return this.delete(key);
+		}
+
+		return false;
+	}
+
+	_getOrDeleteIfExpired(key, item) {
+		const deleted = this._deleteIfExpired(key, item);
+		if (deleted === false) {
+			return item.value;
+		}
+	}
+
+	_getItemValue(key, item) {
+		return item.expiry ? this._getOrDeleteIfExpired(key, item) : item.value;
+	}
+
+	_peek(key, cache) {
+		const item = cache.get(key);
+
+		return this._getItemValue(key, item);
+	}
+
+	_set(key, value) {
+		this.cache.set(key, value);
+		this._size++;
+
+		if (this._size >= this.maxSize) {
+			this._size = 0;
+			this._emitEvictions(this.oldCache);
+			this.oldCache = this.cache;
+			this.cache = new Map();
+		}
+	}
+
+	_moveToRecent(key, item) {
+		this.oldCache.delete(key);
+		this._set(key, item);
+	}
+
+	* _entriesAscending() {
+		for (const item of this.oldCache) {
+			const [key, value] = item;
+			if (!this.cache.has(key)) {
+				const deleted = this._deleteIfExpired(key, value);
+				if (deleted === false) {
+					yield item;
+				}
+			}
+		}
+
+		for (const item of this.cache) {
+			const [key, value] = item;
+			const deleted = this._deleteIfExpired(key, value);
+			if (deleted === false) {
+				yield item;
+			}
+		}
+	}
+
+	get(key) {
+		if (this.cache.has(key)) {
+			const item = this.cache.get(key);
+
+			return this._getItemValue(key, item);
+		}
+
+		if (this.oldCache.has(key)) {
+			const item = this.oldCache.get(key);
+			if (this._deleteIfExpired(key, item) === false) {
+				this._moveToRecent(key, item);
+				return item.value;
+			}
+		}
+	}
+
+	set(key, value, {maxAge = this.maxAge} = {}) {
+		const expiry =
+			typeof maxAge === 'number' && maxAge !== Number.POSITIVE_INFINITY ?
+				Date.now() + maxAge :
+				undefined;
+		if (this.cache.has(key)) {
+			this.cache.set(key, {
+				value,
+				expiry
+			});
+		} else {
+			this._set(key, {value, expiry});
+		}
+
+		return this;
+	}
+
+	has(key) {
+		if (this.cache.has(key)) {
+			return !this._deleteIfExpired(key, this.cache.get(key));
+		}
+
+		if (this.oldCache.has(key)) {
+			return !this._deleteIfExpired(key, this.oldCache.get(key));
+		}
+
+		return false;
+	}
+
+	peek(key) {
+		if (this.cache.has(key)) {
+			return this._peek(key, this.cache);
+		}
+
+		if (this.oldCache.has(key)) {
+			return this._peek(key, this.oldCache);
+		}
+	}
+
+	delete(key) {
+		const deleted = this.cache.delete(key);
+		if (deleted) {
+			this._size--;
+		}
+
+		return this.oldCache.delete(key) || deleted;
+	}
+
+	clear() {
+		this.cache.clear();
+		this.oldCache.clear();
+		this._size = 0;
+	}
+
+	resize(newSize) {
+		if (!(newSize && newSize > 0)) {
+			throw new TypeError('`maxSize` must be a number greater than 0');
+		}
+
+		const items = [...this._entriesAscending()];
+		const removeCount = items.length - newSize;
+		if (removeCount < 0) {
+			this.cache = new Map(items);
+			this.oldCache = new Map();
+			this._size = items.length;
+		} else {
+			if (removeCount > 0) {
+				this._emitEvictions(items.slice(0, removeCount));
+			}
+
+			this.oldCache = new Map(items.slice(removeCount));
+			this.cache = new Map();
+			this._size = 0;
+		}
+
+		this.maxSize = newSize;
+	}
+
+	* keys() {
+		for (const [key] of this) {
+			yield key;
+		}
+	}
+
+	* values() {
+		for (const [, value] of this) {
+			yield value;
+		}
+	}
+
+	* [Symbol.iterator]() {
+		for (const item of this.cache) {
+			const [key, value] = item;
+			const deleted = this._deleteIfExpired(key, value);
+			if (deleted === false) {
+				yield [key, value.value];
+			}
+		}
+
+		for (const item of this.oldCache) {
+			const [key, value] = item;
+			if (!this.cache.has(key)) {
+				const deleted = this._deleteIfExpired(key, value);
+				if (deleted === false) {
+					yield [key, value.value];
+				}
+			}
+		}
+	}
+
+	* entriesDescending() {
+		let items = [...this.cache];
+		for (let i = items.length - 1; i >= 0; --i) {
+			const item = items[i];
+			const [key, value] = item;
+			const deleted = this._deleteIfExpired(key, value);
+			if (deleted === false) {
+				yield [key, value.value];
+			}
+		}
+
+		items = [...this.oldCache];
+		for (let i = items.length - 1; i >= 0; --i) {
+			const item = items[i];
+			const [key, value] = item;
+			if (!this.cache.has(key)) {
+				const deleted = this._deleteIfExpired(key, value);
+				if (deleted === false) {
+					yield [key, value.value];
+				}
+			}
+		}
+	}
+
+	* entriesAscending() {
+		for (const [key, value] of this._entriesAscending()) {
+			yield [key, value.value];
+		}
+	}
+
+	get size() {
+		if (!this._size) {
+			return this.oldCache.size;
+		}
+
+		let oldCacheSize = 0;
+		for (const key of this.oldCache.keys()) {
+			if (!this.cache.has(key)) {
+				oldCacheSize++;
+			}
+		}
+
+		return Math.min(this._size + oldCacheSize, this.maxSize);
+	}
+
+	entries() {
+		return this.entriesAscending();
+	}
+
+	forEach(callbackFunction, thisArgument = this) {
+		for (const [key, value] of this.entriesAscending()) {
+			callbackFunction.call(thisArgument, value, key, this);
+		}
+	}
+
+	get [Symbol.toStringTag]() {
+		return JSON.stringify([...this.entriesAscending()]);
+	}
+}
+
+/**
+ * Promisified wrapper around 'setTimeout' to allow 'await'
+ * @param {number} [milliseconds]
+ * @returns {Promise<void>}
+ */
+async function wait(milliseconds) {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+function zip(a, b) {
+    const A = Array.isArray(a) ? a : Array.from(a);
+    const B = Array.isArray(b) ? b : Array.from(b);
+    return A.map((k, i) => [k, B[i]]);
+}
+// Based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+class AbortError extends Error {
+    constructor(...args) {
+        // Pass remaining arguments (including vendor specific ones) to parent constructor
+        super(...args);
+        // Maintains proper stack trace for where our error was thrown (only available on V8)
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, AbortError);
+        }
+        this.name = 'AbortError';
+        this.signal = undefined;
+    }
+}
+class CustomAggregateError extends Error {
+    constructor(errors, message) {
+        super(message);
+        this.errors = errors;
+        this.message = message;
+        this.name = 'AggregateError';
+    }
+}
+const AggregateError = CustomAggregateError;
+
+class Block {
+    /**
+     *
+     * @param {number} offset
+     * @param {number} length
+     * @param {ArrayBuffer} data
+     */
+    constructor(offset, length, data) {
+        this.offset = offset;
+        this.length = length;
+        this.data = data;
+    }
+    /**
+     * @returns {number} the top byte border
+     */
+    get top() {
+        return this.offset + this.length;
+    }
+}
+class BlockGroup {
+    /**
+     *
+     * @param {number} offset
+     * @param {number} length
+     * @param {number[]} blockIds
+     */
+    constructor(offset, length, blockIds) {
+        this.offset = offset;
+        this.length = length;
+        this.blockIds = blockIds;
+    }
+}
+class BlockedSource extends BaseSource {
+    /**
+     *
+     * @param {BaseSource} source The underlying source that shall be blocked and cached
+     * @param {object} options
+     * @param {number} [options.blockSize]
+     * @param {number} [options.cacheSize]
+     */
+    constructor(source, { blockSize = 65536, cacheSize = 100 } = {}) {
+        super();
+        this.source = source;
+        this.blockSize = blockSize;
+        this.blockCache = new QuickLRU({
+            maxSize: cacheSize,
+            onEviction: (blockId, block) => {
+                this.evictedBlocks.set(blockId, block);
+            },
+        });
+        /** @type {Map<number, Block>} */
+        this.evictedBlocks = new Map();
+        // mapping blockId -> Block instance
+        this.blockRequests = new Map();
+        // set of blockIds missing for the current requests
+        this.blockIdsToFetch = new Set();
+        this.abortedBlockIds = new Set();
+    }
+    get fileSize() {
+        return this.source.fileSize;
+    }
+    /**
+     * @param {import("./basesource.js").Slice[]} slices
+     * @param {AbortSignal} [signal]
+     * @return {Promise<ArrayBuffer[]>}
+     */
+    async fetch(slices, signal) {
+        const blockRequests = [];
+        const missingBlockIds = [];
+        const allBlockIds = [];
+        this.evictedBlocks.clear();
+        for (const { offset, length } of slices) {
+            let top = offset + length;
+            const { fileSize } = this;
+            if (fileSize !== null) {
+                top = Math.min(top, fileSize);
+            }
+            const firstBlockOffset = Math.floor(offset / this.blockSize) * this.blockSize;
+            for (let current = firstBlockOffset; current < top; current += this.blockSize) {
+                const blockId = Math.floor(current / this.blockSize);
+                if (!this.blockCache.has(blockId) && !this.blockRequests.has(blockId)) {
+                    this.blockIdsToFetch.add(blockId);
+                    missingBlockIds.push(blockId);
+                }
+                if (this.blockRequests.has(blockId)) {
+                    blockRequests.push(this.blockRequests.get(blockId));
+                }
+                allBlockIds.push(blockId);
+            }
+        }
+        // allow additional block requests to accumulate
+        await wait();
+        this.fetchBlocks(signal);
+        // Gather all of the new requests that this fetch call is contributing to `fetch`.
+        const missingRequests = [];
+        for (const blockId of missingBlockIds) {
+            // The requested missing block could already be in the cache
+            // instead of having its request still be outstanding.
+            if (this.blockRequests.has(blockId)) {
+                missingRequests.push(this.blockRequests.get(blockId));
+            }
+        }
+        // Actually await all pending requests that are needed for this `fetch`.
+        await Promise.allSettled(blockRequests);
+        await Promise.allSettled(missingRequests);
+        // Perform retries if a block was interrupted by a previous signal
+        const abortedBlockRequests = [];
+        const abortedBlockIds = allBlockIds
+            .filter((id) => this.abortedBlockIds.has(id) || !this.blockCache.has(id));
+        abortedBlockIds.forEach((id) => this.blockIdsToFetch.add(id));
+        // start the retry of some blocks if required
+        if (abortedBlockIds.length > 0 && signal && !signal.aborted) {
+            this.fetchBlocks();
+            for (const blockId of abortedBlockIds) {
+                const block = this.blockRequests.get(blockId);
+                if (!block) {
+                    throw new Error(`Block ${blockId} is not in the block requests`);
+                }
+                abortedBlockRequests.push(block);
+            }
+            await Promise.allSettled(abortedBlockRequests);
+        }
+        // throw an  abort error
+        if (signal && signal.aborted) {
+            throw new AbortError('Request was aborted');
+        }
+        const blocks = allBlockIds.map((id) => this.blockCache.get(id) || this.evictedBlocks.get(id));
+        const failedBlocks = blocks.filter((i) => !i);
+        if (failedBlocks.length) {
+            throw new AggregateError(failedBlocks, 'Request failed');
+        }
+        // create a final Map, with all required blocks for this request to satisfy
+        const requiredBlocks = new Map(zip(allBlockIds, blocks));
+        // TODO: satisfy each slice
+        return this.readSliceData(slices, requiredBlocks);
+    }
+    /**
+     * @param {AbortSignal} [signal]
+     */
+    fetchBlocks(signal) {
+        // check if we still need to
+        if (this.blockIdsToFetch.size > 0) {
+            const groups = this.groupBlocks(this.blockIdsToFetch);
+            // start requesting slices of data
+            const groupRequests = groups.map(async (group) => ({ ...group, ...(await this.source.fetchSlice(group, signal)) }));
+            for (let groupIndex = 0; groupIndex < groups.length; ++groupIndex) {
+                const group = groups[groupIndex];
+                for (const blockId of group.blockIds) {
+                    // make an async IIFE for each block
+                    this.blockRequests.set(blockId, (async () => {
+                        try {
+                            const response = (await Promise.all(groupRequests))[groupIndex];
+                            const blockOffset = blockId * this.blockSize;
+                            const o = blockOffset - response.offset;
+                            const t = Math.min(o + this.blockSize, response.data.byteLength);
+                            const data = response.data.slice(o, t);
+                            const block = new Block(blockOffset, data.byteLength, 
+                            /** @type {ArrayBuffer} */ (data));
+                            this.blockCache.set(blockId, block);
+                            this.abortedBlockIds.delete(blockId);
+                        }
+                        catch (err) {
+                            if (err instanceof AbortError && err.name === 'AbortError') {
+                                // store the signal here, we need it to determine later if an
+                                // error was caused by this signal
+                                err.signal = signal;
+                                this.blockCache.delete(blockId);
+                                this.abortedBlockIds.add(blockId);
+                            }
+                            else {
+                                throw err;
+                            }
+                        }
+                        finally {
+                            this.blockRequests.delete(blockId);
+                        }
+                    })());
+                }
+            }
+            this.blockIdsToFetch.clear();
+        }
+    }
+    /**
+     *
+     * @param {Set<number>} blockIds
+     * @returns {BlockGroup[]}
+     */
+    groupBlocks(blockIds) {
+        const sortedBlockIds = Array.from(blockIds).sort((a, b) => a - b);
+        if (sortedBlockIds.length === 0) {
+            return [];
+        }
+        /** @type {number[]} */
+        let current = [];
+        let lastBlockId = null;
+        const groups = [];
+        for (const blockId of sortedBlockIds) {
+            if (lastBlockId === null || lastBlockId + 1 === blockId) {
+                current.push(blockId);
+                lastBlockId = blockId;
+            }
+            else {
+                groups.push(new BlockGroup(current[0] * this.blockSize, current.length * this.blockSize, current));
+                current = [blockId];
+                lastBlockId = blockId;
+            }
+        }
+        groups.push(new BlockGroup(current[0] * this.blockSize, current.length * this.blockSize, current));
+        return groups;
+    }
+    /**
+     * @param {import("./basesource.js").Slice[]} slices
+     * @param {Map<number, Block>} blocks
+     * @returns {ArrayBuffer[]}
+     */
+    readSliceData(slices, blocks) {
+        return slices.map((slice) => {
+            let top = slice.offset + slice.length;
+            if (this.fileSize !== null) {
+                top = Math.min(this.fileSize, top);
+            }
+            const blockIdLow = Math.floor(slice.offset / this.blockSize);
+            const blockIdHigh = Math.floor((top - 1) / this.blockSize);
+            const sliceData = new ArrayBuffer(slice.length);
+            const sliceView = new Uint8Array(sliceData);
+            for (let blockId = blockIdLow; blockId <= blockIdHigh; ++blockId) {
+                const block = blocks.get(blockId);
+                if (!block) {
+                    continue;
+                }
+                const delta = block.offset - slice.offset;
+                const topDelta = block.top - top;
+                let blockInnerOffset = 0;
+                let rangeInnerOffset = 0;
+                let usedBlockLength;
+                if (delta < 0) {
+                    blockInnerOffset = -delta;
+                }
+                else if (delta > 0) {
+                    rangeInnerOffset = delta;
+                }
+                if (topDelta < 0) {
+                    usedBlockLength = block.length - blockInnerOffset;
+                }
+                else {
+                    usedBlockLength = top - block.offset - blockInnerOffset;
+                }
+                const blockView = new Uint8Array(block.data, blockInnerOffset, usedBlockLength);
+                sliceView.set(blockView, rangeInnerOffset);
+            }
+            return sliceData;
+        });
+    }
+}
+
+class BaseResponse {
+    /**
+     * Returns whether the response has an ok'ish status code
+     */
+    get ok() {
+        return this.status >= 200 && this.status <= 299;
+    }
+    /**
+     * Returns the status code of the response
+     * @returns {number} the status code
+     */
+    get status() {
+        throw new Error('not implemented');
+    }
+    /**
+     * Returns the value of the specified header
+     * @param {string} _headerName the header name
+     * @returns {string|undefined} the header value
+     */
+    getHeader(_headerName) {
+        throw new Error('not implemented');
+    }
+    /**
+     * @returns {Promise<ArrayBuffer>} the response data of the request
+     */
+    async getData() {
+        throw new Error('not implemented');
+    }
+}
+class BaseClient {
+    /** @param {string} url */
+    constructor(url) {
+        this.url = url;
+    }
+    /**
+     * Send a request with the options
+     * @param {RequestInit} [_options={}]
+     * @returns {Promise<BaseResponse>}
+     */
+    async request(_options) {
+        throw new Error('request is not implemented');
+    }
+}
+
+class FetchResponse extends BaseResponse {
+    /**
+     * BaseResponse facade for fetch API Response
+     * @param {Response} response
+     */
+    constructor(response) {
+        super();
+        this.response = response;
+    }
+    get status() {
+        return this.response.status;
+    }
+    /**
+     * @param {string} name
+     * @returns {string|undefined}
+     */
+    getHeader(name) {
+        return this.response.headers.get(name) || undefined;
+    }
+    async getData() {
+        const data = this.response.arrayBuffer
+            ? await this.response.arrayBuffer()
+            // FIXME Can this really have a buffer property?
+            : (await /** @type {*} */ (this.response).buffer()).buffer;
+        return data;
+    }
+}
+class FetchClient extends BaseClient {
+    /**
+     * @param {string} url
+     * @param {RequestCredentials} [credentials]
+     */
+    constructor(url, credentials) {
+        super(url);
+        this.credentials = credentials;
+    }
+    /**
+     * @param {RequestInit} [options={}]
+     * @returns {Promise<FetchResponse>}
+     */
+    async request({ headers, signal } = {}) {
+        const response = await fetch(this.url, {
+            headers, credentials: this.credentials, signal,
+        });
+        return new FetchResponse(response);
+    }
+}
+
+class XHRResponse extends BaseResponse {
+    /**
+     * BaseResponse facade for XMLHttpRequest
+     * @param {XMLHttpRequest} xhr
+     * @param {ArrayBuffer} data
+     */
+    constructor(xhr, data) {
+        super();
+        this.xhr = xhr;
+        this.data = data;
+    }
+    get status() {
+        return this.xhr.status;
+    }
+    /**
+     * @param {string} name
+     * @returns {string|undefined}
+     */
+    getHeader(name) {
+        return this.xhr.getResponseHeader(name) || undefined;
+    }
+    async getData() {
+        return this.data;
+    }
+}
+class XHRClient extends BaseClient {
+    /**
+     * @param {Object<string, string>} headers
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<XHRResponse>}
+     */
+    constructRequest(headers, signal) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', this.url);
+            xhr.responseType = 'arraybuffer';
+            for (const [key, value] of Object.entries(headers)) {
+                xhr.setRequestHeader(key, value);
+            }
+            // hook signals
+            xhr.onload = () => {
+                const data = xhr.response;
+                resolve(new XHRResponse(xhr, data));
+            };
+            xhr.onerror = reject;
+            xhr.onabort = () => reject(new AbortError('Request aborted'));
+            xhr.send();
+            if (signal) {
+                if (signal.aborted) {
+                    xhr.abort();
+                }
+                signal.addEventListener('abort', () => xhr.abort());
+            }
+        });
+    }
+    async request({ headers = {}, signal = undefined } = {}) {
+        const response = await this.constructRequest(headers, signal);
+        return response;
+    }
+}
+
+class HttpResponse extends BaseResponse {
+    /**
+     * BaseResponse facade for node HTTP/HTTPS API Response
+     * @param {import('http').IncomingMessage} response
+     * @param {Promise<ArrayBuffer>} dataPromise
+     */
+    constructor(response, dataPromise) {
+        super();
+        this.response = response;
+        this.dataPromise = dataPromise;
+    }
+    get status() {
+        return /** @type {number} */ (this.response.statusCode);
+    }
+    /**
+     * @param {string} name
+     * @returns {string|undefined}
+     */
+    getHeader(name) {
+        const value = this.response.headers[name];
+        return Array.isArray(value) ? value.join(', ') : value;
+    }
+    async getData() {
+        const data = await this.dataPromise;
+        return data;
+    }
+}
+class HttpClient extends BaseClient {
+    /** @param {string} url */
+    constructor(url) {
+        super(url);
+        this.parsedUrl = urlMod.parse(this.url);
+        this.httpApi = (this.parsedUrl.protocol === 'http:' ? http : https);
+    }
+    /**
+     * @param {Object<string, string>} headers
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<HttpResponse>}
+     */
+    constructRequest(headers, signal) {
+        return new Promise((resolve, reject) => {
+            const request = this.httpApi.get({
+                ...this.parsedUrl,
+                headers,
+            }, (response) => {
+                const dataPromise = new Promise((resolveData) => {
+                    /** @type {Uint8Array[]} */
+                    const chunks = [];
+                    // collect chunks
+                    response.on('data', (chunk) => {
+                        chunks.push(chunk);
+                    });
+                    // concatenate all chunks and resolve the promise with the resulting buffer
+                    response.on('end', () => {
+                        const data = Buffer.concat(chunks).buffer;
+                        resolveData(data);
+                    });
+                    response.on('error', reject);
+                });
+                resolve(new HttpResponse(response, dataPromise));
+            });
+            request.on('error', reject);
+            if (signal) {
+                if (signal.aborted) {
+                    request.destroy(new AbortError('Request aborted'));
+                }
+                signal.addEventListener('abort', () => request.destroy(new AbortError('Request aborted')));
+            }
+        });
+    }
+    async request({ headers = {}, signal = undefined } = {}) {
+        const response = await this.constructRequest(headers, signal);
+        return response;
+    }
+}
+
+/** @import { RemoteSourceOptions, BlockedSourceOptions } from '../geotiff.js' */
+class RemoteSource extends BaseSource {
+    /**
+     * @param {import("../geotiff.js").BaseClient} client
+     * @param {RemoteSourceOptions} options
+     */
+    constructor(client, { headers, maxRanges = 0, allowFullFile } = {}) {
+        super();
+        this.client = client;
+        this.headers = headers;
+        this.maxRanges = maxRanges;
+        this.allowFullFile = allowFullFile;
+        this._fileSize = null;
+    }
+    /**
+     * @param {import('./basesource.js').Slice[]} slices
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<ArrayBufferLike[]>}
+     */
+    async fetch(slices, signal) {
+        // if we allow multi-ranges, split the incoming request into that many sub-requests
+        // and join them afterwards
+        if (this.maxRanges >= slices.length) {
+            return this.fetchSlices(slices, signal).then((results) => results.map((r) => r.data));
+        }
+        else if (this.maxRanges > 0 && slices.length > 1) ;
+        // otherwise make a single request for each slice
+        return Promise.all(slices.map(async (slice) => (await this.fetchSlice(slice, signal)).data));
+    }
+    /**
+     * @param {Array<import('./basesource.js').Slice>} slices
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<Array<import('./basesource.js').SliceWithData>>}
+     */
+    async fetchSlices(slices, signal) {
+        const response = await this.client.request({
+            headers: {
+                ...this.headers,
+                Range: `bytes=${slices
+                    .map(({ offset, length }) => `${offset}-${offset + length - 1}`)
+                    .join(',')}`,
+            },
+            signal,
+        });
+        if (!response.ok) {
+            throw new Error('Error fetching data.');
+        }
+        else if (response.status === 206) {
+            const { type, params } = parseContentType(response.getHeader('content-type'));
+            if (type === 'multipart/byteranges') {
+                const byteRanges = parseByteRanges(await response.getData(), params.boundary);
+                this._fileSize = byteRanges[0].fileSize || null;
+                return byteRanges;
+            }
+            const data = await response.getData();
+            const { start, end, total } = parseContentRange(response.getHeader('content-range'));
+            this._fileSize = total || null;
+            /** @type {import('./basesource.js').SliceWithData[]} */
+            const first = [{
+                    data,
+                    offset: start,
+                    length: end + 1 - start,
+                }];
+            if (slices.length > 1) {
+                // we requested more than one slice, but got only the first
+                // unfortunately, some HTTP Servers don't support multi-ranges
+                // and return only the first
+                // get the rest of the slices and fetch them iteratively
+                const others = await Promise.all(slices.slice(1).map((slice) => this.fetchSlice(slice, signal)));
+                return first.concat(others);
+            }
+            return first;
+        }
+        else {
+            if (!this.allowFullFile) {
+                throw new Error('Server responded with full file');
+            }
+            const data = await response.getData();
+            this._fileSize = data.byteLength;
+            return [{
+                    data,
+                    offset: 0,
+                    length: data.byteLength,
+                }];
+        }
+    }
+    /**
+     * @param {import('./basesource.js').Slice} slice
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<import('./basesource.js').SliceWithData>}
+     */
+    async fetchSlice(slice, signal) {
+        const { offset, length } = slice;
+        const response = await this.client.request({
+            headers: {
+                ...this.headers,
+                Range: `bytes=${offset}-${offset + length - 1}`,
+            },
+            signal,
+        });
+        // check the response was okay and if the server actually understands range requests
+        if (!response.ok) {
+            throw new Error('Error fetching data.');
+        }
+        else if (response.status === 206) {
+            const data = await response.getData();
+            const { total } = parseContentRange(response.getHeader('content-range'));
+            this._fileSize = total || null;
+            return {
+                data,
+                offset,
+                length,
+            };
+        }
+        else {
+            if (!this.allowFullFile) {
+                throw new Error('Server responded with full file');
+            }
+            const data = await response.getData();
+            this._fileSize = data.byteLength;
+            return {
+                data,
+                offset: 0,
+                length: data.byteLength,
+            };
+        }
+    }
+    get fileSize() {
+        return this._fileSize;
+    }
+}
+/**
+ * @param {BaseSource} source
+ * @param {BlockedSourceOptions} blockedSourceOptions
+ * @returns {BaseSource}
+ */
+function maybeWrapInBlockedSource(source, { blockSize, cacheSize }) {
+    if (blockSize === undefined) {
+        return source;
+    }
+    return new BlockedSource(source, { blockSize, cacheSize });
+}
+/**
+ * @param {string} url
+ * @param {RemoteSourceOptions & BlockedSourceOptions & { credentials?: RequestCredentials}} [param1]
+ * @returns {BaseSource}
+ */
+function makeFetchSource(url, { headers = {}, credentials, maxRanges = 0, allowFullFile = false, ...blockOptions } = {}) {
+    const client = new FetchClient(url, credentials);
+    const source = new RemoteSource(client, { headers, maxRanges, allowFullFile });
+    return maybeWrapInBlockedSource(source, blockOptions);
+}
+/**
+ * @param {string} url
+ * @param {RemoteSourceOptions & BlockedSourceOptions} [param1]
+ * @returns {BaseSource}
+ */
+function makeXHRSource(url, { headers = {}, maxRanges = 0, allowFullFile = false, ...blockOptions } = {}) {
+    const client = new XHRClient(url);
+    const source = new RemoteSource(client, { headers, maxRanges, allowFullFile });
+    return maybeWrapInBlockedSource(source, blockOptions);
+}
+/**
+ * @param {string} url
+ * @param {RemoteSourceOptions & BlockedSourceOptions} [param1]
+ * @returns {BaseSource}
+ */
+function makeHttpSource(url, { headers = {}, maxRanges = 0, allowFullFile = false, ...blockOptions } = {}) {
+    const client = new HttpClient(url);
+    const source = new RemoteSource(client, { headers, maxRanges, allowFullFile });
+    return maybeWrapInBlockedSource(source, blockOptions);
+}
+/**
+ *
+ * @param {string} url
+ * @param {RemoteSourceOptions} options
+ */
+function makeRemoteSource(url, { forceXHR = false, ...clientOptions } = {}) {
+    if (typeof fetch === 'function' && !forceXHR) {
+        return makeFetchSource(url, clientOptions);
+    }
+    if (typeof XMLHttpRequest !== 'undefined') {
+        return makeXHRSource(url, clientOptions);
+    }
+    return makeHttpSource(url, clientOptions);
+}
+
+/**
+ * Allocates an appropriate TypedArray based on the TIFF field type.
+ * @param {number} fieldType - TIFF field type constant from fieldTypes
+ * @param {number} count - Number of elements to allocate
+ * @returns {import('./geotiff.js').TypedArray|Array<number>} The allocated typed array for the given field type
+ * @throws {RangeError} If the field type is invalid
+ */
+function getArrayForSamples(fieldType, count) {
+    switch (fieldType) {
+        case fieldTypes.BYTE:
+        case fieldTypes.ASCII:
+        case fieldTypes.UNDEFINED:
+            return new Uint8Array(count);
+        case fieldTypes.SBYTE:
+            return new Int8Array(count);
+        case fieldTypes.SHORT:
+            return new Uint16Array(count);
+        case fieldTypes.SSHORT:
+            return new Int16Array(count);
+        case fieldTypes.LONG:
+        case fieldTypes.IFD:
+            return new Uint32Array(count);
+        case fieldTypes.SLONG:
+            return new Int32Array(count);
+        case fieldTypes.LONG8:
+        case fieldTypes.IFD8:
+            return new Array(count);
+        case fieldTypes.SLONG8:
+            return new Array(count);
+        case fieldTypes.RATIONAL:
+            return new Uint32Array(count * 2);
+        case fieldTypes.SRATIONAL:
+            return new Int32Array(count * 2);
+        case fieldTypes.FLOAT:
+            return new Float32Array(count);
+        case fieldTypes.DOUBLE:
+            return new Float64Array(count);
+        default:
+            throw new RangeError(`Invalid field type: ${fieldType}`);
+    }
+}
+/**
+ * Returns the appropriate DataSlice read method for a given field type.
+ * @param {DataSlice} dataSlice - The DataSlice instance to get the reader from
+ * @param {number} fieldType - TIFF field type constant from fieldTypes
+ * @returns {Function} The bound read method (e.g., readUint16, readFloat32)
+ * @throws {RangeError} If the field type is invalid
+ */
+function getDataSliceReader(dataSlice, fieldType) {
+    switch (fieldType) {
+        case fieldTypes.BYTE:
+        case fieldTypes.ASCII:
+        case fieldTypes.UNDEFINED:
+            return dataSlice.readUint8;
+        case fieldTypes.SBYTE:
+            return dataSlice.readInt8;
+        case fieldTypes.SHORT:
+            return dataSlice.readUint16;
+        case fieldTypes.SSHORT:
+            return dataSlice.readInt16;
+        case fieldTypes.LONG:
+        case fieldTypes.IFD:
+            return dataSlice.readUint32;
+        case fieldTypes.SLONG:
+            return dataSlice.readInt32;
+        case fieldTypes.LONG8:
+        case fieldTypes.IFD8:
+            return dataSlice.readUint64;
+        case fieldTypes.SLONG8:
+            return dataSlice.readInt64;
+        case fieldTypes.RATIONAL:
+            return dataSlice.readUint32;
+        case fieldTypes.SRATIONAL:
+            return dataSlice.readInt32;
+        case fieldTypes.FLOAT:
+            return dataSlice.readFloat32;
+        case fieldTypes.DOUBLE:
+            return dataSlice.readFloat64;
+        default:
+            throw new RangeError(`Invalid field type: ${fieldType}`);
+    }
+}
+/**
+ * @overload
+ * @param {import('./geotiff.js').TypedArray|Array<number>|null} outValues - Optional pre-allocated output array
+ * @param {Function} readMethod - DataView read method (e.g., getUint16)
+ * @param {DataSlice} dataSlice - Source data slice
+ * @param {number} fieldType - TIFF field type constant
+ * @param {number} count - Number of values to read
+ * @param {number} offset - Byte offset to start reading
+ * @param {true} isArray - Whether to always return an array (vs single value)
+ * @returns {import('./geotiff.js').TypedArray|Array<number>} The decoded value(s)
+ */
+/**
+ * @overload
+ * @param {import('./geotiff.js').TypedArray|Array<number>|null} outValues - Optional pre-allocated output array
+ * @param {Function} readMethod - DataView read method (e.g., getUint16)
+ * @param {DataSlice} dataSlice - Source data slice
+ * @param {number} fieldType - TIFF field type constant
+ * @param {number} count - Number of values to read
+ * @param {number} offset - Byte offset to start reading
+ * @param {boolean} [isArray] - Whether to always return an array (vs single value)
+ * @returns {import('./geotiff.js').TypedArray|Array<number>|string|number} The decoded value(s)
+ */
+/**
+ * Reads field values from a DataSlice.
+ * @param {import('./geotiff.js').TypedArray|Array<number>|null} outValues - Optional pre-allocated output array
+ * @param {Function} readMethod - DataView read method (e.g., getUint16)
+ * @param {DataSlice} dataSlice - Source data slice
+ * @param {import('./globals.js').FieldType} fieldType - TIFF field type constant
+ * @param {number} count - Number of values to read
+ * @param {number} offset - Byte offset to start reading
+ * @param {boolean} [isArray] - Whether to always return an array (vs single value)
+ * @returns {import('./geotiff.js').TypedArray|Array<number>|string|number} The decoded value(s)
+ */
+function getValues$1(outValues = null, readMethod, dataSlice, fieldType, count, offset, isArray = false) {
+    const fieldTypeLength = getFieldTypeSize(fieldType);
+    const values = outValues || getArrayForSamples(fieldType, count);
+    // const readMethod = getDataSliceReader(dataSlice, fieldType);
+    const isRational = (fieldType === fieldTypes.RATIONAL || fieldType === fieldTypes.SRATIONAL);
+    // normal fields
+    if (!isRational) {
+        for (let i = 0; i < count; ++i) {
+            values[i] = readMethod.call(dataSlice, offset + (i * fieldTypeLength));
+        }
+    }
+    else {
+        // RATIONAL or SRATIONAL
+        for (let i = 0; i < count; i += 2) {
+            values[i] = readMethod.call(dataSlice, offset + (i * fieldTypeLength));
+            values[i + 1] = readMethod.call(dataSlice, offset + ((i * fieldTypeLength) + 4));
+        }
+    }
+    if (fieldType === fieldTypes.ASCII) {
+        return new TextDecoder('utf-8').decode(/** @type {Uint8Array} */ (values));
+    }
+    if (count === 1 && !isArray && !isRational) {
+        return values[0];
+    }
+    return values;
+}
+/**
+ * Lazily-loaded array for large TIFF field values that are fetched on-demand.
+ * Supports loading individual indices or the entire array. Uses a bitmap to track
+ * which values have been loaded to avoid redundant fetches.
+ */
+class DeferredArray {
+    /**
+     * Creates a DeferredArray for lazy-loading of large TIFF field arrays.
+     * @param {import("./source/basesource.js").BaseSource} source - Data source for fetching
+     * @param {number} arrayOffset - Byte offset where the array data starts
+     * @param {boolean} littleEndian - Endianness of the data
+     * @param {import('./globals.js').FieldType} fieldType - TIFF field type constant
+     * @param {number} length - Number of elements in the array
+     */
+    constructor(source, arrayOffset, littleEndian, fieldType, length) {
+        this.source = source;
+        this.arrayOffset = arrayOffset;
+        this.littleEndian = littleEndian;
+        this.fieldType = fieldType;
+        this.length = length;
+        this.data = getArrayForSamples(fieldType, length);
+        this.itemSize = getFieldTypeSize(fieldType);
+        this.maskBitmap = new Uint8Array(Math.ceil(length / 8));
+        this.fetchIndexPromises = new Map();
+        this.fullFetchPromise = null;
+    }
+    /**
+     * Loads all values in the deferred array at once.
+     * Subsequent calls return the same promise to avoid redundant fetches.
+     * @returns {Promise<import('./geotiff.js').TypedArray|Array<number>>} Promise resolving to the fully loaded array
+     */
+    async loadAll() {
+        if (!this.fullFetchPromise) {
+            this.fullFetchPromise = this.source.fetch([{
+                    offset: this.arrayOffset,
+                    length: this.itemSize * this.length,
+                }]).then((data) => {
+                const dataSlice = new DataSlice(data[0], this.arrayOffset, true, false);
+                const result = getValues$1(this.data, getDataSliceReader(dataSlice, this.fieldType), dataSlice, this.fieldType, this.length, this.arrayOffset, true);
+                // Mark all items as loaded in the bitmap
+                this.maskBitmap.fill(0xFF);
+                // Clean up any pending individual fetch promises since all data is now loaded
+                this.fetchIndexPromises.clear();
+                return result;
+            });
+        }
+        return this.fullFetchPromise;
+    }
+    /**
+     * Loads and returns a single value at the specified index.
+     * If the value is already loaded, returns it immediately. Otherwise, fetches it
+     * from the source. Multiple calls for the same index reuse the same promise.
+     * @param {number} index - Zero-based index of the value to load
+     * @returns {Promise<number|bigint>} Promise resolving to the value at the given index
+     * @throws {RangeError} If index is out of bounds
+     */
+    async get(index) {
+        if (index < 0 || index >= this.data.length) {
+            throw new RangeError(`Index ${index} out of bounds for length ${this.data.length}`);
+        }
+        const byteIndex = Math.floor(index / 8);
+        const bitMask = 1 << index % 8;
+        const offset = this.arrayOffset + (index * this.itemSize);
+        if ((this.maskBitmap[byteIndex] & bitMask) === 0) {
+            if (!this.fetchIndexPromises.has(index)) {
+                const fetchPromise = this.source.fetch([{
+                        offset,
+                        length: this.itemSize,
+                    }]).then((data) => {
+                    const dataSlice = new DataSlice(data[0], this.arrayOffset + (index * this.itemSize), true, false);
+                    const readMethod = getDataSliceReader(dataSlice, this.fieldType);
+                    const value = readMethod.call(dataSlice, offset);
+                    this.data[index] = value;
+                    this.maskBitmap[byteIndex] |= bitMask;
+                    this.fetchIndexPromises.delete(index);
+                    return value;
+                });
+                this.fetchIndexPromises.set(index, fetchPromise);
+            }
+            return this.fetchIndexPromises.get(index);
+        }
+        return this.data[index];
+    }
+}
+class ImageFileDirectory {
+    /**
+     * Create an ImageFileDirectory.
+     * @param {Map<string|number, number|string|Array<number|string>>} actualizedFields the file directory,
+     * mapping tag names to values
+     * @param {Map<string|number, Function>} deferredFields the deferred fields, mapping tag names to async functions
+     * @param {Map<string|number, DeferredArray>} deferredArrays the deferred arrays, mapping tag names to
+     * DeferredArray objects
+     * @param {number} nextIFDByteOffset the byte offset to the next IFD
+     */
+    constructor(actualizedFields, deferredFields, deferredArrays, nextIFDByteOffset) {
+        this.actualizedFields = actualizedFields;
+        this.deferredFields = deferredFields;
+        this.deferredFieldsBeingResolved = new Map();
+        this.deferredArrays = deferredArrays;
+        this.nextIFDByteOffset = nextIFDByteOffset;
+    }
+    /**
+     * @param {import('./globals.js').TagName|number} tagIdentifier The field tag ID or name
+     * @returns {boolean} whether the field exists (actualized or deferred)
+     */
+    hasTag(tagIdentifier) {
+        const tag = resolveTag(tagIdentifier);
+        return this.actualizedFields.has(tag) || this.deferredFields.has(tag) || this.deferredArrays.has(tag);
+    }
+    /**
+     * Synchronously retrieves the value for a given tag. If it is deferred, an error is thrown.
+     * @template {import('./globals.js').EagerTagName | import('./globals.js').EagerTag} [T=any]
+     * @param {T} tagIdentifier The field tag ID or name
+     * @returns {T extends import('./globals.js').TagName ? (import('./globals.js').TagValue<T> | undefined) : any}
+     * the field value,
+     * or undefined if it does not exist
+     * @throws {Error} If the tag is deferred and requires asynchronous loading
+     */
+    getValue(tagIdentifier) {
+        const tag = resolveTag(tagIdentifier);
+        if (this.deferredFields.has(tag) || this.deferredArrays.has(tag)) {
+            const tagDef = tagDefinitions[tag];
+            const tagName = tagDef?.name || `Tag${tag}`;
+            throw new Error(`Field '${tagName}' (${tag}) is deferred. Use loadValue() to load it asynchronously.`);
+        }
+        if (!this.actualizedFields.has(tag)) {
+            return /** @type {any} */ (undefined);
+        }
+        return /** @type {any} */ (this.actualizedFields.get(tag));
+    }
+    /**
+     * Retrieves the value for a given tag. If it is deferred, it will be loaded first.
+     * @template {import('./globals.js').TagName} [T=any]
+     * @param {T|number} tagIdentifier The field tag ID or name
+     * @returns {Promise<T extends import('./globals.js').TagName ? (import('./globals.js').TagValue<T> | undefined) : any>}
+     *   the field value, or undefined if it does not exist
+     */
+    async loadValue(tagIdentifier) {
+        const tag = resolveTag(tagIdentifier);
+        if (this.actualizedFields.has(tag)) {
+            return /** @type {any} */ (this.actualizedFields.get(tag));
+        }
+        if (this.deferredFieldsBeingResolved.has(tag)) {
+            return /** @type {any} */ (this.deferredFieldsBeingResolved.get(tag));
+        }
+        const loaderFn = this.deferredFields.get(tag);
+        if (loaderFn) {
+            this.deferredFields.delete(tag);
+            // Set promise BEFORE starting async work to prevent race conditions
+            const valuePromise = (async () => {
+                try {
+                    const value = await loaderFn();
+                    this.actualizedFields.set(tag, value);
+                    return value;
+                }
+                finally {
+                    this.deferredFieldsBeingResolved.delete(tag);
+                }
+            })();
+            this.deferredFieldsBeingResolved.set(tag, valuePromise);
+            return /** @type {any} */ (valuePromise);
+        }
+        const deferredArray = this.deferredArrays.get(tag);
+        if (deferredArray) {
+            return /** @type {any} */ (deferredArray.loadAll());
+        }
+        return /** @type {any} */ (undefined);
+    }
+    /**
+     * Retrieves the value at a given index for a tag that is an array. If it is deferred, it will be loaded first.
+     * @param {number|string} tagIdentifier The field tag ID or name
+     * @param {number} index The index within the array
+     * @returns {Promise<number|string|bigint|undefined>} the field value at the given index, or undefined if it does not exist
+     */
+    async loadValueIndexed(tagIdentifier, index) {
+        const tag = resolveTag(tagIdentifier);
+        if (this.actualizedFields.has(tag)) {
+            const value = this.actualizedFields.get(tag);
+            return /** @type {any} */ (value)[index];
+        }
+        else if (this.deferredArrays.has(tag)) {
+            const deferredArray = /** @type {DeferredArray} */ (this.deferredArrays.get(tag));
+            return deferredArray.get(index);
+        }
+        else if (this.hasTag(tag)) {
+            const value = await this.loadValue(tag);
+            if (value && typeof value !== 'number') {
+                return value[index];
+            }
+        }
+        return undefined;
+    }
+    /**
+     * Parses the GeoTIFF GeoKeyDirectory tag into a structured object.
+     * The GeoKeyDirectory is a special TIFF tag that contains geographic metadata
+     * in a key-value format as defined by the GeoTIFF specification.
+     * @returns {Partial<Record<import('./globals.js').GeoKeyName, *>>|null} Parsed geo key directory
+     *     mapping key names to values, or null if not present
+     * @throws {Error} If a referenced geo key value cannot be retrieved
+     */
+    parseGeoKeyDirectory() {
+        const rawGeoKeyDirectory = this.getValue('GeoKeyDirectory');
+        if (!rawGeoKeyDirectory) {
+            return null;
+        }
+        /** @type {Partial<Record<import('./globals.js').GeoKeyName, *>>} */
+        const geoKeyDirectory = {};
+        for (let i = 4; i <= rawGeoKeyDirectory[3] * 4; i += 4) {
+            const key = ( /** @type {Record<number, import('./globals.js').GeoKeyName>} */(geoKeyNames))[rawGeoKeyDirectory[i]];
+            const location = /** @type {import('./globals.js').EagerTag} */ (rawGeoKeyDirectory[i + 1]) || null;
+            const count = rawGeoKeyDirectory[i + 2];
+            const offset = rawGeoKeyDirectory[i + 3];
+            let value = null;
+            if (!location) {
+                value = offset;
+            }
+            else {
+                value = this.getValue(location);
+                if (typeof value === 'undefined' || value === null) {
+                    throw new Error(`Could not get value of geoKey '${key}'.`);
+                }
+                else if (typeof value === 'string') {
+                    value = value.substring(offset, offset + count - 1);
+                }
+                else if (value.subarray) {
+                    value = value.subarray(offset, offset + count);
+                    if (count === 1) {
+                        value = value[0];
+                    }
+                }
+            }
+            geoKeyDirectory[key] = value;
+        }
+        return geoKeyDirectory;
+    }
+    toObject() {
+        /** @type {Record<string, unknown>} */
+        const obj = {};
+        for (const [tag, value] of this.actualizedFields.entries()) {
+            const tagDefinition = typeof tag === 'number' ? tagDefinitions[tag] : undefined;
+            const tagName = tagDefinition ? tagDefinition.name : `Tag${tag}`;
+            obj[tagName] = value;
+        }
+        return obj;
+    }
+}
+/**
+ * Parser for Image File Directories (IFDs).
+ */
+class ImageFileDirectoryParser {
+    /**
+     * @param {import("./source/basesource.js").BaseSource} source the data source to fetch from
+     * @param {boolean} littleEndian the endianness of the file
+     * @param {boolean} bigTiff whether the file is a BigTIFF
+     * @param {boolean} [eager=false] whether to eagerly fetch deferred fields.
+     *                                 When false (default), tags are loaded lazily on-demand.
+     *                                 When true, all tags are loaded immediately during parsing.
+     */
+    constructor(source, littleEndian, bigTiff, eager = false) {
+        this.source = source;
+        this.littleEndian = littleEndian;
+        this.bigTiff = bigTiff;
+        this.eager = eager;
+    }
+    /**
+     * Helper function to retrieve a DataSlice from the source.
+     * @param {number} offset Byte offset of the slice
+     * @param {number} [length] Length of the slice
+     * @returns {Promise<DataSlice>}
+     */
+    async getSlice(offset, length) {
+        const fallbackLength = this.bigTiff ? 4048 : 1024;
+        return new DataSlice((await this.source.fetch([
+            {
+                offset,
+                length: typeof length !== 'undefined' ? length : fallbackLength,
+            },
+        ]))[0], offset, this.littleEndian, this.bigTiff);
+    }
+    /**
+     * Instructs to parse an image file directory at the given file offset.
+     * As there is no way to ensure that a location is indeed the start of an IFD,
+     * this function must be called with caution (e.g only using the IFD offsets from
+     * the headers or other IFDs).
+     * @param {number} offset the offset to parse the IFD at
+     * @returns {Promise<ImageFileDirectory>} the parsed IFD
+     */
+    async parseFileDirectoryAt(offset) {
+        const entrySize = this.bigTiff ? 20 : 12;
+        const offsetSize = this.bigTiff ? 8 : 2;
+        let dataSlice = await this.getSlice(offset);
+        const numDirEntries = this.bigTiff
+            ? dataSlice.readUint64(offset)
+            : dataSlice.readUint16(offset);
+        // if the slice does not cover the whole IFD, request a bigger slice, where the
+        // whole IFD fits: num of entries + n x tag length + offset to next IFD
+        const byteSize = numDirEntries * (entrySize + (this.bigTiff ? 16 : 6));
+        if (!dataSlice.covers(offset, byteSize)) {
+            dataSlice = await this.getSlice(offset, byteSize);
+        }
+        const actualizedFields = new Map();
+        const deferredFields = new Map();
+        const deferredArrays = new Map();
+        // loop over the IFD and create a file directory object
+        let i = offset + (this.bigTiff ? 8 : 2);
+        for (let entryCount = 0; entryCount < numDirEntries; i += entrySize, ++entryCount) {
+            const fieldTag = dataSlice.readUint16(i);
+            const fieldType = /** @type {import('./globals.js').FieldType} */ (dataSlice.readUint16(i + 2));
+            const typeCount = this.bigTiff
+                ? dataSlice.readUint64(i + 4)
+                : dataSlice.readUint32(i + 4);
+            let fieldValues = null;
+            let deferredFieldValues = null;
+            let deferredArray = null;
+            const fieldTypeLength = getFieldTypeSize(fieldType);
+            const valueOffset = i + (this.bigTiff ? 12 : 8);
+            const isArray = tagDefinitions[fieldTag]?.isArray;
+            const eager = tagDefinitions[fieldTag]?.eager || this.eager;
+            // check whether the value is directly encoded in the tag or refers to a
+            // different external byte range
+            if (fieldTypeLength * typeCount <= (this.bigTiff ? 8 : 4)) {
+                fieldValues = getValues$1(getArrayForSamples(fieldType, typeCount), getDataSliceReader(dataSlice, fieldType), dataSlice, fieldType, typeCount, valueOffset, isArray);
+            }
+            else {
+                // resolve the reference to the actual byte range
+                const actualOffset = dataSlice.readOffset(valueOffset);
+                const length = getFieldTypeSize(fieldType) * typeCount;
+                // check, whether we actually cover the referenced byte range
+                if (dataSlice.covers(actualOffset, length)) {
+                    fieldValues = getValues$1(getArrayForSamples(fieldType, typeCount), getDataSliceReader(dataSlice, fieldType), dataSlice, fieldType, typeCount, actualOffset, isArray);
+                }
+                else if (eager) {
+                    // eager evaluation: fetch the data right now
+                    // TODO: instead of fetching the slice right here, collect all slices and fetch them together
+                    // to allow conjoined requests
+                    const fieldDataSlice = await this.getSlice(actualOffset, length);
+                    fieldValues = getValues$1(getArrayForSamples(fieldType, typeCount), getDataSliceReader(fieldDataSlice, fieldType), fieldDataSlice, fieldType, typeCount, actualOffset, isArray);
+                }
+                else if (isArray) {
+                    deferredArray = new DeferredArray(this.source, actualOffset, this.littleEndian, fieldType, typeCount);
+                }
+                else {
+                    deferredFieldValues = async () => {
+                        const fieldDataSlice = await this.getSlice(actualOffset, length);
+                        return getValues$1(getArrayForSamples(fieldType, typeCount), getDataSliceReader(fieldDataSlice, fieldType), fieldDataSlice, fieldType, typeCount, actualOffset, isArray);
+                    };
+                }
+            }
+            if (fieldValues !== null) {
+                actualizedFields.set(fieldTag, fieldValues);
+            }
+            else if (deferredFieldValues !== null) {
+                deferredFields.set(fieldTag, deferredFieldValues);
+            }
+            else if (deferredArray !== null) {
+                deferredArrays.set(fieldTag, deferredArray);
+            }
+        }
+        const nextIFDByteOffset = dataSlice.readOffset(offset + offsetSize + (entrySize * numDirEntries));
+        return new ImageFileDirectory(actualizedFields, deferredFields, deferredArrays, nextIFDByteOffset);
+    }
+}
+
+/**
+ * @param {Uint8Array|Uint16Array|Uint32Array} row
+ * @param {number} stride
+ */
+function decodeRowAcc(row, stride) {
+    let length = row.length - stride;
+    let offset = 0;
+    do {
+        for (let i = stride; i > 0; i--) {
+            row[offset + stride] += row[offset];
+            offset++;
+        }
+        length -= stride;
+    } while (length > 0);
+}
+/**
+ * @param {Uint8Array} row
+ * @param {number} stride
+ * @param {number} bytesPerSample
+ */
+function decodeRowFloatingPoint(row, stride, bytesPerSample) {
+    let index = 0;
+    let count = row.length;
+    const wc = count / bytesPerSample;
+    while (count > stride) {
+        for (let i = stride; i > 0; --i) {
+            row[index + stride] += row[index];
+            ++index;
+        }
+        count -= stride;
+    }
+    const copy = row.slice();
+    for (let i = 0; i < wc; ++i) {
+        for (let b = 0; b < bytesPerSample; ++b) {
+            row[(bytesPerSample * i) + b] = copy[((bytesPerSample - b - 1) * wc) + i];
+        }
+    }
+}
+/**
+ * @param {ArrayBufferLike} block
+ * @param {number} predictor
+ * @param {number} width
+ * @param {number} height
+ * @param {number[]} bitsPerSample
+ * @param {number} planarConfiguration
+ * @returns
+ */
+function applyPredictor(block, predictor, width, height, bitsPerSample, planarConfiguration) {
+    if (!predictor || predictor === 1) {
+        return block;
+    }
+    for (let i = 0; i < bitsPerSample.length; ++i) {
+        if (bitsPerSample[i] % 8 !== 0) {
+            throw new Error('When decoding with predictor, only multiple of 8 bits are supported.');
+        }
+        if (bitsPerSample[i] !== bitsPerSample[0]) {
+            throw new Error('When decoding with predictor, all samples must have the same size.');
+        }
+    }
+    const bytesPerSample = bitsPerSample[0] / 8;
+    const stride = planarConfiguration === 2 ? 1 : bitsPerSample.length;
+    for (let i = 0; i < height; ++i) {
+        // Last strip will be truncated if height % stripHeight != 0
+        if (i * stride * width * bytesPerSample >= block.byteLength) {
+            break;
+        }
+        let row;
+        if (predictor === 2) { // horizontal prediction
+            switch (bitsPerSample[0]) {
+                case 8:
+                    row = new Uint8Array(block, i * stride * width * bytesPerSample, stride * width * bytesPerSample);
+                    break;
+                case 16:
+                    row = new Uint16Array(block, i * stride * width * bytesPerSample, stride * width * bytesPerSample / 2);
+                    break;
+                case 32:
+                    row = new Uint32Array(block, i * stride * width * bytesPerSample, stride * width * bytesPerSample / 4);
+                    break;
+                default:
+                    throw new Error(`Predictor 2 not allowed with ${bitsPerSample[0]} bits per sample.`);
+            }
+            decodeRowAcc(row, stride);
+        }
+        else if (predictor === 3) { // horizontal floating point
+            row = new Uint8Array(block, i * stride * width * bytesPerSample, stride * width * bytesPerSample);
+            decodeRowFloatingPoint(row, stride, bytesPerSample);
+        }
+    }
+    return block;
+}
+
+/**
+ * @typedef {Object} BaseDecoderParameters
+ * @property {number} tileWidth
+ * @property {number} tileHeight
+ * @property {number} predictor
+ * @property {number|number[]|import('../geotiff.js').TypedArray} bitsPerSample
+ * @property {number} planarConfiguration
+ * @property {number} [samplesPerPixel]
+ */
+class BaseDecoder {
+    /**
+     * @param {BaseDecoderParameters} parameters
+     */
+    constructor(parameters) {
+        this.parameters = parameters;
+    }
+    /**
+     * @abstract
+     * @param {ArrayBufferLike} _buffer
+     * @returns {Promise<ArrayBufferLike>|ArrayBufferLike}
+     */
+    decodeBlock(_buffer) {
+        throw new Error('decodeBlock not implemented');
+    }
+    /**
+     * @param {ArrayBufferLike} buffer
+     * @returns {Promise<ArrayBufferLike>}
+     */
+    async decode(buffer) {
+        const decoded = await this.decodeBlock(buffer);
+        const { tileWidth, tileHeight, predictor, bitsPerSample, planarConfiguration, } = this.parameters;
+        if (predictor !== 1) {
+            const isBitsPerSampleArray = Array.isArray(bitsPerSample) || ArrayBuffer.isView(bitsPerSample);
+            const adaptedBitsPerSample = isBitsPerSampleArray ? Array.from(bitsPerSample) : [bitsPerSample];
+            return applyPredictor(decoded, predictor, tileWidth, tileHeight, adaptedBitsPerSample, planarConfiguration);
+        }
+        return decoded;
+    }
+}
+
+/** @module geotiff */
+/**
+ * @typedef {Uint8Array | Int8Array | Uint16Array | Int16Array | Uint32Array | Int32Array | Float32Array | Float64Array}
+ * TypedArray
+ */
+/**
+ * @typedef {{ height:number, width: number }} Dimensions
+ */
+/**
+ * The autogenerated docs are a little confusing here. The effective type is:
+ *
+ * `TypedArray & { height: number; width: number}`
+ * @typedef {TypedArray & Dimensions} TypedArrayWithDimensions
+ */
+/**
+ * The autogenerated docs are a little confusing here. The effective type is:
+ *
+ * `TypedArray[] & { height: number; width: number}`
+ * @typedef {TypedArray[] & Dimensions} TypedArrayArrayWithDimensions
+ */
+/**
+ * @typedef {Object} GeotiffWriterMetadata
+ * @property {number | number[]} [ImageWidth]
+ * @property {number | number[]} [ImageLength]
+ * @property {number} [width]
+ * @property {number} [height]
+ * @property {number | number[]} [BitsPerSample]
+ * @property {number | number[]} [Compression]
+ * @property {number | number[]} [PlanarConfiguration]
+ * @property {number | number[]} [ExtraSamples]
+ * @property {number | number[]} [PhotometricInterpretation]
+ * @property {number | number[]} [SamplesPerPixel]
+ * @property {number | number[]} [StripByteCounts]
+ * @property {number[]} [ModelPixelScale]
+ * @property {number[]} [ModelTransformation]
+ * @property {number[]} [ModelTiepoint]
+ * @property {number[]} [GeoKeyDirectory]
+ * @property {string} [GeoAsciiParams]
+ * @property {number[]} [GeoDoubleParams]
+ * @property {number | number[]} [Orientation]
+ * @property {number | number[]} [ResolutionUnit]
+ * @property {number | number[]} [XPosition]
+ * @property {number | number[]} [YPosition]
+ * @property {number | number[]} [RowsPerStrip]
+ * @property {number[]} [SampleFormat]
+ * @property {number | number[]} [TileWidth]
+ * @property {number | number[]} [TileLength]
+ * @property {number[]} [TileOffsets]
+ * @property {number[]} [TileByteCounts]
+ * @property {string} [GDAL_NODATA]
+ * @property {number | number[]} [GeographicTypeGeoKey]
+ * @property {number | number[]} [ProjectedCSTypeGeoKey]
+ * @property {string} [GeogCitationGeoKey]
+ * @property {string} [GTCitationGeoKey]
+ * @property {number | number[]} [GTModelTypeGeoKey]
+ * @property {number | number[]} [GTRasterTypeGeoKey]
+ */
+/**
+ *  The autogenerated docs are a little confusing here. The effective type is:
+ *
+ * `(TypedArray | TypedArray[]) & { height: number; width: number}`
+ * @typedef {TypedArrayWithDimensions | TypedArrayArrayWithDimensions} ReadRasterResult
+ */
+/**
+ * @typedef {Object} DecoderWorker
+ * Use the {@link Pool.bindParameters} method to get a decoder worker for
+ * a specific compression and its parameters.
+ *
+ * @property {(buffer: ArrayBufferLike) => Promise<ArrayBufferLike>} decode
+ *   A function that takes a compressed buffer and returns a promise resolving to the decoded buffer.
+ */
+/**
+ * @typedef {Object} ReadRastersOptions
+ * @property {Array<number>} [window] the subset to read data from in pixels. Whole window if not specified.
+ * @property {Array<number>} [samples] the selection of samples to read from. Default is all samples.
+ *     All samples if not specified.
+ * @property {Pool|null} [pool=null] The optional decoder pool to use.
+ * @property {number} [width] The desired width of the output. When the width is not the
+ *                                 same as the images, resampling will be performed.
+ * @property {number} [height] The desired height of the output. When the width is not the
+ *                                  same as the images, resampling will be performed.
+ * @property {string} [resampleMethod='nearest'] The desired resampling method.
+ * @property {AbortSignal} [signal] An AbortSignal that may be signalled if the request is
+ *                                       to be aborted
+ * @property {number|number[]} [fillValue] The value to use for parts of the image
+ *     outside of the images extent. When multiple samples are requested and `interleave` is
+ *     `false`, an array of fill values can be passed.
+ * @property {boolean|true|false} [interleave] whether the data shall be read
+ *     in one single array or separate arrays.
+ */
+/**
+ * @typedef {Object} ReadRGBOptions
+ * @property {Array<number>} [window] the subset to read data from in pixels. Whole window if not specified.
+ * @property {Pool|null} [pool=null] The optional decoder pool to use.
+ * @property {number} [width] The desired width of the output. When the width is no the
+ *                                 same as the images, resampling will be performed.
+ * @property {number} [height] The desired height of the output. When the width is no the
+ *                                  same as the images, resampling will be performed.
+ * @property {string} [resampleMethod='nearest'] The desired resampling method.
+ * @property {boolean} [enableAlpha=false] Enable reading alpha channel if present.
+ * @property {AbortSignal} [signal] An AbortSignal that may be signalled if the request is
+ *                                       to be aborted
+ * @property {boolean|true|false} [interleave] whether the data shall be read
+ *     in one single array or separate arrays.
+ */
+/**
+ * @typedef {Object} BlockedSourceOptions
+ * @property {number} [blockSize] Block size for a BlockedSource.
+ * @property {number} [cacheSize=100] The number of blocks to cache.
+ */
+/**
+ * @typedef {Object} RemoteSourceOptions
+ * @property {Record<string, string>} [headers={}] Additional headers to add to each request
+ * @property {number} [maxRanges=0] Maximum number of ranges to request in a single HTTP request. 0 means no multi-range requests.
+ * @property {boolean} [allowFullFile=false] Whether to allow full file responses when requesting ranges
+ * @property {boolean} [forceXHR=false] When the Fetch API would be used, force using XMLHttpRequest instead.
+ */
+/**
+ * @overload
+ * @param {DataSlice} dataSlice
+ * @param {0x0002} fieldType
+ * @param {number} count
+ * @param {number} offset
+ * @returns {string}
+ */
+/**
+ * @param {DataSlice} dataSlice
+ * @param {import('./globals.js').FieldType} fieldType
+ * @param {number} count
+ * @param {number} offset
+ * @returns {TypedArray|Array<number>|string}
+ */
+function getValues(dataSlice, fieldType, count, offset) {
+    /** @type {TypedArray|Array<number>|null} */
+    let values = null;
+    let readMethod = null;
+    const fieldTypeLength = getFieldTypeSize(fieldType);
+    switch (fieldType) {
+        case fieldTypes.BYTE:
+        case fieldTypes.ASCII:
+        case fieldTypes.UNDEFINED:
+            values = new Uint8Array(count);
+            readMethod = dataSlice.readUint8;
+            break;
+        case fieldTypes.SBYTE:
+            values = new Int8Array(count);
+            readMethod = dataSlice.readInt8;
+            break;
+        case fieldTypes.SHORT:
+            values = new Uint16Array(count);
+            readMethod = dataSlice.readUint16;
+            break;
+        case fieldTypes.SSHORT:
+            values = new Int16Array(count);
+            readMethod = dataSlice.readInt16;
+            break;
+        case fieldTypes.LONG:
+        case fieldTypes.IFD:
+            values = new Uint32Array(count);
+            readMethod = dataSlice.readUint32;
+            break;
+        case fieldTypes.SLONG:
+            values = new Int32Array(count);
+            readMethod = dataSlice.readInt32;
+            break;
+        case fieldTypes.LONG8:
+        case fieldTypes.IFD8:
+            values = new Array(count);
+            readMethod = dataSlice.readUint64;
+            break;
+        case fieldTypes.SLONG8:
+            values = new Array(count);
+            readMethod = dataSlice.readInt64;
+            break;
+        case fieldTypes.RATIONAL:
+            values = new Uint32Array(count * 2);
+            readMethod = dataSlice.readUint32;
+            break;
+        case fieldTypes.SRATIONAL:
+            values = new Int32Array(count * 2);
+            readMethod = dataSlice.readInt32;
+            break;
+        case fieldTypes.FLOAT:
+            values = new Float32Array(count);
+            readMethod = dataSlice.readFloat32;
+            break;
+        case fieldTypes.DOUBLE:
+            values = new Float64Array(count);
+            readMethod = dataSlice.readFloat64;
+            break;
+        // will throw below
+    }
+    if (values === null || readMethod === null) {
+        throw new RangeError(`Invalid field type: ${fieldType}`);
+    }
+    // normal fields
+    {
+        for (let i = 0; i < count; ++i) {
+            values[i] = readMethod.call(dataSlice, offset + (i * fieldTypeLength));
+        }
+    }
+    {
+        return new TextDecoder('utf-8').decode(/** @type {Uint8Array} */ (values));
+    }
+}
+/**
+ * Error class for cases when an IFD index was requested, that does not exist
+ * in the file.
+ */
+class GeoTIFFImageIndexError extends Error {
+    /**
+     * @param {number} index
+     */
+    constructor(index) {
+        super(`No image at index ${index}`);
+        this.index = index;
+    }
+}
+class GeoTIFFBase {
+    /**
+     * @param {number} [_index=0] the index of the image to return.
+     * @returns {Promise<GeoTIFFImage>} the image at the given index
+     */
+    async getImage(_index = 0) {
+        throw new Error('Not implemented');
+    }
+    /**
+     * @returns {Promise<number>} the number of internal subfile images
+     */
+    async getImageCount() {
+        throw new Error('Not implemented');
+    }
+    /**
+     * @typedef {Object} ReadRastersWindowOptions
+     * @property {number} [resX] desired Y resolution (world units per pixel)
+     * @property {number} [resY] desired X resolution (world units per pixel)
+     * @property {Array<number>} [bbox] the subset to read data from in
+     *     geographical coordinates. Whole image if not specified.
+     */
+    /**
+     * (experimental) Reads raster data from the best fitting image. This function uses
+     * the image with the lowest resolution that is still a higher resolution than the
+     * requested resolution.
+     * When specified, the `bbox` option is translated to the `window` option and the
+     * `resX` and `resY` to `width` and `height` respectively.
+     * Then, the [readRasters]{@link GeoTIFFImage#readRasters} method of the selected
+     * image is called and the result returned.
+     * @see GeoTIFFImage.readRasters
+     * @param {ReadRastersOptions & ReadRastersWindowOptions} options optional parameters
+     * @returns {Promise<ReadRasterResult>} the decoded array(s), with `height` and `width`, as a promise
+     */
+    async readRasters(options = {}) {
+        const { window: imageWindow, width, height } = options;
+        let { resX, resY, bbox } = options;
+        const firstImage = await this.getImage();
+        let usedImage = firstImage;
+        const imageCount = await this.getImageCount();
+        const imgBBox = firstImage.getBoundingBox();
+        if (imageWindow && bbox) {
+            throw new Error('Both "bbox" and "window" passed.');
+        }
+        // if width/height is passed, transform it to resolution
+        if (width || height) {
+            // if we have an image window (pixel coordinates), transform it to a BBox
+            // using the origin/resolution of the first image.
+            if (imageWindow) {
+                const [oX, oY] = firstImage.getOrigin();
+                const [rX, rY] = firstImage.getResolution();
+                bbox = [
+                    oX + (imageWindow[0] * rX),
+                    oY + (imageWindow[1] * rY),
+                    oX + (imageWindow[2] * rX),
+                    oY + (imageWindow[3] * rY),
+                ];
+            }
+            // if we have a bbox (or calculated one)
+            const usedBBox = bbox || imgBBox;
+            if (width) {
+                if (resX) {
+                    throw new Error('Both width and resX passed');
+                }
+                resX = (usedBBox[2] - usedBBox[0]) / width;
+            }
+            if (height) {
+                if (resY) {
+                    throw new Error('Both width and resY passed');
+                }
+                resY = (usedBBox[3] - usedBBox[1]) / height;
+            }
+        }
+        // if resolution is set or calculated, try to get the image with the worst acceptable resolution
+        if (resX || resY) {
+            const allImages = [];
+            for (let i = 0; i < imageCount; ++i) {
+                const image = await this.getImage(i);
+                const subfileType = image.fileDirectory.getValue('SubfileType');
+                const newSubfileType = image.fileDirectory.getValue('NewSubfileType');
+                if (i === 0 || subfileType === 2 || (newSubfileType || 0) & 1) {
+                    allImages.push(image);
+                }
+            }
+            allImages.sort((a, b) => a.getWidth() - b.getWidth());
+            for (let i = 0; i < allImages.length; ++i) {
+                const image = allImages[i];
+                const imgResX = (imgBBox[2] - imgBBox[0]) / image.getWidth();
+                const imgResY = (imgBBox[3] - imgBBox[1]) / image.getHeight();
+                usedImage = image;
+                if ((resX && resX > imgResX) || (resY && resY > imgResY)) {
+                    break;
+                }
+            }
+        }
+        let wnd = imageWindow;
+        if (bbox) {
+            const [oX, oY] = firstImage.getOrigin();
+            const [imageResX, imageResY] = usedImage.getResolution(firstImage);
+            wnd = [
+                Math.round((bbox[0] - oX) / imageResX),
+                Math.round((bbox[1] - oY) / imageResY),
+                Math.round((bbox[2] - oX) / imageResX),
+                Math.round((bbox[3] - oY) / imageResY),
+            ];
+            wnd = [
+                Math.min(wnd[0], wnd[2]),
+                Math.min(wnd[1], wnd[3]),
+                Math.max(wnd[0], wnd[2]),
+                Math.max(wnd[1], wnd[3]),
+            ];
+        }
+        return usedImage.readRasters({ ...options, window: wnd });
+    }
+}
+/**
+ * @typedef {Object} GeoTIFFOptions
+ * @property {boolean} [cache=false] whether or not decoded tiles shall be cached.
+ */
+/**
+ * The abstraction for a whole GeoTIFF file.
+ */
+let GeoTIFF$1 = class GeoTIFF extends GeoTIFFBase {
+    /**
+     * @constructor
+     * @param {BaseSource} source The datasource to read from.
+     * @param {boolean} littleEndian Whether the image uses little endian.
+     * @param {boolean} bigTiff Whether the image uses bigTIFF conventions.
+     * @param {number} firstIFDOffset The numeric byte-offset from the start of the image
+     *                                to the first IFD.
+     * @param {GeoTIFFOptions} [options] further options.
+     */
+    constructor(source, littleEndian, bigTiff, firstIFDOffset, options = {}) {
+        super();
+        this.source = source;
+        this.parser = new ImageFileDirectoryParser(source, littleEndian, bigTiff, false);
+        this.littleEndian = littleEndian;
+        this.bigTiff = bigTiff;
+        this.firstIFDOffset = firstIFDOffset;
+        this.cache = options.cache || false;
+        /** @type {Array<Promise<import('./imagefiledirectory.js').ImageFileDirectory> | undefined>} */
+        this.ifdRequests = [];
+        /** @type {Record<string, unknown>|null} */
+        this.ghostValues = null;
+    }
+    /**
+     * @param {number} offset
+     * @param {number} [size]
+     * @returns {Promise<DataSlice>}
+     */
+    async getSlice(offset, size) {
+        const fallbackSize = this.bigTiff ? 4048 : 1024;
+        return new DataSlice((await this.source.fetch([{
+                offset,
+                length: typeof size !== 'undefined' ? size : fallbackSize,
+            }]))[0], offset, this.littleEndian, this.bigTiff);
+    }
+    /**
+     * @param {number} index
+     * @return {Promise<import('./imagefiledirectory.js').ImageFileDirectory>}
+     */
+    async requestIFD(index) {
+        // see if we already have that IFD index requested.
+        if (this.ifdRequests[index]) {
+            // attach to an already requested IFD
+            return this.ifdRequests[index];
+        }
+        else if (index === 0) {
+            // special case for index 0
+            this.ifdRequests[index] = this.parser.parseFileDirectoryAt(this.firstIFDOffset);
+            return this.ifdRequests[index];
+        }
+        else if (!this.ifdRequests[index - 1]) {
+            // if the previous IFD was not yet loaded, load that one first
+            // this is the recursive call.
+            try {
+                this.ifdRequests[index - 1] = this.requestIFD(index - 1);
+            }
+            catch (e) {
+                // if the previous one already was an index error, rethrow
+                // with the current index
+                if (e instanceof GeoTIFFImageIndexError) {
+                    throw new GeoTIFFImageIndexError(index);
+                }
+                // rethrow anything else
+                throw e;
+            }
+        }
+        // if the previous IFD was loaded, we can finally fetch the one we are interested in.
+        // we need to wrap this in an IIFE, otherwise this.ifdRequests[index] would be delayed
+        this.ifdRequests[index] = (async () => {
+            const previousPromise = this.ifdRequests[index - 1];
+            if (!previousPromise) {
+                throw new Error('Previous IFD request missing');
+            }
+            const previousIfd = await previousPromise;
+            if (previousIfd.nextIFDByteOffset === 0) {
+                throw new GeoTIFFImageIndexError(index);
+            }
+            return this.parser.parseFileDirectoryAt(previousIfd.nextIFDByteOffset);
+        })();
+        return this.ifdRequests[index];
+    }
+    /**
+     * Get the n-th internal subfile of an image. By default, the first is returned.
+     *
+     * @param {number} [index=0] the index of the image to return.
+     * @returns {Promise<GeoTIFFImage>} the image at the given index
+     */
+    async getImage(index = 0) {
+        return new GeoTIFFImage(await this.requestIFD(index), this.littleEndian, this.cache, this.source);
+    }
+    /**
+     * Returns the count of the internal subfiles.
+     *
+     * @returns {Promise<number>} the number of internal subfile images
+     */
+    async getImageCount() {
+        let index = 0;
+        // loop until we run out of IFDs
+        let hasNext = true;
+        while (hasNext) {
+            try {
+                await this.requestIFD(index);
+                ++index;
+            }
+            catch (e) {
+                if (e instanceof GeoTIFFImageIndexError) {
+                    hasNext = false;
+                }
+                else {
+                    throw e;
+                }
+            }
+        }
+        return index;
+    }
+    /**
+     * Get the values of the COG ghost area as a parsed map.
+     * See https://gdal.org/drivers/raster/cog.html#header-ghost-area for reference
+     * @returns {Promise<Record<string, unknown>|null>} the parsed ghost area or null, if no such area was found
+     */
+    async getGhostValues() {
+        const offset = this.bigTiff ? 16 : 8;
+        if (this.ghostValues !== null) {
+            return this.ghostValues;
+        }
+        const detectionString = 'GDAL_STRUCTURAL_METADATA_SIZE=';
+        const heuristicAreaSize = detectionString.length + 100;
+        let slice = await this.getSlice(offset, heuristicAreaSize);
+        if (detectionString === getValues(slice, fieldTypes.ASCII, detectionString.length, offset)) {
+            const valuesString = getValues(slice, fieldTypes.ASCII, heuristicAreaSize, offset);
+            const firstLine = valuesString.split('\n')[0];
+            const metadataSize = Number(firstLine.split('=')[1].split(' ')[0]) + firstLine.length;
+            if (metadataSize > heuristicAreaSize) {
+                slice = await this.getSlice(offset, metadataSize);
+            }
+            const fullString = getValues(slice, fieldTypes.ASCII, metadataSize, offset);
+            /** @type {Record<string, unknown>} */
+            const ghostValues = {};
+            fullString
+                .split('\n')
+                .filter((line) => line.length > 0)
+                .map((line) => line.split('='))
+                .forEach(([key, value]) => {
+                ghostValues[key] = value;
+            });
+            this.ghostValues = ghostValues;
+        }
+        return this.ghostValues;
+    }
+    /**
+     * Parse a (Geo)TIFF file from the given source.
+     *
+     * @param {BaseSource} source The source of data to parse from.
+     * @param {GeoTIFFOptions} [options] Additional options.
+     * @param {AbortSignal} [signal] An AbortSignal that may be signalled if the request is
+     *                               to be aborted
+     */
+    static async fromSource(source, options, signal) {
+        const headerData = (await source.fetch([{ offset: 0, length: 1024 }], signal))[0];
+        const dataView = new DataView64(headerData);
+        const BOM = dataView.getUint16(0, false);
+        let littleEndian;
+        if (BOM === 0x4949) {
+            littleEndian = true;
+        }
+        else if (BOM === 0x4D4D) {
+            littleEndian = false;
+        }
+        else {
+            throw new TypeError('Invalid byte order value.');
+        }
+        const magicNumber = dataView.getUint16(2, littleEndian);
+        let bigTiff;
+        if (magicNumber === 42) {
+            bigTiff = false;
+        }
+        else if (magicNumber === 43) {
+            bigTiff = true;
+            const offsetByteSize = dataView.getUint16(4, littleEndian);
+            if (offsetByteSize !== 8) {
+                throw new Error('Unsupported offset byte-size.');
+            }
+        }
+        else {
+            throw new TypeError('Invalid magic number.');
+        }
+        const firstIFDOffset = bigTiff
+            ? dataView.getUint64(8, littleEndian)
+            : dataView.getUint32(4, littleEndian);
+        return new GeoTIFF(source, littleEndian, bigTiff, firstIFDOffset, options);
+    }
+    /**
+     * Closes the underlying file buffer
+     * N.B. After the GeoTIFF has been completely processed it needs
+     * to be closed but only if it has been constructed from a file.
+     */
+    close() {
+        if (typeof this.source.close === 'function') {
+            return this.source.close();
+        }
+        return false;
+    }
+};
+/**
+ * Creates a new GeoTIFF from a remote URL.
+ * @param {string} url The URL to access the image from
+ * @param {RemoteSourceOptions} [options] Additional options to pass to the source.
+ *                           See {@link makeRemoteSource} for details.
+ * @param {AbortSignal} [signal] An AbortSignal that may be signalled if the request is
+ *                               to be aborted
+ * @returns {Promise<GeoTIFF>} The resulting GeoTIFF file.
+ */
+async function fromUrl(url, options = {}, signal) {
+    return GeoTIFF$1.fromSource(makeRemoteSource(url, options), undefined, signal);
+}
+
 /**
  * @class GeoTIFF
  * An `AbstractRaster` that fits GeoTIFFs.
@@ -33896,6 +38188,442 @@ class MovingFeaturesJSON extends Loader {
 
 }
 
+// DEFLATE is a complex format; to read this code, you should probably check the RFC first:
+// https://tools.ietf.org/html/rfc1951
+// You may also wish to take a look at the guide I made about this program:
+// https://gist.github.com/101arrowz/253f31eb5abc3d9275ab943003ffecad
+// Some of the following code is similar to that of UZIP.js:
+// https://github.com/photopea/UZIP.js
+// However, the vast majority of the codebase has diverged from UZIP.js to increase performance and reduce bundle size.
+// Sometimes 0 will appear where -1 would be more appropriate. This is because using a uint
+// is better for memory in most engines (I *think*).
+
+// aliases for shorter compressed code (most minifers don't do this)
+var u8 = Uint8Array, u16 = Uint16Array, i32 = Int32Array;
+// fixed length extra bits
+var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
+// fixed distance extra bits
+var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
+// code length index map
+var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+// get base, reverse index map from extra bits
+var freb = function (eb, start) {
+    var b = new u16(31);
+    for (var i = 0; i < 31; ++i) {
+        b[i] = start += 1 << eb[i - 1];
+    }
+    // numbers here are at max 18 bits
+    var r = new i32(b[30]);
+    for (var i = 1; i < 30; ++i) {
+        for (var j = b[i]; j < b[i + 1]; ++j) {
+            r[j] = ((j - b[i]) << 5) | i;
+        }
+    }
+    return { b: b, r: r };
+};
+var _a = freb(fleb, 2), fl = _a.b, revfl = _a.r;
+// we can ignore the fact that the other numbers are wrong; they never happen anyway
+fl[28] = 258, revfl[258] = 28;
+var _b = freb(fdeb, 0), fd = _b.b;
+// map of value to reverse (assuming 16 bits)
+var rev = new u16(32768);
+for (var i = 0; i < 32768; ++i) {
+    // reverse table algorithm from SO
+    var x$1 = ((i & 0xAAAA) >> 1) | ((i & 0x5555) << 1);
+    x$1 = ((x$1 & 0xCCCC) >> 2) | ((x$1 & 0x3333) << 2);
+    x$1 = ((x$1 & 0xF0F0) >> 4) | ((x$1 & 0x0F0F) << 4);
+    rev[i] = (((x$1 & 0xFF00) >> 8) | ((x$1 & 0x00FF) << 8)) >> 1;
+}
+// create huffman tree from u8 "map": index -> code length for code index
+// mb (max bits) must be at most 15
+// TODO: optimize/split up?
+var hMap = (function (cd, mb, r) {
+    var s = cd.length;
+    // index
+    var i = 0;
+    // u16 "map": index -> # of codes with bit length = index
+    var l = new u16(mb);
+    // length of cd must be 288 (total # of codes)
+    for (; i < s; ++i) {
+        if (cd[i])
+            ++l[cd[i] - 1];
+    }
+    // u16 "map": index -> minimum code for bit length = index
+    var le = new u16(mb);
+    for (i = 1; i < mb; ++i) {
+        le[i] = (le[i - 1] + l[i - 1]) << 1;
+    }
+    var co;
+    if (r) {
+        // u16 "map": index -> number of actual bits, symbol for code
+        co = new u16(1 << mb);
+        // bits to remove for reverser
+        var rvb = 15 - mb;
+        for (i = 0; i < s; ++i) {
+            // ignore 0 lengths
+            if (cd[i]) {
+                // num encoding both symbol and bits read
+                var sv = (i << 4) | cd[i];
+                // free bits
+                var r_1 = mb - cd[i];
+                // start value
+                var v = le[cd[i] - 1]++ << r_1;
+                // m is end value
+                for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
+                    // every 16 bit value starting with the code yields the same result
+                    co[rev[v] >> rvb] = sv;
+                }
+            }
+        }
+    }
+    else {
+        co = new u16(s);
+        for (i = 0; i < s; ++i) {
+            if (cd[i]) {
+                co[i] = rev[le[cd[i] - 1]++] >> (15 - cd[i]);
+            }
+        }
+    }
+    return co;
+});
+// fixed length tree
+var flt = new u8(288);
+for (var i = 0; i < 144; ++i)
+    flt[i] = 8;
+for (var i = 144; i < 256; ++i)
+    flt[i] = 9;
+for (var i = 256; i < 280; ++i)
+    flt[i] = 7;
+for (var i = 280; i < 288; ++i)
+    flt[i] = 8;
+// fixed distance tree
+var fdt = new u8(32);
+for (var i = 0; i < 32; ++i)
+    fdt[i] = 5;
+// fixed length map
+var flrm = /*#__PURE__*/ hMap(flt, 9, 1);
+// fixed distance map
+var fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
+// find max of array
+var max = function (a) {
+    var m = a[0];
+    for (var i = 1; i < a.length; ++i) {
+        if (a[i] > m)
+            m = a[i];
+    }
+    return m;
+};
+// read d, starting at bit p and mask with m
+var bits = function (d, p, m) {
+    var o = (p / 8) | 0;
+    return ((d[o] | (d[o + 1] << 8)) >> (p & 7)) & m;
+};
+// read d, starting at bit p continuing for at least 16 bits
+var bits16 = function (d, p) {
+    var o = (p / 8) | 0;
+    return ((d[o] | (d[o + 1] << 8) | (d[o + 2] << 16)) >> (p & 7));
+};
+// get end of byte
+var shft = function (p) { return ((p + 7) / 8) | 0; };
+// typed array slice - allows garbage collector to free original reference,
+// while being more compatible than .slice
+var slc = function (v, s, e) {
+    if (e == null || e > v.length)
+        e = v.length;
+    // can't use .constructor in case user-supplied
+    return new u8(v.subarray(s, e));
+};
+// error codes
+var ec = [
+    'unexpected EOF',
+    'invalid block type',
+    'invalid length/literal',
+    'invalid distance',
+    'stream finished',
+    'no stream handler',
+    ,
+    'no callback',
+    'invalid UTF-8 data',
+    'extra field too long',
+    'date not in range 1980-2099',
+    'filename too long',
+    'stream finishing',
+    'invalid zip data'
+    // determined by unknown compression method
+];
+var err = function (ind, msg, nt) {
+    var e = new Error(msg || ec[ind]);
+    e.code = ind;
+    if (Error.captureStackTrace)
+        Error.captureStackTrace(e, err);
+    if (!nt)
+        throw e;
+    return e;
+};
+// expands raw DEFLATE data
+var inflt = function (dat, st, buf, dict) {
+    // source length       dict length
+    var sl = dat.length, dl = 0;
+    if (!sl || st.f && !st.l)
+        return buf || new u8(0);
+    var noBuf = !buf;
+    // have to estimate size
+    var resize = noBuf || st.i != 2;
+    // no state
+    var noSt = st.i;
+    // Assumes roughly 33% compression ratio average
+    if (noBuf)
+        buf = new u8(sl * 3);
+    // ensure buffer can fit at least l elements
+    var cbuf = function (l) {
+        var bl = buf.length;
+        // need to increase size to fit
+        if (l > bl) {
+            // Double or set to necessary, whichever is greater
+            var nbuf = new u8(Math.max(bl * 2, l));
+            nbuf.set(buf);
+            buf = nbuf;
+        }
+    };
+    //  last chunk         bitpos           bytes
+    var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
+    // total bits
+    var tbts = sl * 8;
+    do {
+        if (!lm) {
+            // BFINAL - this is only 1 when last chunk is next
+            final = bits(dat, pos, 1);
+            // type: 0 = no compression, 1 = fixed huffman, 2 = dynamic huffman
+            var type = bits(dat, pos + 1, 3);
+            pos += 3;
+            if (!type) {
+                // go to end of byte boundary
+                var s = shft(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
+                if (t > sl) {
+                    if (noSt)
+                        err(0);
+                    break;
+                }
+                // ensure size
+                if (resize)
+                    cbuf(bt + l);
+                // Copy over uncompressed data
+                buf.set(dat.subarray(s, t), bt);
+                // Get new bitpos, update byte count
+                st.b = bt += l, st.p = pos = t * 8, st.f = final;
+                continue;
+            }
+            else if (type == 1)
+                lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
+            else if (type == 2) {
+                //  literal                            lengths
+                var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
+                var tl = hLit + bits(dat, pos + 5, 31) + 1;
+                pos += 14;
+                // length+distance tree
+                var ldt = new u8(tl);
+                // code length tree
+                var clt = new u8(19);
+                for (var i = 0; i < hcLen; ++i) {
+                    // use index map to get real code
+                    clt[clim[i]] = bits(dat, pos + i * 3, 7);
+                }
+                pos += hcLen * 3;
+                // code lengths bits
+                var clb = max(clt), clbmsk = (1 << clb) - 1;
+                // code lengths map
+                var clm = hMap(clt, clb, 1);
+                for (var i = 0; i < tl;) {
+                    var r = clm[bits(dat, pos, clbmsk)];
+                    // bits read
+                    pos += r & 15;
+                    // symbol
+                    var s = r >> 4;
+                    // code length to copy
+                    if (s < 16) {
+                        ldt[i++] = s;
+                    }
+                    else {
+                        //  copy   count
+                        var c = 0, n = 0;
+                        if (s == 16)
+                            n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
+                        else if (s == 17)
+                            n = 3 + bits(dat, pos, 7), pos += 3;
+                        else if (s == 18)
+                            n = 11 + bits(dat, pos, 127), pos += 7;
+                        while (n--)
+                            ldt[i++] = c;
+                    }
+                }
+                //    length tree                 distance tree
+                var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
+                // max length bits
+                lbt = max(lt);
+                // max dist bits
+                dbt = max(dt);
+                lm = hMap(lt, lbt, 1);
+                dm = hMap(dt, dbt, 1);
+            }
+            else
+                err(1);
+            if (pos > tbts) {
+                if (noSt)
+                    err(0);
+                break;
+            }
+        }
+        // Make sure the buffer can hold this + the largest possible addition
+        // Maximum chunk size (practically, theoretically infinite) is 2^17
+        if (resize)
+            cbuf(bt + 131072);
+        var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
+        var lpos = pos;
+        for (;; lpos = pos) {
+            // bits read, code
+            var c = lm[bits16(dat, pos) & lms], sym = c >> 4;
+            pos += c & 15;
+            if (pos > tbts) {
+                if (noSt)
+                    err(0);
+                break;
+            }
+            if (!c)
+                err(2);
+            if (sym < 256)
+                buf[bt++] = sym;
+            else if (sym == 256) {
+                lpos = pos, lm = null;
+                break;
+            }
+            else {
+                var add = sym - 254;
+                // no extra bits needed if less
+                if (sym > 264) {
+                    // index
+                    var i = sym - 257, b = fleb[i];
+                    add = bits(dat, pos, (1 << b) - 1) + fl[i];
+                    pos += b;
+                }
+                // dist
+                var d = dm[bits16(dat, pos) & dms], dsym = d >> 4;
+                if (!d)
+                    err(3);
+                pos += d & 15;
+                var dt = fd[dsym];
+                if (dsym > 3) {
+                    var b = fdeb[dsym];
+                    dt += bits16(dat, pos) & (1 << b) - 1, pos += b;
+                }
+                if (pos > tbts) {
+                    if (noSt)
+                        err(0);
+                    break;
+                }
+                if (resize)
+                    cbuf(bt + 131072);
+                var end = bt + add;
+                if (bt < dt) {
+                    var shift = dl - dt, dend = Math.min(dt, end);
+                    if (shift + bt < 0)
+                        err(3);
+                    for (; bt < dend; ++bt)
+                        buf[bt] = dict[shift + bt];
+                }
+                for (; bt < end; ++bt)
+                    buf[bt] = buf[bt - dt];
+            }
+        }
+        st.l = lm, st.p = lpos, st.b = bt, st.f = final;
+        if (lm)
+            final = 1, st.m = lbt, st.d = dm, st.n = dbt;
+    } while (!final);
+    // don't reallocate for streams or user buffers
+    return bt != buf.length && noBuf ? slc(buf, 0, bt) : buf.subarray(0, bt);
+};
+// empty
+var et = /*#__PURE__*/ new u8(0);
+// gzip footer: -8 to -4 = CRC, -4 to -0 is length
+// gzip start
+var gzs = function (d) {
+    if (d[0] != 31 || d[1] != 139 || d[2] != 8)
+        err(6, 'invalid gzip data');
+    var flg = d[3];
+    var st = 10;
+    if (flg & 4)
+        st += (d[10] | d[11] << 8) + 2;
+    for (var zs = (flg >> 3 & 1) + (flg >> 4 & 1); zs > 0; zs -= !d[st++])
+        ;
+    return st + (flg & 2);
+};
+// gzip length
+var gzl = function (d) {
+    var l = d.length;
+    return (d[l - 4] | d[l - 3] << 8 | d[l - 2] << 16 | d[l - 1] << 24) >>> 0;
+};
+// zlib start
+var zls = function (d, dict) {
+    if ((d[0] & 15) != 8 || (d[0] >> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
+        err(6, 'invalid zlib data');
+    if ((d[1] >> 5 & 1) == 1)
+        err(6, 'invalid zlib data: ' + (d[1] & 32 ? 'need' : 'unexpected') + ' dictionary');
+    return (d[1] >> 3 & 4) + 2;
+};
+/**
+ * Expands DEFLATE data with no wrapper
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function inflateSync(data, opts) {
+    return inflt(data, { i: 2 }, opts, opts);
+}
+/**
+ * Expands GZIP data
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function gunzipSync(data, opts) {
+    var st = gzs(data);
+    if (st + 8 > data.length)
+        err(6, 'invalid gzip data');
+    return inflt(data.subarray(st, -8), { i: 2 }, new u8(gzl(data)), opts);
+}
+/**
+ * Expands Zlib data
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function unzlibSync(data, opts) {
+    return inflt(data.subarray(zls(data), -4), { i: 2 }, opts, opts);
+}
+/**
+ * Expands compressed GZIP, Zlib, or raw DEFLATE data, automatically detecting the format
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function decompressSync(data, opts) {
+    return (data[0] == 31 && data[1] == 139 && data[2] == 8)
+        ? gunzipSync(data, opts)
+        : ((data[0] & 15) != 8 || (data[0] >> 4) > 7 || ((data[0] << 8 | data[1]) % 31))
+            ? inflateSync(data, opts)
+            : unzlibSync(data, opts);
+}
+// text decoder
+var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
+// text decoder stream
+var tds = 0;
+try {
+    td.decode(et, { stream: true });
+    tds = 1;
+}
+catch (e) { }
+
+var z=Object.defineProperty;var B$1=Math.pow;var d=(i,t)=>z(i,"name",{value:t,configurable:true});var m=(i,t,e)=>new Promise((r,n)=>{var s=c=>{try{a(e.next(c));}catch(u){n(u);}},o=c=>{try{a(e.throw(c));}catch(u){n(u);}},a=c=>c.done?r(c.value):Promise.resolve(c.value).then(s,o);a((e=e.apply(i,t)).next());});d((i,t)=>{let e=false,r="",n=L.GridLayer.extend({createTile:d((s,o)=>{let a=document.createElement("img"),c=new AbortController,u=c.signal;return a.cancel=()=>{c.abort();},e||(i.getHeader().then(l=>{l.tileType===1||l.tileType===6?console.error("Error: archive contains vector tiles, but leafletRasterLayer is for displaying raster tiles. See https://github.com/protomaps/PMTiles/tree/main/js for details."):l.tileType===2?r="image/png":l.tileType===3?r="image/jpeg":l.tileType===4?r="image/webp":l.tileType===5&&(r="image/avif");}),e=true),i.getZxy(s.z,s.x,s.y,u).then(l=>{if(l){let f=new Blob([l.data],{type:r}),y=window.URL.createObjectURL(f);a.src=y;}else a.style.display="none";a.cancel=void 0,o(void 0,a);}).catch(l=>{if(l.name!=="AbortError")throw l}),a},"createTile"),_removeTile:d(function(s){let o=this._tiles[s];o&&(o.el.cancel&&o.el.cancel(),o.el.src&&window.URL.revokeObjectURL(o.el.src),o.el.width=0,o.el.height=0,o.el.deleted=true,L.DomUtil.remove(o.el),delete this._tiles[s],this.fire("tileunload",{tile:o.el,coords:this._keyToTileCoords(s)}));},"_removeTile")});return new n(t)},"leafletRasterLayer");var W=d(i=>(t,e)=>{if(e instanceof AbortController)return i(t,e);let r=new AbortController;return i(t,r).then(n=>e(void 0,n.data,n.cacheControl||"",n.expires||""),n=>e(n)).catch(n=>e(n)),{cancel:d(()=>r.abort(),"cancel")}},"v3compat"),E=class E{constructor(t){this.tilev4=d((t,e)=>m(this,null,function*(){if(t.type==="json"){let y=t.url.substr(10),p=this.tiles.get(y);if(p||(p=new w(y),this.tiles.set(y,p)),this.metadata){let j=yield p.getTileJson(t.url);return e.signal.throwIfAborted(),{data:j}}let h=yield p.getHeader();return e.signal.throwIfAborted(),(h.minLon>=h.maxLon||h.minLat>=h.maxLat)&&console.error(`Bounds of PMTiles archive ${h.minLon},${h.minLat},${h.maxLon},${h.maxLat} are not valid.`),{data:{tiles:[`${t.url}/{z}/{x}/{y}`],minzoom:h.minZoom,maxzoom:h.maxZoom,bounds:[h.minLon,h.minLat,h.maxLon,h.maxLat]}}}let r=new RegExp(/pmtiles:\/\/(.+)\/(\d+)\/(\d+)\/(\d+)/),n=t.url.match(r);if(!n)throw new Error("Invalid PMTiles protocol URL");let s=n[1],o=this.tiles.get(s);o||(o=new w(s),this.tiles.set(s,o));let a=n[2],c=n[3],u=n[4],l=yield o==null?void 0:o.getZxy(+a,+c,+u,e.signal);if(e.signal.throwIfAborted(),l)return {data:new Uint8Array(l.data),cacheControl:l.cacheControl,expires:l.expires};let f=yield o.getHeader();if(f.tileType===1||f.tileType===6){if(this.errorOnMissingTile)throw new Error("Tile not found.");return {data:new Uint8Array}}return {data:null}}),"tilev4");this.tile=W(this.tilev4);this.tiles=new Map,this.metadata=(t==null?void 0:t.metadata)||false,this.errorOnMissingTile=(t==null?void 0:t.errorOnMissingTile)||false;}add(t){this.tiles.set(t.source.getKey(),t);}get(t){return this.tiles.get(t)}};d(E,"Protocol");function b(i,t){return (t>>>0)*4294967296+(i>>>0)}d(b,"toNum");function N(i,t){let e=t.buf,r=e[t.pos++],n=(r&112)>>4;if(r<128||(r=e[t.pos++],n|=(r&127)<<3,r<128)||(r=e[t.pos++],n|=(r&127)<<10,r<128)||(r=e[t.pos++],n|=(r&127)<<17,r<128)||(r=e[t.pos++],n|=(r&127)<<24,r<128)||(r=e[t.pos++],n|=(r&1)<<31,r<128))return b(i,n);throw new Error("Expected varint not more than 10 bytes")}d(N,"readVarintRemainder");function x(i){let t=i.buf,e=t[i.pos++],r=e&127;return e<128||(e=t[i.pos++],r|=(e&127)<<7,e<128)||(e=t[i.pos++],r|=(e&127)<<14,e<128)||(e=t[i.pos++],r|=(e&127)<<21,e<128)?r:(e=t[i.pos],r|=(e&15)<<28,N(r,i))}d(x,"readVarint");function Z(i,t,e,r,n){return n===0?r!==0?[i-1-e,i-1-t]:[e,t]:[t,e]}d(Z,"rotate");function q(i,t,e){if(i>26)throw new Error("Tile zoom level exceeds max safe number limit (26)");if(t>=1<<i||e>=1<<i)throw new Error("tile x/y outside zoom level bounds");let r=((1<<i)*(1<<i)-1)/3,n=i-1,[s,o]=[t,e];for(let a=1<<n;a>0;a>>=1){let c=s&a,u=o&a;r+=(3*c^u)*(1<<n),[s,o]=Z(a,s,o,c,u),n--;}return r}d(q,"zxyToTileId");function G(i){let t=3*i+1;return t<4294967296?31-Math.clz32(t):63-Math.clz32(t/4294967296)}d(G,"tileIdToZ");function oe(i){let t=G(i)>>1;if(t>26)throw new Error("Tile zoom level exceeds max safe number limit (26)");let e=((1<<t)*(1<<t)-1)/3,r=i-e,n=0,s=0,o=1<<t;for(let a=1;a<o;a<<=1){let c=a&r/2,u=a&(r^c);[n,s]=Z(a,n,s,c,u),r=r/2,n+=c,s+=u;}return [t,n,s]}d(oe,"tileIdToZxy");var J=(s=>(s[s.Unknown=0]="Unknown",s[s.None=1]="None",s[s.Gzip=2]="Gzip",s[s.Brotli=3]="Brotli",s[s.Zstd=4]="Zstd",s))(J||{});function D$1(i,t){return m(this,null,function*(){if(t===1||t===0)return i;if(t===2){if(typeof globalThis.DecompressionStream=="undefined")return decompressSync(new Uint8Array(i));let e=new Response(i).body;if(!e)throw new Error("Failed to read response stream");let r=e.pipeThrough(new globalThis.DecompressionStream("gzip"));return new Response(r).arrayBuffer()}throw new Error("Compression method not supported")})}d(D$1,"defaultDecompress");var O=(a=>(a[a.Unknown=0]="Unknown",a[a.Mvt=1]="Mvt",a[a.Png=2]="Png",a[a.Jpeg=3]="Jpeg",a[a.Webp=4]="Webp",a[a.Avif=5]="Avif",a[a.Mlt=6]="Mlt",a))(O||{});function _(i){return i===1?".mvt":i===2?".png":i===3?".jpg":i===4?".webp":i===5?".avif":i===6?".mlt":""}d(_,"tileTypeExt");var Y=127;function Q(i,t){let e=0,r=i.length-1;for(;e<=r;){let n=r+e>>1,s=t-i[n].tileId;if(s>0)e=n+1;else if(s<0)r=n-1;else return i[n]}return r>=0&&(i[r].runLength===0||t-i[r].tileId<i[r].runLength)?i[r]:null}d(Q,"findTile");var A=class A{constructor(t){this.file=t;}getKey(){return this.file.name}getBytes(t,e){return m(this,null,function*(){return {data:yield this.file.slice(t,t+e).arrayBuffer()}})}};d(A,"FileSource");var P=class P{constructor(t,e=new Headers,r=void 0){var a,c;this.url=t,this.customHeaders=e,this.credentials=r,this.mustReload=false;let n="";"navigator"in globalThis&&(n=(c=(a=globalThis.navigator)==null?void 0:a.userAgent)!=null?c:"");let s=n.indexOf("Windows")>-1,o=/Chrome|Chromium|Edg|OPR|Brave/.test(n);this.chromeWindowsNoCache=false,s&&o&&(this.chromeWindowsNoCache=true);}getKey(){return this.url}setHeaders(t){this.customHeaders=t;}getBytes(t,e,r,n){return m(this,null,function*(){let s,o;r?o=r:(s=new AbortController,o=s.signal);let a=new Headers(this.customHeaders);a.set("range",`bytes=${t}-${t+e-1}`);let c;this.mustReload?c="reload":this.chromeWindowsNoCache&&(c="no-store");let u=yield fetch(this.url,{signal:o,cache:c,headers:a,credentials:this.credentials});if(t===0&&u.status===416){let p=u.headers.get("Content-Range");if(!p||!p.startsWith("bytes */"))throw new Error("Missing content-length on 416 response");let h=+p.substr(8);a.set("range",`bytes=0-${h-1}`),u=yield fetch(this.url,{signal:o,cache:"reload",headers:a,credentials:this.credentials});}let l=u.headers.get("Etag");if(l!=null&&l.startsWith("W/")&&(l=null),u.status===416||n&&l&&l!==n)throw this.mustReload=true,new v(`Server returned non-matching ETag ${n} after one retry. Check browser extensions and servers for issues that may affect correct ETag headers.`);if(u.status>=300)throw new Error(`Bad response code: ${u.status}`);let f=u.headers.get("Content-Length");if(u.status===200&&(!f||+f>e))throw s&&s.abort(),new Error("Server returned no content-length header or content-length exceeding request. Check that your storage backend supports HTTP Byte Serving.");return {data:yield u.arrayBuffer(),etag:l||void 0,cacheControl:u.headers.get("Cache-Control")||void 0,expires:u.headers.get("Expires")||void 0}})}};d(P,"FetchSource");var T=P;function g(i,t){let e=i.getUint32(t+4,true),r=i.getUint32(t+0,true);return e*B$1(2,32)+r}d(g,"getUint64");function X(i,t){let e=new DataView(i),r=e.getUint8(7);if(r>3)throw new Error(`Archive is spec version ${r} but this library supports up to spec version 3`);return {specVersion:r,rootDirectoryOffset:g(e,8),rootDirectoryLength:g(e,16),jsonMetadataOffset:g(e,24),jsonMetadataLength:g(e,32),leafDirectoryOffset:g(e,40),leafDirectoryLength:g(e,48),tileDataOffset:g(e,56),tileDataLength:g(e,64),numAddressedTiles:g(e,72),numTileEntries:g(e,80),numTileContents:g(e,88),clustered:e.getUint8(96)===1,internalCompression:e.getUint8(97),tileCompression:e.getUint8(98),tileType:e.getUint8(99),minZoom:e.getUint8(100),maxZoom:e.getUint8(101),minLon:e.getInt32(102,true)/1e7,minLat:e.getInt32(106,true)/1e7,maxLon:e.getInt32(110,true)/1e7,maxLat:e.getInt32(114,true)/1e7,centerZoom:e.getUint8(118),centerLon:e.getInt32(119,true)/1e7,centerLat:e.getInt32(123,true)/1e7,etag:t}}d(X,"bytesToHeader");function I(i){let t={buf:new Uint8Array(i),pos:0},e=x(t),r=[],n=0;for(let s=0;s<e;s++){let o=x(t);r.push({tileId:n+o,offset:0,length:0,runLength:1}),n+=o;}for(let s=0;s<e;s++)r[s].runLength=x(t);for(let s=0;s<e;s++)r[s].length=x(t);for(let s=0;s<e;s++){let o=x(t);o===0&&s>0?r[s].offset=r[s-1].offset+r[s-1].length:r[s].offset=o-1;}return r}d(I,"deserializeIndex");var R=class R extends Error{};d(R,"EtagMismatch");var v=R;function V(i,t){return m(this,null,function*(){let e=yield i.getBytes(0,16384);if(new DataView(e.data).getUint16(0,true)!==19792)throw new Error("Wrong magic number for PMTiles archive");let n=e.data.slice(0,Y),s=X(n,e.etag),o=e.data.slice(s.rootDirectoryOffset,s.rootDirectoryOffset+s.rootDirectoryLength),a=`${i.getKey()}|${s.etag||""}|${s.rootDirectoryOffset}|${s.rootDirectoryLength}`,c=I(yield t(o,s.internalCompression));return [s,[a,c.length,c]]})}d(V,"getHeaderAndRoot");function K(i,t,e,r,n){return m(this,null,function*(){let s=yield i.getBytes(e,r,void 0,n.etag),o=yield t(s.data,n.internalCompression),a=I(o);if(a.length===0)throw new Error("Empty directory is invalid");return a})}d(K,"getDirectory");var U=class U{constructor(t=100,e=true,r=D$1){this.cache=new Map,this.maxCacheEntries=t,this.counter=1,this.decompress=r;}getHeader(t){return m(this,null,function*(){let e=t.getKey(),r=this.cache.get(e);if(r)return r.lastUsed=this.counter++,r.data;let n=yield V(t,this.decompress);return n[1]&&this.cache.set(n[1][0],{lastUsed:this.counter++,data:n[1][2]}),this.cache.set(e,{lastUsed:this.counter++,data:n[0]}),this.prune(),n[0]})}getDirectory(t,e,r,n){return m(this,null,function*(){let s=`${t.getKey()}|${n.etag||""}|${e}|${r}`,o=this.cache.get(s);if(o)return o.lastUsed=this.counter++,o.data;let a=yield K(t,this.decompress,e,r,n);return this.cache.set(s,{lastUsed:this.counter++,data:a}),this.prune(),a})}prune(){if(this.cache.size>this.maxCacheEntries){let t=1/0,e;this.cache.forEach((r,n)=>{r.lastUsed<t&&(t=r.lastUsed,e=n);}),e&&this.cache.delete(e);}}invalidate(t){return m(this,null,function*(){this.cache.delete(t.getKey());})}};d(U,"ResolvedValueCache");var M=class M{constructor(t=100,e=true,r=D$1){this.cache=new Map,this.invalidations=new Map,this.maxCacheEntries=t,this.counter=1,this.decompress=r;}getHeader(t){return m(this,null,function*(){let e=t.getKey(),r=this.cache.get(e);if(r)return r.lastUsed=this.counter++,yield r.data;let n=new Promise((s,o)=>{V(t,this.decompress).then(a=>{a[1]&&this.cache.set(a[1][0],{lastUsed:this.counter++,data:Promise.resolve(a[1][2])}),s(a[0]),this.prune();}).catch(a=>{o(a);});});return this.cache.set(e,{lastUsed:this.counter++,data:n}),n})}getDirectory(t,e,r,n){return m(this,null,function*(){let s=`${t.getKey()}|${n.etag||""}|${e}|${r}`,o=this.cache.get(s);if(o)return o.lastUsed=this.counter++,yield o.data;let a=new Promise((c,u)=>{K(t,this.decompress,e,r,n).then(l=>{c(l),this.prune();}).catch(l=>{u(l);});});return this.cache.set(s,{lastUsed:this.counter++,data:a}),a})}prune(){if(this.cache.size>=this.maxCacheEntries){let t=1/0,e;this.cache.forEach((r,n)=>{r.lastUsed<t&&(t=r.lastUsed,e=n);}),e&&this.cache.delete(e);}}invalidate(t){return m(this,null,function*(){let e=t.getKey();if(this.invalidations.get(e))return yield this.invalidations.get(e);this.cache.delete(t.getKey());let r=new Promise((n,s)=>{this.getHeader(t).then(o=>{n(),this.invalidations.delete(e);}).catch(o=>{s(o);});});this.invalidations.set(e,r);})}};d(M,"SharedPromiseCache");var C=M,H=class H{constructor(t,e,r){typeof t=="string"?this.source=new T(t):this.source=t,r?this.decompress=r:this.decompress=D$1,e?this.cache=e:this.cache=new C;}getHeader(){return m(this,null,function*(){return yield this.cache.getHeader(this.source)})}getZxyAttempt(t,e,r,n){return m(this,null,function*(){let s=q(t,e,r),o=yield this.cache.getHeader(this.source);if(t<o.minZoom||t>o.maxZoom)return;let a=o.rootDirectoryOffset,c=o.rootDirectoryLength;for(let u=0;u<=3;u++){let l=yield this.cache.getDirectory(this.source,a,c,o),f=Q(l,s);if(f){if(f.runLength>0){let y=yield this.source.getBytes(o.tileDataOffset+f.offset,f.length,n,o.etag);return {data:yield this.decompress(y.data,o.tileCompression),cacheControl:y.cacheControl,expires:y.expires}}a=o.leafDirectoryOffset+f.offset,c=f.length;}else return}throw new Error("Maximum directory depth exceeded")})}getZxy(t,e,r,n){return m(this,null,function*(){try{return yield this.getZxyAttempt(t,e,r,n)}catch(s){if(s instanceof v)return this.cache.invalidate(this.source),yield this.getZxyAttempt(t,e,r,n);throw s}})}getMetadataAttempt(){return m(this,null,function*(){let t=yield this.cache.getHeader(this.source),e=yield this.source.getBytes(t.jsonMetadataOffset,t.jsonMetadataLength,void 0,t.etag),r=yield this.decompress(e.data,t.internalCompression),n=new TextDecoder("utf-8");return JSON.parse(n.decode(r))})}getMetadata(){return m(this,null,function*(){try{return yield this.getMetadataAttempt()}catch(t){if(t instanceof v)return this.cache.invalidate(this.source),yield this.getMetadataAttempt();throw t}})}getTileJson(t){return m(this,null,function*(){let e=yield this.getHeader(),r=yield this.getMetadata(),n=_(e.tileType);return {tilejson:"3.0.0",scheme:"xyz",tiles:[`${t}/{z}/{x}/{y}${n}`],vector_layers:r.vector_layers,attribution:r.attribution,description:r.description,name:r.name,version:r.version,bounds:[e.minLon,e.minLat,e.maxLon,e.maxLat],center:[e.centerLon,e.centerLat,e.centerZoom],minzoom:e.minZoom,maxzoom:e.maxZoom}})}};d(H,"PMTiles");var w=H;
+
 /**
  * @class ProtoMapsLoader
  * @inherits Loader
@@ -33955,7 +38683,7 @@ class ProtoMapsLoader extends Loader {
 
 		super();
 
-		this.#pmtiles = new PMTiles(source);
+		this.#pmtiles = new w(source);
 		this.#symbolizers = symbolizers;
 		this.#defaultSymbolizer = defaultSymbolizer ?? function () {};
 
@@ -40274,5 +45002,7214 @@ class WavyFill extends Fill {
 	// Can be overriden by subclasses or the `intensify` decorator
 	static _parseColour = parseCSSColor;
 }
+
+class RawDecoder extends BaseDecoder {
+    /** @param {ArrayBuffer} buffer */
+    decodeBlock(buffer) {
+        return buffer;
+    }
+}
+
+var raw = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: RawDecoder
+});
+
+const MIN_BITS = 9;
+const CLEAR_CODE = 256; // clear code
+const EOI_CODE = 257; // end of information
+const MAX_BYTELENGTH = 12;
+/**
+ * @param {Uint8Array} array
+ * @param {number} position
+ * @param {number} length
+ * @returns {number}
+ */
+function getByte(array, position, length) {
+    const d = position % 8;
+    const a = Math.floor(position / 8);
+    const de = 8 - d;
+    const ef = (position + length) - ((a + 1) * 8);
+    let fg = (8 * (a + 2)) - (position + length);
+    const dg = ((a + 2) * 8) - position;
+    fg = Math.max(0, fg);
+    if (a >= array.length) {
+        console.warn('ran off the end of the buffer before finding EOI_CODE (end on input code)');
+        return EOI_CODE;
+    }
+    let chunk1 = array[a] & ((2 ** (8 - d)) - 1);
+    chunk1 <<= (length - de);
+    let chunks = chunk1;
+    if (a + 1 < array.length) {
+        let chunk2 = array[a + 1] >>> fg;
+        chunk2 <<= Math.max(0, (length - dg));
+        chunks += chunk2;
+    }
+    if (ef > 8 && a + 2 < array.length) {
+        const hi = ((a + 3) * 8) - (position + length);
+        const chunk3 = array[a + 2] >>> hi;
+        chunks += chunk3;
+    }
+    return chunks;
+}
+/**
+ * @template T
+ * @param {Array<T>} dest
+ * @param {Array<T>} source
+ * @returns {Array<T>}
+ */
+function appendReversed(dest, source) {
+    for (let i = source.length - 1; i >= 0; i--) {
+        dest.push(source[i]);
+    }
+    return dest;
+}
+/**
+ * @param {ArrayBuffer} input
+ */
+function decompress(input) {
+    const dictionaryIndex = new Uint16Array(4093);
+    const dictionaryChar = new Uint8Array(4093);
+    for (let i = 0; i <= 257; i++) {
+        dictionaryIndex[i] = 4096;
+        dictionaryChar[i] = i;
+    }
+    let dictionaryLength = 258;
+    let byteLength = MIN_BITS;
+    let position = 0;
+    function initDictionary() {
+        dictionaryLength = 258;
+        byteLength = MIN_BITS;
+    }
+    /** @param {Uint8Array} array */
+    function getNext(array) {
+        const byte = getByte(array, position, byteLength);
+        position += byteLength;
+        return byte;
+    }
+    /**
+     * @param {number} i
+     * @param {number} c
+     */
+    function addToDictionary(i, c) {
+        dictionaryChar[dictionaryLength] = c;
+        dictionaryIndex[dictionaryLength] = i;
+        dictionaryLength++;
+        return dictionaryLength - 1;
+    }
+    /** @param {number} n */
+    function getDictionaryReversed(n) {
+        const rev = [];
+        for (let i = n; i !== 4096; i = dictionaryIndex[i]) {
+            rev.push(dictionaryChar[i]);
+        }
+        return rev;
+    }
+    const result = [];
+    initDictionary();
+    const array = new Uint8Array(input);
+    let code = getNext(array);
+    let oldCode;
+    while (code !== EOI_CODE) {
+        if (code === CLEAR_CODE) {
+            initDictionary();
+            code = getNext(array);
+            while (code === CLEAR_CODE) {
+                code = getNext(array);
+            }
+            if (code === EOI_CODE) {
+                break;
+            }
+            else if (code > CLEAR_CODE) {
+                throw new Error(`corrupted code at scanline ${code}`);
+            }
+            else {
+                const val = getDictionaryReversed(code);
+                appendReversed(result, val);
+                oldCode = code;
+            }
+        }
+        else if (code < dictionaryLength) {
+            const val = getDictionaryReversed(code);
+            appendReversed(result, val);
+            if (oldCode !== undefined) {
+                addToDictionary(oldCode, val[val.length - 1]);
+            }
+            oldCode = code;
+        }
+        else {
+            if (oldCode === undefined) {
+                throw new Error(`Invalid LZW code: ${code} with no previous code`);
+            }
+            const oldVal = getDictionaryReversed(oldCode);
+            if (!oldVal) {
+                throw new Error(`Bogus entry. Not in dictionary, ${oldCode} / ${dictionaryLength}, position: ${position}`);
+            }
+            appendReversed(result, oldVal);
+            result.push(oldVal[oldVal.length - 1]);
+            addToDictionary(oldCode, oldVal[oldVal.length - 1]);
+            oldCode = code;
+        }
+        if (dictionaryLength + 1 >= (2 ** byteLength)) {
+            if (byteLength === MAX_BYTELENGTH) {
+                oldCode = undefined;
+            }
+            else {
+                byteLength++;
+            }
+        }
+        code = getNext(array);
+    }
+    return new Uint8Array(result);
+}
+class LZWDecoder extends BaseDecoder {
+    /** @param {ArrayBuffer} buffer */
+    decodeBlock(buffer) {
+        return decompress(buffer).buffer;
+    }
+}
+
+var lzw = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: LZWDecoder
+});
+
+/* -*- tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/*
+   Copyright 2011 notmasteryet
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+// - The JPEG specification can be found in the ITU CCITT Recommendation T.81
+//   (www.w3.org/Graphics/JPEG/itu-t81.pdf)
+// - The JFIF specification can be found in the JPEG File Interchange Format
+//   (www.w3.org/Graphics/JPEG/jfif3.pdf)
+// - The Adobe Application-Specific JPEG markers in the Supporting the DCT Filters
+//   in PostScript Level 2, Technical Note #5116
+//   (partners.adobe.com/public/developer/en/ps/sdk/5116.DCT_Filter.pdf)
+const dctZigZag = new Int32Array([
+    0,
+    1, 8,
+    16, 9, 2,
+    3, 10, 17, 24,
+    32, 25, 18, 11, 4,
+    5, 12, 19, 26, 33, 40,
+    48, 41, 34, 27, 20, 13, 6,
+    7, 14, 21, 28, 35, 42, 49, 56,
+    57, 50, 43, 36, 29, 22, 15,
+    23, 30, 37, 44, 51, 58,
+    59, 52, 45, 38, 31,
+    39, 46, 53, 60,
+    61, 54, 47,
+    55, 62,
+    63,
+]);
+const dctCos1 = 4017; // cos(pi/16)
+const dctSin1 = 799; // sin(pi/16)
+const dctCos3 = 3406; // cos(3*pi/16)
+const dctSin3 = 2276; // sin(3*pi/16)
+const dctCos6 = 1567; // cos(6*pi/16)
+const dctSin6 = 3784; // sin(6*pi/16)
+const dctSqrt2 = 5793; // sqrt(2)
+const dctSqrt1d2 = 2896; // sqrt(2) / 2
+/** @typedef {(number|HuffmanNode)[]} HuffmanNode */
+/** @typedef {{children: HuffmanNode, index: number}} Code */
+/**
+ * @typedef {Object} JpegComponent
+ * @property {number} h
+ * @property {number} v
+ * @property {number} [quantizationIdx]
+ * @property {Int32Array} [quantizationTable]
+ * @property {number} blocksPerLine
+ * @property {number} blocksPerColumn
+ * @property {Int32Array[][]} blocks
+ * @property {HuffmanNode} [huffmanTableDC]
+ * @property {HuffmanNode} [huffmanTableAC]
+ * @property {number} [pred]
+ */
+/**
+ * @typedef {Object} JpegFrame
+ * @property {boolean} extended
+ * @property {boolean} progressive
+ * @property {number} precision
+ * @property {number} scanLines
+ * @property {number} samplesPerLine
+ * @property {Object.<string, JpegComponent>} components
+ * @property {number[]} componentsOrder
+ * @property {number} maxH
+ * @property {number} maxV
+ * @property {number} mcusPerLine
+ * @property {number} mcusPerColumn
+ */
+/**
+ * @param {Uint8Array<ArrayBuffer>} codeLengths
+ * @param {Uint8Array<ArrayBuffer>} values
+ * @returns {HuffmanNode}
+ */
+function buildHuffmanTable(codeLengths, values) {
+    let k = 0;
+    /** @type {Array<Code>} */
+    const code = [];
+    let length = 16;
+    while (length > 0 && !codeLengths[length - 1]) {
+        --length;
+    }
+    code.push({ children: [], index: 0 });
+    /** @type {Code|undefined} */
+    let p = code[0];
+    /** @type {Code|undefined} */
+    let q;
+    for (let i = 0; i < length; i++) {
+        for (let j = 0; j < codeLengths[i]; j++) {
+            p = code.pop();
+            if (!p) {
+                throw new Error('buildHuffmanTable: codeLength mismatch');
+            }
+            p.children[p.index] = values[k];
+            while (p.index > 0) {
+                p = code.pop();
+                if (!p) {
+                    throw new Error('buildHuffmanTable: codeLength mismatch');
+                }
+            }
+            p.index++;
+            code.push(p);
+            while (code.length <= i) {
+                code.push(q = { children: [], index: 0 });
+                p.children[p.index] = q.children;
+                p = q;
+            }
+            k++;
+        }
+        if (i + 1 < length) {
+            // p here points to last code
+            code.push(q = { children: [], index: 0 });
+            p.children[p.index] = q.children;
+            p = q;
+        }
+    }
+    return code[0].children;
+}
+/**
+ * @param {Uint8Array} data
+ * @param {number} initialOffset
+ * @param {JpegFrame} frame
+ * @param {JpegComponent[]} components
+ * @param {number} resetInterval
+ * @param {number} spectralStart
+ * @param {number} spectralEnd
+ * @param {number} successivePrev
+ * @param {number} successive
+ */
+function decodeScan(data, initialOffset, frame, components, resetInterval, spectralStart, spectralEnd, successivePrev, successive) {
+    const { mcusPerLine, progressive } = frame;
+    if (components.length > 1 && (mcusPerLine === undefined || frame.mcusPerColumn === undefined)) {
+        throw new Error('Missing MCU dimensions');
+    }
+    if (components.length === 1 && (components[0].blocksPerLine === undefined || components[0].blocksPerColumn === undefined)) {
+        throw new Error('Missing block dimensions');
+    }
+    const startOffset = initialOffset;
+    let offset = initialOffset;
+    let bitsData = 0;
+    let bitsCount = 0;
+    function readBit() {
+        if (bitsCount > 0) {
+            bitsCount--;
+            return (bitsData >> bitsCount) & 1;
+        }
+        bitsData = data[offset++];
+        if (bitsData === 0xFF) {
+            const nextByte = data[offset++];
+            if (nextByte) {
+                throw new Error(`unexpected marker: ${((bitsData << 8) | nextByte).toString(16)}`);
+            }
+            // unstuff 0
+        }
+        bitsCount = 7;
+        return bitsData >>> 7;
+    }
+    /** @param {HuffmanNode|undefined} tree */
+    function decodeHuffman(tree) {
+        if (!tree) {
+            throw new Error('Huffman table not found');
+        }
+        let node = tree;
+        let bit;
+        while ((bit = readBit()) !== null) { // eslint-disable-line no-cond-assign
+            const next = node[bit];
+            if (typeof next === 'number') {
+                return next;
+            }
+            if (typeof next !== 'object') {
+                throw new Error('invalid huffman sequence');
+            }
+            node = next;
+        }
+        return null;
+    }
+    /** @param {number} initialLength */
+    function receive(initialLength) {
+        let length = initialLength;
+        let n = 0;
+        while (length > 0) {
+            const bit = readBit();
+            if (bit === null) {
+                return undefined;
+            }
+            n = (n << 1) | bit;
+            --length;
+        }
+        return n;
+    }
+    /** @param {number} length */
+    function receiveAndExtend(length) {
+        const n = receive(length);
+        if (n === undefined) {
+            return undefined;
+        }
+        if (n >= 1 << (length - 1)) {
+            return n;
+        }
+        return n + (-1 << length) + 1;
+    }
+    /**
+     * @param {JpegComponent} component
+     * @param {Int32Array} zz
+     */
+    function decodeBaseline(component, zz) {
+        const t = decodeHuffman(component.huffmanTableDC);
+        if (t === null) {
+            throw new Error('Huffman error');
+        }
+        const diff = t === 0 ? 0 : receiveAndExtend(t);
+        if (diff === undefined) {
+            throw new Error('Unexpected end of stream');
+        }
+        if (component.pred === undefined) {
+            component.pred = 0;
+        }
+        component.pred += diff;
+        zz[0] = component.pred;
+        let k = 1;
+        while (k < 64) {
+            const rs = decodeHuffman(component.huffmanTableAC);
+            if (rs === null) {
+                throw new Error('Unexpected end of data in AC coefficient decoding');
+            }
+            const s = rs & 15;
+            const r = rs >> 4;
+            if (s === 0) {
+                if (r < 15) {
+                    break;
+                }
+                k += 16;
+            }
+            else {
+                k += r;
+                const z = dctZigZag[k];
+                const val = receiveAndExtend(s);
+                if (val === undefined) {
+                    throw new Error('Unexpected end of stream');
+                }
+                zz[z] = val;
+                k++;
+            }
+        }
+    }
+    /**
+     * @param {JpegComponent} component
+     * @param {Int32Array} zz
+     */
+    function decodeDCFirst(component, zz) {
+        const t = decodeHuffman(component.huffmanTableDC);
+        if (t === null) {
+            throw new Error('Huffman error');
+        }
+        const value = receiveAndExtend(t);
+        if (value === undefined) {
+            throw new Error('Unexpected end of data in DC coefficient decoding');
+        }
+        const diff = t === 0 ? 0 : (value << successive);
+        if (component.pred === undefined) {
+            component.pred = 0;
+        }
+        component.pred += diff;
+        zz[0] = component.pred;
+    }
+    /**
+     * @param {JpegComponent} _
+     * @param {Int32Array} zz
+     */
+    function decodeDCSuccessive(_, zz) {
+        const bit = readBit();
+        if (bit === null) {
+            throw new Error('Unexpected end of data in DC coefficient decoding');
+        }
+        zz[0] |= bit << successive;
+    }
+    let eobrun = 0;
+    /**
+     * @param {JpegComponent} component
+     * @param {Int32Array} zz
+     */
+    function decodeACFirst(component, zz) {
+        if (eobrun > 0) {
+            eobrun--;
+            return;
+        }
+        let k = spectralStart;
+        const e = spectralEnd;
+        while (k <= e) {
+            const rs = decodeHuffman(component.huffmanTableAC);
+            if (rs === null) {
+                throw new Error('Unexpected end of data in AC coefficient decoding');
+            }
+            const s = rs & 15;
+            const r = rs >> 4;
+            if (s === 0) {
+                if (r < 15) {
+                    const value = receive(r);
+                    if (value === undefined) {
+                        throw new Error('Unexpected end of data in AC coefficient decoding');
+                    }
+                    eobrun = value + (1 << r) - 1;
+                    break;
+                }
+                k += 16;
+            }
+            else {
+                k += r;
+                const z = dctZigZag[k];
+                const value = receiveAndExtend(s);
+                if (value === undefined) {
+                    throw new Error('Unexpected end of data in AC coefficient decoding');
+                }
+                zz[z] = value * (1 << successive);
+                k++;
+            }
+        }
+    }
+    let successiveACState = 0;
+    /** @type {number} */
+    let successiveACNextValue;
+    /**
+     * @param {JpegComponent} component
+     * @param {Int32Array} zz
+     */
+    function decodeACSuccessive(component, zz) {
+        let k = spectralStart;
+        const e = spectralEnd;
+        let r = 0;
+        while (k <= e) {
+            const z = dctZigZag[k];
+            const direction = zz[z] < 0 ? -1 : 1;
+            switch (successiveACState) {
+                case 0: { // initial state
+                    const rs = decodeHuffman(component.huffmanTableAC);
+                    if (rs === null) {
+                        throw new Error('Unexpected end of data in AC coefficient decoding');
+                    }
+                    const s = rs & 15;
+                    r = rs >> 4;
+                    if (s === 0) {
+                        if (r < 15) {
+                            const value = receive(r);
+                            if (value === undefined) {
+                                throw new Error('Unexpected end of data in AC coefficient decoding');
+                            }
+                            eobrun = value + (1 << r);
+                            successiveACState = 4;
+                        }
+                        else {
+                            r = 16;
+                            successiveACState = 1;
+                        }
+                    }
+                    else {
+                        if (s !== 1) {
+                            throw new Error('invalid ACn encoding');
+                        }
+                        const nextVal = receiveAndExtend(s);
+                        if (nextVal === undefined) {
+                            throw new Error('Unexpected end of data in AC coefficient decoding');
+                        }
+                        successiveACNextValue = nextVal;
+                        successiveACState = r ? 2 : 3;
+                    }
+                    continue; // eslint-disable-line no-continue
+                }
+                case 1: // skipping r zero items
+                case 2:
+                    if (zz[z]) {
+                        const bit = readBit();
+                        if (bit === null) {
+                            throw new Error('Unexpected end of data in AC coefficient decoding');
+                        }
+                        zz[z] += (bit << successive) * direction;
+                    }
+                    else {
+                        r--;
+                        if (r === 0) {
+                            successiveACState = successiveACState === 2 ? 3 : 0;
+                        }
+                    }
+                    break;
+                case 3: // set value for a zero item
+                    if (zz[z]) {
+                        const bit = readBit();
+                        if (bit === null) {
+                            throw new Error('Unexpected end of data in AC coefficient decoding');
+                        }
+                        zz[z] += (bit << successive) * direction;
+                    }
+                    else {
+                        zz[z] = successiveACNextValue << successive;
+                        successiveACState = 0;
+                    }
+                    break;
+                case 4: // eob
+                    if (zz[z]) {
+                        const bit = readBit();
+                        if (bit === null) {
+                            throw new Error('Unexpected end of data in AC coefficient decoding');
+                        }
+                        zz[z] += (bit << successive) * direction;
+                    }
+                    break;
+            }
+            k++;
+        }
+        if (successiveACState === 4) {
+            eobrun--;
+            if (eobrun === 0) {
+                successiveACState = 0;
+            }
+        }
+    }
+    /**
+     * @param {JpegComponent} component
+     * @param {function} decodeFunction
+     * @param {number} mcu
+     * @param {number} row
+     * @param {number} col
+     */
+    function decodeMcu(component, decodeFunction, mcu, row, col) {
+        const mcuRow = (mcu / mcusPerLine) | 0;
+        const mcuCol = mcu % mcusPerLine;
+        const blockRow = (mcuRow * component.v) + row;
+        const blockCol = (mcuCol * component.h) + col;
+        if (!component.blocks) {
+            throw new Error('Missing blocks');
+        }
+        decodeFunction(component, component.blocks[blockRow][blockCol]);
+    }
+    /**
+     * @param {JpegComponent} component
+     * @param {function} decodeFunction
+     * @param {number} mcu
+     */
+    function decodeBlock(component, decodeFunction, mcu) {
+        const blockRow = (mcu / component.blocksPerLine) | 0;
+        const blockCol = mcu % component.blocksPerLine;
+        if (!component.blocks) {
+            throw new Error('Missing blocks');
+        }
+        decodeFunction(component, component.blocks[blockRow][blockCol]);
+    }
+    const componentsLength = components.length;
+    let component;
+    let i;
+    let j;
+    let k;
+    let n;
+    let decodeFn;
+    if (progressive) {
+        if (spectralStart === 0) {
+            decodeFn = successivePrev === 0 ? decodeDCFirst : decodeDCSuccessive;
+        }
+        else {
+            decodeFn = successivePrev === 0 ? decodeACFirst : decodeACSuccessive;
+        }
+    }
+    else {
+        decodeFn = decodeBaseline;
+    }
+    let mcu = 0;
+    let marker;
+    let mcuExpected;
+    if (componentsLength === 1) {
+        mcuExpected = components[0].blocksPerLine * components[0].blocksPerColumn;
+    }
+    else {
+        mcuExpected = mcusPerLine * frame.mcusPerColumn;
+    }
+    const usedResetInterval = resetInterval || mcuExpected;
+    while (mcu < mcuExpected) {
+        // reset interval stuff
+        for (i = 0; i < componentsLength; i++) {
+            components[i].pred = 0;
+        }
+        eobrun = 0;
+        if (componentsLength === 1) {
+            component = components[0];
+            for (n = 0; n < usedResetInterval; n++) {
+                decodeBlock(component, decodeFn, mcu);
+                mcu++;
+            }
+        }
+        else {
+            for (n = 0; n < usedResetInterval; n++) {
+                for (i = 0; i < componentsLength; i++) {
+                    component = components[i];
+                    const { h, v } = component;
+                    for (j = 0; j < v; j++) {
+                        for (k = 0; k < h; k++) {
+                            decodeMcu(component, decodeFn, mcu, j, k);
+                        }
+                    }
+                }
+                mcu++;
+                // If we've reached our expected MCU's, stop decoding
+                if (mcu === mcuExpected) {
+                    break;
+                }
+            }
+        }
+        // find marker
+        bitsCount = 0;
+        marker = (data[offset] << 8) | data[offset + 1];
+        if (marker < 0xFF00) {
+            throw new Error('marker was not found');
+        }
+        if (marker >= 0xFFD0 && marker <= 0xFFD7) { // RSTx
+            offset += 2;
+        }
+        else {
+            break;
+        }
+    }
+    return offset - startOffset;
+}
+/**
+ * @param {JpegComponent} component
+ */
+function buildComponentData(component) {
+    const lines = [];
+    const { blocksPerLine, blocksPerColumn } = component;
+    if (!blocksPerLine || !blocksPerColumn || !component.blocks) {
+        throw new Error('Missing component data');
+    }
+    const samplesPerLine = blocksPerLine << 3;
+    const R = new Int32Array(64);
+    const r = new Uint8Array(64);
+    // A port of poppler's IDCT method which in turn is taken from:
+    //   Christoph Loeffler, Adriaan Ligtenberg, George S. Moschytz,
+    //   "Practical Fast 1-D DCT Algorithms with 11 Multiplications",
+    //   IEEE Intl. Conf. on Acoustics, Speech & Signal Processing, 1989,
+    //   988-991.
+    /**
+     * @param {Int32Array} zz
+     * @param {Uint8Array} dataOut
+     * @param {Int32Array} dataIn
+     */
+    function quantizeAndInverse(zz, dataOut, dataIn) {
+        const qt = component.quantizationTable;
+        if (!qt) {
+            throw new Error('No quantization table found');
+        }
+        let v0;
+        let v1;
+        let v2;
+        let v3;
+        let v4;
+        let v5;
+        let v6;
+        let v7;
+        let t;
+        const p = dataIn;
+        let i;
+        // dequant
+        for (i = 0; i < 64; i++) {
+            p[i] = zz[i] * qt[i];
+        }
+        // inverse DCT on rows
+        for (i = 0; i < 8; ++i) {
+            const row = 8 * i;
+            // check for all-zero AC coefficients
+            if (p[1 + row] === 0 && p[2 + row] === 0 && p[3 + row] === 0
+                && p[4 + row] === 0 && p[5 + row] === 0 && p[6 + row] === 0
+                && p[7 + row] === 0) {
+                t = ((dctSqrt2 * p[0 + row]) + 512) >> 10;
+                p[0 + row] = t;
+                p[1 + row] = t;
+                p[2 + row] = t;
+                p[3 + row] = t;
+                p[4 + row] = t;
+                p[5 + row] = t;
+                p[6 + row] = t;
+                p[7 + row] = t;
+                continue; // eslint-disable-line no-continue
+            }
+            // stage 4
+            v0 = ((dctSqrt2 * p[0 + row]) + 128) >> 8;
+            v1 = ((dctSqrt2 * p[4 + row]) + 128) >> 8;
+            v2 = p[2 + row];
+            v3 = p[6 + row];
+            v4 = ((dctSqrt1d2 * (p[1 + row] - p[7 + row])) + 128) >> 8;
+            v7 = ((dctSqrt1d2 * (p[1 + row] + p[7 + row])) + 128) >> 8;
+            v5 = p[3 + row] << 4;
+            v6 = p[5 + row] << 4;
+            // stage 3
+            t = (v0 - v1 + 1) >> 1;
+            v0 = (v0 + v1 + 1) >> 1;
+            v1 = t;
+            t = ((v2 * dctSin6) + (v3 * dctCos6) + 128) >> 8;
+            v2 = ((v2 * dctCos6) - (v3 * dctSin6) + 128) >> 8;
+            v3 = t;
+            t = (v4 - v6 + 1) >> 1;
+            v4 = (v4 + v6 + 1) >> 1;
+            v6 = t;
+            t = (v7 + v5 + 1) >> 1;
+            v5 = (v7 - v5 + 1) >> 1;
+            v7 = t;
+            // stage 2
+            t = (v0 - v3 + 1) >> 1;
+            v0 = (v0 + v3 + 1) >> 1;
+            v3 = t;
+            t = (v1 - v2 + 1) >> 1;
+            v1 = (v1 + v2 + 1) >> 1;
+            v2 = t;
+            t = ((v4 * dctSin3) + (v7 * dctCos3) + 2048) >> 12;
+            v4 = ((v4 * dctCos3) - (v7 * dctSin3) + 2048) >> 12;
+            v7 = t;
+            t = ((v5 * dctSin1) + (v6 * dctCos1) + 2048) >> 12;
+            v5 = ((v5 * dctCos1) - (v6 * dctSin1) + 2048) >> 12;
+            v6 = t;
+            // stage 1
+            p[0 + row] = v0 + v7;
+            p[7 + row] = v0 - v7;
+            p[1 + row] = v1 + v6;
+            p[6 + row] = v1 - v6;
+            p[2 + row] = v2 + v5;
+            p[5 + row] = v2 - v5;
+            p[3 + row] = v3 + v4;
+            p[4 + row] = v3 - v4;
+        }
+        // inverse DCT on columns
+        for (i = 0; i < 8; ++i) {
+            const col = i;
+            // check for all-zero AC coefficients
+            if (p[(1 * 8) + col] === 0 && p[(2 * 8) + col] === 0 && p[(3 * 8) + col] === 0
+                && p[(4 * 8) + col] === 0 && p[(5 * 8) + col] === 0 && p[(6 * 8) + col] === 0
+                && p[(7 * 8) + col] === 0) {
+                t = ((dctSqrt2 * dataIn[i + 0]) + 8192) >> 14;
+                p[(0 * 8) + col] = t;
+                p[(1 * 8) + col] = t;
+                p[(2 * 8) + col] = t;
+                p[(3 * 8) + col] = t;
+                p[(4 * 8) + col] = t;
+                p[(5 * 8) + col] = t;
+                p[(6 * 8) + col] = t;
+                p[(7 * 8) + col] = t;
+                continue; // eslint-disable-line no-continue
+            }
+            // stage 4
+            v0 = ((dctSqrt2 * p[(0 * 8) + col]) + 2048) >> 12;
+            v1 = ((dctSqrt2 * p[(4 * 8) + col]) + 2048) >> 12;
+            v2 = p[(2 * 8) + col];
+            v3 = p[(6 * 8) + col];
+            v4 = ((dctSqrt1d2 * (p[(1 * 8) + col] - p[(7 * 8) + col])) + 2048) >> 12;
+            v7 = ((dctSqrt1d2 * (p[(1 * 8) + col] + p[(7 * 8) + col])) + 2048) >> 12;
+            v5 = p[(3 * 8) + col];
+            v6 = p[(5 * 8) + col];
+            // stage 3
+            t = (v0 - v1 + 1) >> 1;
+            v0 = (v0 + v1 + 1) >> 1;
+            v1 = t;
+            t = ((v2 * dctSin6) + (v3 * dctCos6) + 2048) >> 12;
+            v2 = ((v2 * dctCos6) - (v3 * dctSin6) + 2048) >> 12;
+            v3 = t;
+            t = (v4 - v6 + 1) >> 1;
+            v4 = (v4 + v6 + 1) >> 1;
+            v6 = t;
+            t = (v7 + v5 + 1) >> 1;
+            v5 = (v7 - v5 + 1) >> 1;
+            v7 = t;
+            // stage 2
+            t = (v0 - v3 + 1) >> 1;
+            v0 = (v0 + v3 + 1) >> 1;
+            v3 = t;
+            t = (v1 - v2 + 1) >> 1;
+            v1 = (v1 + v2 + 1) >> 1;
+            v2 = t;
+            t = ((v4 * dctSin3) + (v7 * dctCos3) + 2048) >> 12;
+            v4 = ((v4 * dctCos3) - (v7 * dctSin3) + 2048) >> 12;
+            v7 = t;
+            t = ((v5 * dctSin1) + (v6 * dctCos1) + 2048) >> 12;
+            v5 = ((v5 * dctCos1) - (v6 * dctSin1) + 2048) >> 12;
+            v6 = t;
+            // stage 1
+            p[(0 * 8) + col] = v0 + v7;
+            p[(7 * 8) + col] = v0 - v7;
+            p[(1 * 8) + col] = v1 + v6;
+            p[(6 * 8) + col] = v1 - v6;
+            p[(2 * 8) + col] = v2 + v5;
+            p[(5 * 8) + col] = v2 - v5;
+            p[(3 * 8) + col] = v3 + v4;
+            p[(4 * 8) + col] = v3 - v4;
+        }
+        // convert to 8-bit integers
+        for (i = 0; i < 64; ++i) {
+            const sample = 128 + ((p[i] + 8) >> 4);
+            if (sample < 0) {
+                dataOut[i] = 0;
+            }
+            else if (sample > 0XFF) {
+                dataOut[i] = 0xFF;
+            }
+            else {
+                dataOut[i] = sample;
+            }
+        }
+    }
+    for (let blockRow = 0; blockRow < blocksPerColumn; blockRow++) {
+        const scanLine = blockRow << 3;
+        for (let i = 0; i < 8; i++) {
+            lines.push(new Uint8Array(samplesPerLine));
+        }
+        for (let blockCol = 0; blockCol < blocksPerLine; blockCol++) {
+            quantizeAndInverse(component.blocks[blockRow][blockCol], r, R);
+            let offset = 0;
+            const sample = blockCol << 3;
+            for (let j = 0; j < 8; j++) {
+                const line = lines[scanLine + j];
+                for (let i = 0; i < 8; i++) {
+                    line[sample + i] = r[offset++];
+                }
+            }
+        }
+    }
+    return lines;
+}
+class JpegStreamReader {
+    constructor() {
+        this.jfif = null;
+        this.adobe = null;
+        /** @type {number} */
+        this.resetInterval = 0;
+        /** @type {Int32Array[]} */
+        this.quantizationTables = [];
+        /** @type {HuffmanNode[]} */
+        this.huffmanTablesAC = [];
+        /** @type {HuffmanNode[]} */
+        this.huffmanTablesDC = [];
+        /** @type {JpegFrame[]} */
+        this.frames = [];
+    }
+    resetFrames() {
+        this.frames = [];
+    }
+    /** @param {Uint8Array} data */
+    parse(data) {
+        let offset = 0;
+        // const { length } = data;
+        function readUint16() {
+            const value = (data[offset] << 8) | data[offset + 1];
+            offset += 2;
+            return value;
+        }
+        function readDataBlock() {
+            const length = readUint16();
+            const array = data.subarray(offset, offset + length - 2);
+            offset += array.length;
+            return array;
+        }
+        /** @param {JpegFrame} frame */
+        function prepareComponents(frame) {
+            let maxH = 0;
+            let maxV = 0;
+            let component;
+            let componentId;
+            for (componentId in frame.components) {
+                if (frame.components.hasOwnProperty(componentId)) {
+                    component = frame.components[componentId];
+                    if (maxH < component.h) {
+                        maxH = component.h;
+                    }
+                    if (maxV < component.v) {
+                        maxV = component.v;
+                    }
+                }
+            }
+            const mcusPerLine = Math.ceil(frame.samplesPerLine / 8 / maxH);
+            const mcusPerColumn = Math.ceil(frame.scanLines / 8 / maxV);
+            for (componentId in frame.components) {
+                if (frame.components.hasOwnProperty(componentId)) {
+                    component = frame.components[componentId];
+                    const blocksPerLine = Math.ceil(Math.ceil(frame.samplesPerLine / 8) * component.h / maxH);
+                    const blocksPerColumn = Math.ceil(Math.ceil(frame.scanLines / 8) * component.v / maxV);
+                    const blocksPerLineForMcu = mcusPerLine * component.h;
+                    const blocksPerColumnForMcu = mcusPerColumn * component.v;
+                    const blocks = [];
+                    for (let i = 0; i < blocksPerColumnForMcu; i++) {
+                        const row = [];
+                        for (let j = 0; j < blocksPerLineForMcu; j++) {
+                            row.push(new Int32Array(64));
+                        }
+                        blocks.push(row);
+                    }
+                    component.blocksPerLine = blocksPerLine;
+                    component.blocksPerColumn = blocksPerColumn;
+                    component.blocks = blocks;
+                }
+            }
+            frame.maxH = maxH;
+            frame.maxV = maxV;
+            frame.mcusPerLine = mcusPerLine;
+            frame.mcusPerColumn = mcusPerColumn;
+        }
+        let fileMarker = readUint16();
+        if (fileMarker !== 0xFFD8) { // SOI (Start of Image)
+            throw new Error('SOI not found');
+        }
+        fileMarker = readUint16();
+        while (fileMarker !== 0xFFD9) { // EOI (End of image)
+            switch (fileMarker) {
+                case 0xFF00: break;
+                case 0xFFE0: // APP0 (Application Specific)
+                case 0xFFE1: // APP1
+                case 0xFFE2: // APP2
+                case 0xFFE3: // APP3
+                case 0xFFE4: // APP4
+                case 0xFFE5: // APP5
+                case 0xFFE6: // APP6
+                case 0xFFE7: // APP7
+                case 0xFFE8: // APP8
+                case 0xFFE9: // APP9
+                case 0xFFEA: // APP10
+                case 0xFFEB: // APP11
+                case 0xFFEC: // APP12
+                case 0xFFED: // APP13
+                case 0xFFEE: // APP14
+                case 0xFFEF: // APP15
+                case 0xFFFE: { // COM (Comment)
+                    const appData = readDataBlock();
+                    if (fileMarker === 0xFFE0) {
+                        if (appData[0] === 0x4A && appData[1] === 0x46 && appData[2] === 0x49
+                            && appData[3] === 0x46 && appData[4] === 0) { // 'JFIF\x00'
+                            this.jfif = {
+                                version: { major: appData[5], minor: appData[6] },
+                                densityUnits: appData[7],
+                                xDensity: (appData[8] << 8) | appData[9],
+                                yDensity: (appData[10] << 8) | appData[11],
+                                thumbWidth: appData[12],
+                                thumbHeight: appData[13],
+                                thumbData: appData.subarray(14, 14 + (3 * appData[12] * appData[13])),
+                            };
+                        }
+                    }
+                    // TODO APP1 - Exif
+                    if (fileMarker === 0xFFEE) {
+                        if (appData[0] === 0x41 && appData[1] === 0x64 && appData[2] === 0x6F
+                            && appData[3] === 0x62 && appData[4] === 0x65 && appData[5] === 0) { // 'Adobe\x00'
+                            this.adobe = {
+                                version: appData[6],
+                                flags0: (appData[7] << 8) | appData[8],
+                                flags1: (appData[9] << 8) | appData[10],
+                                transformCode: appData[11],
+                            };
+                        }
+                    }
+                    break;
+                }
+                case 0xFFDB: { // DQT (Define Quantization Tables)
+                    const quantizationTablesLength = readUint16();
+                    const quantizationTablesEnd = quantizationTablesLength + offset - 2;
+                    while (offset < quantizationTablesEnd) {
+                        const quantizationTableSpec = data[offset++];
+                        const tableData = new Int32Array(64);
+                        if ((quantizationTableSpec >> 4) === 0) { // 8 bit values
+                            for (let j = 0; j < 64; j++) {
+                                const z = dctZigZag[j];
+                                tableData[z] = data[offset++];
+                            }
+                        }
+                        else if ((quantizationTableSpec >> 4) === 1) { // 16 bit
+                            for (let j = 0; j < 64; j++) {
+                                const z = dctZigZag[j];
+                                tableData[z] = readUint16();
+                            }
+                        }
+                        else {
+                            throw new Error('DQT: invalid table spec');
+                        }
+                        this.quantizationTables[quantizationTableSpec & 15] = tableData;
+                    }
+                    break;
+                }
+                case 0xFFC0: // SOF0 (Start of Frame, Baseline DCT)
+                case 0xFFC1: // SOF1 (Start of Frame, Extended DCT)
+                case 0xFFC2: { // SOF2 (Start of Frame, Progressive DCT)
+                    readUint16(); // skip data length
+                    /** @type {JpegFrame} */
+                    const frame = {
+                        extended: (fileMarker === 0xFFC1),
+                        progressive: (fileMarker === 0xFFC2),
+                        precision: data[offset++],
+                        scanLines: readUint16(),
+                        samplesPerLine: readUint16(),
+                        /** @type {Object.<string, JpegComponent>} */
+                        components: {},
+                        /** @type {number[]} */
+                        componentsOrder: [],
+                        maxH: 0,
+                        maxV: 0,
+                        mcusPerLine: 0,
+                        mcusPerColumn: 0,
+                    };
+                    const componentsCount = data[offset++];
+                    let componentId;
+                    // let maxH = 0;
+                    // let maxV = 0;
+                    for (let i = 0; i < componentsCount; i++) {
+                        componentId = data[offset];
+                        const h = data[offset + 1] >> 4;
+                        const v = data[offset + 1] & 15;
+                        const qId = data[offset + 2];
+                        frame.componentsOrder.push(componentId);
+                        frame.components[componentId] = {
+                            h,
+                            v,
+                            quantizationIdx: qId,
+                            blocksPerLine: 0,
+                            blocksPerColumn: 0,
+                            blocks: [],
+                        };
+                        offset += 3;
+                    }
+                    prepareComponents(frame);
+                    this.frames.push(frame);
+                    break;
+                }
+                case 0xFFC4: { // DHT (Define Huffman Tables)
+                    const huffmanLength = readUint16();
+                    for (let i = 2; i < huffmanLength;) {
+                        const huffmanTableSpec = data[offset++];
+                        const codeLengths = new Uint8Array(16);
+                        let codeLengthSum = 0;
+                        for (let j = 0; j < 16; j++, offset++) {
+                            codeLengths[j] = data[offset];
+                            codeLengthSum += codeLengths[j];
+                        }
+                        const huffmanValues = new Uint8Array(codeLengthSum);
+                        for (let j = 0; j < codeLengthSum; j++, offset++) {
+                            huffmanValues[j] = data[offset];
+                        }
+                        i += 17 + codeLengthSum;
+                        if ((huffmanTableSpec >> 4) === 0) {
+                            this.huffmanTablesDC[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues);
+                        }
+                        else {
+                            this.huffmanTablesAC[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues);
+                        }
+                    }
+                    break;
+                }
+                case 0xFFDD: // DRI (Define Restart Interval)
+                    readUint16(); // skip data length
+                    this.resetInterval = readUint16();
+                    break;
+                case 0xFFDA: { // SOS (Start of Scan)
+                    readUint16(); // skip length
+                    const selectorsCount = data[offset++];
+                    const components = [];
+                    const frame = this.frames[0];
+                    for (let i = 0; i < selectorsCount; i++) {
+                        const component = frame.components[data[offset++]];
+                        const tableSpec = data[offset++];
+                        component.huffmanTableDC = this.huffmanTablesDC[tableSpec >> 4];
+                        component.huffmanTableAC = this.huffmanTablesAC[tableSpec & 15];
+                        components.push(component);
+                    }
+                    const spectralStart = data[offset++];
+                    const spectralEnd = data[offset++];
+                    const successiveApproximation = data[offset++];
+                    const processed = decodeScan(data, offset, frame, components, this.resetInterval, spectralStart, spectralEnd, successiveApproximation >> 4, successiveApproximation & 15);
+                    offset += processed;
+                    break;
+                }
+                case 0xFFFF: // Fill bytes
+                    if (data[offset] !== 0xFF) { // Avoid skipping a valid marker.
+                        offset--;
+                    }
+                    break;
+                default:
+                    if (data[offset - 3] === 0xFF
+                        && data[offset - 2] >= 0xC0 && data[offset - 2] <= 0xFE) {
+                        // could be incorrect encoding -- last 0xFF byte of the previous
+                        // block was eaten by the encoder
+                        offset -= 3;
+                        break;
+                    }
+                    throw new Error(`unknown JPEG marker ${fileMarker.toString(16)}`);
+            }
+            fileMarker = readUint16();
+        }
+    }
+    getResult() {
+        const { frames } = this;
+        if (this.frames.length === 0) {
+            throw new Error('no frames were decoded');
+        }
+        else if (this.frames.length > 1) {
+            console.warn('more than one frame is not supported');
+        }
+        // set each frame's components quantization table
+        for (let i = 0; i < this.frames.length; i++) {
+            const cp = this.frames[i].components;
+            for (const j of Object.keys(cp)) {
+                const qIdx = cp[j].quantizationIdx;
+                if (typeof qIdx === 'number') {
+                    cp[j].quantizationTable = this.quantizationTables[qIdx];
+                    delete cp[j].quantizationIdx;
+                }
+            }
+        }
+        const frame = frames[0];
+        if (!frame.maxH || !frame.maxV) {
+            throw new Error('Invalid frame dimensions');
+        }
+        const { components, componentsOrder } = frame;
+        const outComponents = [];
+        const width = frame.samplesPerLine;
+        const height = frame.scanLines;
+        for (let i = 0; i < componentsOrder.length; i++) {
+            const component = components[componentsOrder[i]];
+            outComponents.push({
+                lines: buildComponentData(component),
+                scaleX: component.h / frame.maxH,
+                scaleY: component.v / frame.maxV,
+            });
+        }
+        const out = new Uint8Array(width * height * outComponents.length);
+        let oi = 0;
+        for (let y = 0; y < height; ++y) {
+            for (let x = 0; x < width; ++x) {
+                for (let i = 0; i < outComponents.length; ++i) {
+                    const component = outComponents[i];
+                    out[oi] = component.lines[0 | y * component.scaleY][0 | x * component.scaleX];
+                    ++oi;
+                }
+            }
+        }
+        return out;
+    }
+}
+class JpegDecoder extends BaseDecoder {
+    /**
+     * @param {import('./basedecoder.js').BaseDecoderParameters & { JPEGTables?: Uint8Array }} parameters
+     */
+    constructor(parameters) {
+        super(parameters);
+        this.reader = new JpegStreamReader();
+        if (parameters.JPEGTables) {
+            this.reader.parse(parameters.JPEGTables);
+        }
+    }
+    /** @param {ArrayBuffer} buffer */
+    decodeBlock(buffer) {
+        this.reader.resetFrames();
+        this.reader.parse(new Uint8Array(buffer));
+        return this.reader.getResult().buffer;
+    }
+}
+
+var jpeg = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: JpegDecoder
+});
+
+/*============================================================================*/
+
+
+function zero$1(buf) { let len = buf.length; while (--len >= 0) { buf[len] = 0; } }
+/* The three kinds of block type */
+
+const MIN_MATCH$1    = 3;
+const MAX_MATCH$1    = 258;
+/* The minimum and maximum match lengths */
+
+// From deflate.h
+/* ===========================================================================
+ * Internal compression state.
+ */
+
+const LENGTH_CODES$1  = 29;
+/* number of length codes, not counting the special END_BLOCK code */
+
+const LITERALS$1      = 256;
+/* number of literal bytes 0..255 */
+
+const L_CODES$1       = LITERALS$1 + 1 + LENGTH_CODES$1;
+/* number of Literal or Length codes, including the END_BLOCK code */
+
+const D_CODES$1       = 30;
+/* eslint-enable comma-spacing,array-bracket-spacing */
+
+/* The lengths of the bit length codes are sent in order of decreasing
+ * probability, to avoid transmitting the lengths for unused bit length codes.
+ */
+
+/* ===========================================================================
+ * Local data. These are initialized only once.
+ */
+
+// We pre-fill arrays with 0 to avoid uninitialized gaps
+
+const DIST_CODE_LEN = 512; /* see definition of array dist_code below */
+
+// !!!! Use flat array instead of structure, Freq = i*2, Len = i*2+1
+const static_ltree  = new Array((L_CODES$1 + 2) * 2);
+zero$1(static_ltree);
+/* The static literal tree. Since the bit lengths are imposed, there is no
+ * need for the L_CODES extra codes used during heap construction. However
+ * The codes 286 and 287 are needed to build a canonical tree (see _tr_init
+ * below).
+ */
+
+const static_dtree  = new Array(D_CODES$1 * 2);
+zero$1(static_dtree);
+/* The static distance tree. (Actually a trivial tree since all codes use
+ * 5 bits.)
+ */
+
+const _dist_code    = new Array(DIST_CODE_LEN);
+zero$1(_dist_code);
+/* Distance codes. The first 256 values correspond to the distances
+ * 3 .. 258, the last 256 values correspond to the top 8 bits of
+ * the 15 bit distances.
+ */
+
+const _length_code  = new Array(MAX_MATCH$1 - MIN_MATCH$1 + 1);
+zero$1(_length_code);
+/* length code for each normalized match length (0 == MIN_MATCH) */
+
+const base_length   = new Array(LENGTH_CODES$1);
+zero$1(base_length);
+/* First normalized length for each code (0 = MIN_MATCH) */
+
+const base_dist     = new Array(D_CODES$1);
+zero$1(base_dist);
+
+// Note: adler32 takes 12% for level 0 and 2% for level 6.
+// It isn't worth it to make additional optimizations as in original.
+// Small size is preferable.
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+const adler32 = (adler, buf, len, pos) => {
+  let s1 = (adler & 0xffff) |0,
+      s2 = ((adler >>> 16) & 0xffff) |0,
+      n = 0;
+
+  while (len !== 0) {
+    // Set limit ~ twice less than 5552, to keep
+    // s2 in 31-bits, because we force signed ints.
+    // in other case %= will fail.
+    n = len > 2000 ? 2000 : len;
+    len -= n;
+
+    do {
+      s1 = (s1 + buf[pos++]) |0;
+      s2 = (s2 + s1) |0;
+    } while (--n);
+
+    s1 %= 65521;
+    s2 %= 65521;
+  }
+
+  return (s1 | (s2 << 16)) |0;
+};
+
+
+var adler32_1 = adler32;
+
+// Note: we can't get significant speed boost here.
+// So write code to minimize size - no pregenerated tables
+// and array tools dependencies.
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+// Use ordinary array, since untyped makes no boost here
+const makeTable = () => {
+  let c, table = [];
+
+  for (var n = 0; n < 256; n++) {
+    c = n;
+    for (var k = 0; k < 8; k++) {
+      c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+    }
+    table[n] = c;
+  }
+
+  return table;
+};
+
+// Create table on load. Just 255 signed longs. Not a problem.
+const crcTable = new Uint32Array(makeTable());
+
+
+const crc32 = (crc, buf, len, pos) => {
+  const t = crcTable;
+  const end = pos + len;
+
+  crc ^= -1;
+
+  for (let i = pos; i < end; i++) {
+    crc = (crc >>> 8) ^ t[(crc ^ buf[i]) & 0xFF];
+  }
+
+  return (crc ^ (-1)); // >>> 0;
+};
+
+
+var crc32_1 = crc32;
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+var messages = {
+  2:      'need dictionary',     /* Z_NEED_DICT       2  */
+  1:      'stream end',          /* Z_STREAM_END      1  */
+  0:      '',                    /* Z_OK              0  */
+  '-1':   'file error',          /* Z_ERRNO         (-1) */
+  '-2':   'stream error',        /* Z_STREAM_ERROR  (-2) */
+  '-3':   'data error',          /* Z_DATA_ERROR    (-3) */
+  '-4':   'insufficient memory', /* Z_MEM_ERROR     (-4) */
+  '-5':   'buffer error',        /* Z_BUF_ERROR     (-5) */
+  '-6':   'incompatible version' /* Z_VERSION_ERROR (-6) */
+};
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+var constants$2 = {
+
+  /* Allowed flush values; see deflate() and inflate() below for details */
+  Z_NO_FLUSH:         0,
+  Z_FINISH:           4,
+  Z_BLOCK:            5,
+  Z_TREES:            6,
+
+  /* Return codes for the compression/decompression functions. Negative values
+  * are errors, positive values are used for special but normal events.
+  */
+  Z_OK:               0,
+  Z_STREAM_END:       1,
+  Z_NEED_DICT:        2,
+  Z_STREAM_ERROR:    -2,
+  Z_DATA_ERROR:      -3,
+  Z_MEM_ERROR:       -4,
+  Z_BUF_ERROR:       -5,
+  /* The deflate compression method */
+  Z_DEFLATED:               8
+  //Z_NULL:                 null // Use -1 or null inline, depending on var type
+};
+
+const _has = (obj, key) => {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+};
+
+var assign = function (obj /*from1, from2, from3, ...*/) {
+  const sources = Array.prototype.slice.call(arguments, 1);
+  while (sources.length) {
+    const source = sources.shift();
+    if (!source) { continue; }
+
+    if (typeof source !== 'object') {
+      throw new TypeError(source + 'must be non-object');
+    }
+
+    for (const p in source) {
+      if (_has(source, p)) {
+        obj[p] = source[p];
+      }
+    }
+  }
+
+  return obj;
+};
+
+
+// Join array of chunks to single array.
+var flattenChunks = (chunks) => {
+  // calculate data length
+  let len = 0;
+
+  for (let i = 0, l = chunks.length; i < l; i++) {
+    len += chunks[i].length;
+  }
+
+  // join chunks
+  const result = new Uint8Array(len);
+
+  for (let i = 0, pos = 0, l = chunks.length; i < l; i++) {
+    let chunk = chunks[i];
+    result.set(chunk, pos);
+    pos += chunk.length;
+  }
+
+  return result;
+};
+
+var common = {
+	assign: assign,
+	flattenChunks: flattenChunks
+};
+
+// String encode/decode helpers
+
+
+// Quick check if we can use fast array to bin string conversion
+//
+// - apply(Array) can fail on Android 2.2
+// - apply(Uint8Array) can fail on iOS 5.1 Safari
+//
+let STR_APPLY_UIA_OK = true;
+
+try { String.fromCharCode.apply(null, new Uint8Array(1)); } catch (__) { STR_APPLY_UIA_OK = false; }
+
+
+// Table with utf8 lengths (calculated by first byte of sequence)
+// Note, that 5 & 6-byte values and some 4-byte values can not be represented in JS,
+// because max possible codepoint is 0x10ffff
+const _utf8len = new Uint8Array(256);
+for (let q = 0; q < 256; q++) {
+  _utf8len[q] = (q >= 252 ? 6 : q >= 248 ? 5 : q >= 240 ? 4 : q >= 224 ? 3 : q >= 192 ? 2 : 1);
+}
+_utf8len[254] = _utf8len[254] = 1; // Invalid sequence start
+
+
+// convert string to array (typed, when possible)
+var string2buf = (str) => {
+  if (typeof TextEncoder === 'function' && TextEncoder.prototype.encode) {
+    return new TextEncoder().encode(str);
+  }
+
+  let buf, c, c2, m_pos, i, str_len = str.length, buf_len = 0;
+
+  // count binary size
+  for (m_pos = 0; m_pos < str_len; m_pos++) {
+    c = str.charCodeAt(m_pos);
+    if ((c & 0xfc00) === 0xd800 && (m_pos + 1 < str_len)) {
+      c2 = str.charCodeAt(m_pos + 1);
+      if ((c2 & 0xfc00) === 0xdc00) {
+        c = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
+        m_pos++;
+      }
+    }
+    buf_len += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+  }
+
+  // allocate buffer
+  buf = new Uint8Array(buf_len);
+
+  // convert
+  for (i = 0, m_pos = 0; i < buf_len; m_pos++) {
+    c = str.charCodeAt(m_pos);
+    if ((c & 0xfc00) === 0xd800 && (m_pos + 1 < str_len)) {
+      c2 = str.charCodeAt(m_pos + 1);
+      if ((c2 & 0xfc00) === 0xdc00) {
+        c = 0x10000 + ((c - 0xd800) << 10) + (c2 - 0xdc00);
+        m_pos++;
+      }
+    }
+    if (c < 0x80) {
+      /* one byte */
+      buf[i++] = c;
+    } else if (c < 0x800) {
+      /* two bytes */
+      buf[i++] = 0xC0 | (c >>> 6);
+      buf[i++] = 0x80 | (c & 0x3f);
+    } else if (c < 0x10000) {
+      /* three bytes */
+      buf[i++] = 0xE0 | (c >>> 12);
+      buf[i++] = 0x80 | (c >>> 6 & 0x3f);
+      buf[i++] = 0x80 | (c & 0x3f);
+    } else {
+      /* four bytes */
+      buf[i++] = 0xf0 | (c >>> 18);
+      buf[i++] = 0x80 | (c >>> 12 & 0x3f);
+      buf[i++] = 0x80 | (c >>> 6 & 0x3f);
+      buf[i++] = 0x80 | (c & 0x3f);
+    }
+  }
+
+  return buf;
+};
+
+// Helper
+const buf2binstring = (buf, len) => {
+  // On Chrome, the arguments in a function call that are allowed is `65534`.
+  // If the length of the buffer is smaller than that, we can use this optimization,
+  // otherwise we will take a slower path.
+  if (len < 65534) {
+    if (buf.subarray && STR_APPLY_UIA_OK) {
+      return String.fromCharCode.apply(null, buf.length === len ? buf : buf.subarray(0, len));
+    }
+  }
+
+  let result = '';
+  for (let i = 0; i < len; i++) {
+    result += String.fromCharCode(buf[i]);
+  }
+  return result;
+};
+
+
+// convert array to string
+var buf2string = (buf, max) => {
+  const len = max || buf.length;
+
+  if (typeof TextDecoder === 'function' && TextDecoder.prototype.decode) {
+    return new TextDecoder().decode(buf.subarray(0, max));
+  }
+
+  let i, out;
+
+  // Reserve max possible length (2 words per char)
+  // NB: by unknown reasons, Array is significantly faster for
+  //     String.fromCharCode.apply than Uint16Array.
+  const utf16buf = new Array(len * 2);
+
+  for (out = 0, i = 0; i < len;) {
+    let c = buf[i++];
+    // quick process ascii
+    if (c < 0x80) { utf16buf[out++] = c; continue; }
+
+    let c_len = _utf8len[c];
+    // skip 5 & 6 byte codes
+    if (c_len > 4) { utf16buf[out++] = 0xfffd; i += c_len - 1; continue; }
+
+    // apply mask on first byte
+    c &= c_len === 2 ? 0x1f : c_len === 3 ? 0x0f : 0x07;
+    // join the rest
+    while (c_len > 1 && i < len) {
+      c = (c << 6) | (buf[i++] & 0x3f);
+      c_len--;
+    }
+
+    // terminated by end of string?
+    if (c_len > 1) { utf16buf[out++] = 0xfffd; continue; }
+
+    if (c < 0x10000) {
+      utf16buf[out++] = c;
+    } else {
+      c -= 0x10000;
+      utf16buf[out++] = 0xd800 | ((c >> 10) & 0x3ff);
+      utf16buf[out++] = 0xdc00 | (c & 0x3ff);
+    }
+  }
+
+  return buf2binstring(utf16buf, out);
+};
+
+
+// Calculate max possible position in utf8 buffer,
+// that will not break sequence. If that's not possible
+// - (very small limits) return max size as is.
+//
+// buf[] - utf8 bytes array
+// max   - length limit (mandatory);
+var utf8border = (buf, max) => {
+
+  max = max || buf.length;
+  if (max > buf.length) { max = buf.length; }
+
+  // go back from last position, until start of sequence found
+  let pos = max - 1;
+  while (pos >= 0 && (buf[pos] & 0xC0) === 0x80) { pos--; }
+
+  // Very small and broken sequence,
+  // return max, because we should return something anyway.
+  if (pos < 0) { return max; }
+
+  // If we came to start of buffer - that means buffer is too small,
+  // return max too.
+  if (pos === 0) { return max; }
+
+  return (pos + _utf8len[buf[pos]] > max) ? pos : max;
+};
+
+var strings = {
+	string2buf: string2buf,
+	buf2string: buf2string,
+	utf8border: utf8border
+};
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+function ZStream() {
+  /* next input byte */
+  this.input = null; // JS specific, because we have no pointers
+  this.next_in = 0;
+  /* number of bytes available at input */
+  this.avail_in = 0;
+  /* total number of input bytes read so far */
+  this.total_in = 0;
+  /* next output byte should be put there */
+  this.output = null; // JS specific, because we have no pointers
+  this.next_out = 0;
+  /* remaining free space at output */
+  this.avail_out = 0;
+  /* total number of bytes output so far */
+  this.total_out = 0;
+  /* last error message, NULL if no error */
+  this.msg = ''/*Z_NULL*/;
+  /* not visible by applications */
+  this.state = null;
+  /* best guess about the data type: binary or text */
+  this.data_type = 2/*Z_UNKNOWN*/;
+  /* adler32 value of the uncompressed data */
+  this.adler = 0;
+}
+
+var zstream = ZStream;
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+// See state defs from inflate.js
+const BAD$1 = 16209;       /* got a data error -- remain here until reset */
+const TYPE$1 = 16191;      /* i: waiting for type bits, including last-flag bit */
+
+/*
+   Decode literal, length, and distance codes and write out the resulting
+   literal and match bytes until either not enough input or output is
+   available, an end-of-block is encountered, or a data error is encountered.
+   When large enough input and output buffers are supplied to inflate(), for
+   example, a 16K input buffer and a 64K output buffer, more than 95% of the
+   inflate execution time is spent in this routine.
+
+   Entry assumptions:
+
+        state.mode === LEN
+        strm.avail_in >= 6
+        strm.avail_out >= 258
+        start >= strm.avail_out
+        state.bits < 8
+
+   On return, state.mode is one of:
+
+        LEN -- ran out of enough output space or enough available input
+        TYPE -- reached end of block code, inflate() to interpret next block
+        BAD -- error in block data
+
+   Notes:
+
+    - The maximum input bits used by a length/distance pair is 15 bits for the
+      length code, 5 bits for the length extra, 15 bits for the distance code,
+      and 13 bits for the distance extra.  This totals 48 bits, or six bytes.
+      Therefore if strm.avail_in >= 6, then there is enough input to avoid
+      checking for available input while decoding.
+
+    - The maximum bytes that a single length/distance pair can output is 258
+      bytes, which is the maximum length that can be coded.  inflate_fast()
+      requires strm.avail_out >= 258 for each loop to avoid checking for
+      output space.
+ */
+var inffast = function inflate_fast(strm, start) {
+  let _in;                    /* local strm.input */
+  let last;                   /* have enough input while in < last */
+  let _out;                   /* local strm.output */
+  let beg;                    /* inflate()'s initial strm.output */
+  let end;                    /* while out < end, enough space available */
+//#ifdef INFLATE_STRICT
+  let dmax;                   /* maximum distance from zlib header */
+//#endif
+  let wsize;                  /* window size or zero if not using window */
+  let whave;                  /* valid bytes in the window */
+  let wnext;                  /* window write index */
+  // Use `s_window` instead `window`, avoid conflict with instrumentation tools
+  let s_window;               /* allocated sliding window, if wsize != 0 */
+  let hold;                   /* local strm.hold */
+  let bits;                   /* local strm.bits */
+  let lcode;                  /* local strm.lencode */
+  let dcode;                  /* local strm.distcode */
+  let lmask;                  /* mask for first level of length codes */
+  let dmask;                  /* mask for first level of distance codes */
+  let here;                   /* retrieved table entry */
+  let op;                     /* code bits, operation, extra bits, or */
+                              /*  window position, window bytes to copy */
+  let len;                    /* match length, unused bytes */
+  let dist;                   /* match distance */
+  let from;                   /* where to copy match from */
+  let from_source;
+
+
+  let input, output; // JS specific, because we have no pointers
+
+  /* copy state to local variables */
+  const state = strm.state;
+  //here = state.here;
+  _in = strm.next_in;
+  input = strm.input;
+  last = _in + (strm.avail_in - 5);
+  _out = strm.next_out;
+  output = strm.output;
+  beg = _out - (start - strm.avail_out);
+  end = _out + (strm.avail_out - 257);
+//#ifdef INFLATE_STRICT
+  dmax = state.dmax;
+//#endif
+  wsize = state.wsize;
+  whave = state.whave;
+  wnext = state.wnext;
+  s_window = state.window;
+  hold = state.hold;
+  bits = state.bits;
+  lcode = state.lencode;
+  dcode = state.distcode;
+  lmask = (1 << state.lenbits) - 1;
+  dmask = (1 << state.distbits) - 1;
+
+
+  /* decode literals and length/distances until end-of-block or not enough
+     input data or output space */
+
+  top:
+  do {
+    if (bits < 15) {
+      hold += input[_in++] << bits;
+      bits += 8;
+      hold += input[_in++] << bits;
+      bits += 8;
+    }
+
+    here = lcode[hold & lmask];
+
+    dolen:
+    for (;;) { // Goto emulation
+      op = here >>> 24/*here.bits*/;
+      hold >>>= op;
+      bits -= op;
+      op = (here >>> 16) & 0xff/*here.op*/;
+      if (op === 0) {                          /* literal */
+        //Tracevv((stderr, here.val >= 0x20 && here.val < 0x7f ?
+        //        "inflate:         literal '%c'\n" :
+        //        "inflate:         literal 0x%02x\n", here.val));
+        output[_out++] = here & 0xffff/*here.val*/;
+      }
+      else if (op & 16) {                     /* length base */
+        len = here & 0xffff/*here.val*/;
+        op &= 15;                           /* number of extra bits */
+        if (op) {
+          if (bits < op) {
+            hold += input[_in++] << bits;
+            bits += 8;
+          }
+          len += hold & ((1 << op) - 1);
+          hold >>>= op;
+          bits -= op;
+        }
+        //Tracevv((stderr, "inflate:         length %u\n", len));
+        if (bits < 15) {
+          hold += input[_in++] << bits;
+          bits += 8;
+          hold += input[_in++] << bits;
+          bits += 8;
+        }
+        here = dcode[hold & dmask];
+
+        dodist:
+        for (;;) { // goto emulation
+          op = here >>> 24/*here.bits*/;
+          hold >>>= op;
+          bits -= op;
+          op = (here >>> 16) & 0xff/*here.op*/;
+
+          if (op & 16) {                      /* distance base */
+            dist = here & 0xffff/*here.val*/;
+            op &= 15;                       /* number of extra bits */
+            if (bits < op) {
+              hold += input[_in++] << bits;
+              bits += 8;
+              if (bits < op) {
+                hold += input[_in++] << bits;
+                bits += 8;
+              }
+            }
+            dist += hold & ((1 << op) - 1);
+//#ifdef INFLATE_STRICT
+            if (dist > dmax) {
+              strm.msg = 'invalid distance too far back';
+              state.mode = BAD$1;
+              break top;
+            }
+//#endif
+            hold >>>= op;
+            bits -= op;
+            //Tracevv((stderr, "inflate:         distance %u\n", dist));
+            op = _out - beg;                /* max distance in output */
+            if (dist > op) {                /* see if copy from window */
+              op = dist - op;               /* distance back in window */
+              if (op > whave) {
+                if (state.sane) {
+                  strm.msg = 'invalid distance too far back';
+                  state.mode = BAD$1;
+                  break top;
+                }
+
+// (!) This block is disabled in zlib defaults,
+// don't enable it for binary compatibility
+//#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
+//                if (len <= op - whave) {
+//                  do {
+//                    output[_out++] = 0;
+//                  } while (--len);
+//                  continue top;
+//                }
+//                len -= op - whave;
+//                do {
+//                  output[_out++] = 0;
+//                } while (--op > whave);
+//                if (op === 0) {
+//                  from = _out - dist;
+//                  do {
+//                    output[_out++] = output[from++];
+//                  } while (--len);
+//                  continue top;
+//                }
+//#endif
+              }
+              from = 0; // window index
+              from_source = s_window;
+              if (wnext === 0) {           /* very common case */
+                from += wsize - op;
+                if (op < len) {         /* some from window */
+                  len -= op;
+                  do {
+                    output[_out++] = s_window[from++];
+                  } while (--op);
+                  from = _out - dist;  /* rest from output */
+                  from_source = output;
+                }
+              }
+              else if (wnext < op) {      /* wrap around window */
+                from += wsize + wnext - op;
+                op -= wnext;
+                if (op < len) {         /* some from end of window */
+                  len -= op;
+                  do {
+                    output[_out++] = s_window[from++];
+                  } while (--op);
+                  from = 0;
+                  if (wnext < len) {  /* some from start of window */
+                    op = wnext;
+                    len -= op;
+                    do {
+                      output[_out++] = s_window[from++];
+                    } while (--op);
+                    from = _out - dist;      /* rest from output */
+                    from_source = output;
+                  }
+                }
+              }
+              else {                      /* contiguous in window */
+                from += wnext - op;
+                if (op < len) {         /* some from window */
+                  len -= op;
+                  do {
+                    output[_out++] = s_window[from++];
+                  } while (--op);
+                  from = _out - dist;  /* rest from output */
+                  from_source = output;
+                }
+              }
+              while (len > 2) {
+                output[_out++] = from_source[from++];
+                output[_out++] = from_source[from++];
+                output[_out++] = from_source[from++];
+                len -= 3;
+              }
+              if (len) {
+                output[_out++] = from_source[from++];
+                if (len > 1) {
+                  output[_out++] = from_source[from++];
+                }
+              }
+            }
+            else {
+              from = _out - dist;          /* copy direct from output */
+              do {                        /* minimum length is three */
+                output[_out++] = output[from++];
+                output[_out++] = output[from++];
+                output[_out++] = output[from++];
+                len -= 3;
+              } while (len > 2);
+              if (len) {
+                output[_out++] = output[from++];
+                if (len > 1) {
+                  output[_out++] = output[from++];
+                }
+              }
+            }
+          }
+          else if ((op & 64) === 0) {          /* 2nd level distance code */
+            here = dcode[(here & 0xffff)/*here.val*/ + (hold & ((1 << op) - 1))];
+            continue dodist;
+          }
+          else {
+            strm.msg = 'invalid distance code';
+            state.mode = BAD$1;
+            break top;
+          }
+
+          break; // need to emulate goto via "continue"
+        }
+      }
+      else if ((op & 64) === 0) {              /* 2nd level length code */
+        here = lcode[(here & 0xffff)/*here.val*/ + (hold & ((1 << op) - 1))];
+        continue dolen;
+      }
+      else if (op & 32) {                     /* end-of-block */
+        //Tracevv((stderr, "inflate:         end of block\n"));
+        state.mode = TYPE$1;
+        break top;
+      }
+      else {
+        strm.msg = 'invalid literal/length code';
+        state.mode = BAD$1;
+        break top;
+      }
+
+      break; // need to emulate goto via "continue"
+    }
+  } while (_in < last && _out < end);
+
+  /* return unused bytes (on entry, bits < 8, so in won't go too far back) */
+  len = bits >> 3;
+  _in -= len;
+  bits -= len << 3;
+  hold &= (1 << bits) - 1;
+
+  /* update state and return */
+  strm.next_in = _in;
+  strm.next_out = _out;
+  strm.avail_in = (_in < last ? 5 + (last - _in) : 5 - (_in - last));
+  strm.avail_out = (_out < end ? 257 + (end - _out) : 257 - (_out - end));
+  state.hold = hold;
+  state.bits = bits;
+  return;
+};
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+const MAXBITS = 15;
+const ENOUGH_LENS$1 = 852;
+const ENOUGH_DISTS$1 = 592;
+//const ENOUGH = (ENOUGH_LENS+ENOUGH_DISTS);
+
+const CODES$1 = 0;
+const LENS$1 = 1;
+const DISTS$1 = 2;
+
+const lbase = new Uint16Array([ /* Length codes 257..285 base */
+  3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
+  35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0
+]);
+
+const lext = new Uint8Array([ /* Length codes 257..285 extra */
+  16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18,
+  19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 72, 78
+]);
+
+const dbase = new Uint16Array([ /* Distance codes 0..29 base */
+  1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
+  257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
+  8193, 12289, 16385, 24577, 0, 0
+]);
+
+const dext = new Uint8Array([ /* Distance codes 0..29 extra */
+  16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22,
+  23, 23, 24, 24, 25, 25, 26, 26, 27, 27,
+  28, 28, 29, 29, 64, 64
+]);
+
+const inflate_table = (type, lens, lens_index, codes, table, table_index, work, opts) =>
+{
+  const bits = opts.bits;
+      //here = opts.here; /* table entry for duplication */
+
+  let len = 0;               /* a code's length in bits */
+  let sym = 0;               /* index of code symbols */
+  let min = 0, max = 0;          /* minimum and maximum code lengths */
+  let root = 0;              /* number of index bits for root table */
+  let curr = 0;              /* number of index bits for current table */
+  let drop = 0;              /* code bits to drop for sub-table */
+  let left = 0;                   /* number of prefix codes available */
+  let used = 0;              /* code entries in table used */
+  let huff = 0;              /* Huffman code */
+  let incr;              /* for incrementing code, index */
+  let fill;              /* index for replicating entries */
+  let low;               /* low bits for current root entry */
+  let mask;              /* mask for low root bits */
+  let next;             /* next available space in table */
+  let base = null;     /* base value table to use */
+//  let shoextra;    /* extra bits table to use */
+  let match;                  /* use base and extra for symbol >= match */
+  const count = new Uint16Array(MAXBITS + 1); //[MAXBITS+1];    /* number of codes of each length */
+  const offs = new Uint16Array(MAXBITS + 1); //[MAXBITS+1];     /* offsets in table for each length */
+  let extra = null;
+
+  let here_bits, here_op, here_val;
+
+  /*
+   Process a set of code lengths to create a canonical Huffman code.  The
+   code lengths are lens[0..codes-1].  Each length corresponds to the
+   symbols 0..codes-1.  The Huffman code is generated by first sorting the
+   symbols by length from short to long, and retaining the symbol order
+   for codes with equal lengths.  Then the code starts with all zero bits
+   for the first code of the shortest length, and the codes are integer
+   increments for the same length, and zeros are appended as the length
+   increases.  For the deflate format, these bits are stored backwards
+   from their more natural integer increment ordering, and so when the
+   decoding tables are built in the large loop below, the integer codes
+   are incremented backwards.
+
+   This routine assumes, but does not check, that all of the entries in
+   lens[] are in the range 0..MAXBITS.  The caller must assure this.
+   1..MAXBITS is interpreted as that code length.  zero means that that
+   symbol does not occur in this code.
+
+   The codes are sorted by computing a count of codes for each length,
+   creating from that a table of starting indices for each length in the
+   sorted table, and then entering the symbols in order in the sorted
+   table.  The sorted table is work[], with that space being provided by
+   the caller.
+
+   The length counts are used for other purposes as well, i.e. finding
+   the minimum and maximum length codes, determining if there are any
+   codes at all, checking for a valid set of lengths, and looking ahead
+   at length counts to determine sub-table sizes when building the
+   decoding tables.
+   */
+
+  /* accumulate lengths for codes (assumes lens[] all in 0..MAXBITS) */
+  for (len = 0; len <= MAXBITS; len++) {
+    count[len] = 0;
+  }
+  for (sym = 0; sym < codes; sym++) {
+    count[lens[lens_index + sym]]++;
+  }
+
+  /* bound code lengths, force root to be within code lengths */
+  root = bits;
+  for (max = MAXBITS; max >= 1; max--) {
+    if (count[max] !== 0) { break; }
+  }
+  if (root > max) {
+    root = max;
+  }
+  if (max === 0) {                     /* no symbols to code at all */
+    //table.op[opts.table_index] = 64;  //here.op = (var char)64;    /* invalid code marker */
+    //table.bits[opts.table_index] = 1;   //here.bits = (var char)1;
+    //table.val[opts.table_index++] = 0;   //here.val = (var short)0;
+    table[table_index++] = (1 << 24) | (64 << 16) | 0;
+
+
+    //table.op[opts.table_index] = 64;
+    //table.bits[opts.table_index] = 1;
+    //table.val[opts.table_index++] = 0;
+    table[table_index++] = (1 << 24) | (64 << 16) | 0;
+
+    opts.bits = 1;
+    return 0;     /* no symbols, but wait for decoding to report error */
+  }
+  for (min = 1; min < max; min++) {
+    if (count[min] !== 0) { break; }
+  }
+  if (root < min) {
+    root = min;
+  }
+
+  /* check for an over-subscribed or incomplete set of lengths */
+  left = 1;
+  for (len = 1; len <= MAXBITS; len++) {
+    left <<= 1;
+    left -= count[len];
+    if (left < 0) {
+      return -1;
+    }        /* over-subscribed */
+  }
+  if (left > 0 && (type === CODES$1 || max !== 1)) {
+    return -1;                      /* incomplete set */
+  }
+
+  /* generate offsets into symbol table for each length for sorting */
+  offs[1] = 0;
+  for (len = 1; len < MAXBITS; len++) {
+    offs[len + 1] = offs[len] + count[len];
+  }
+
+  /* sort symbols by length, by symbol order within each length */
+  for (sym = 0; sym < codes; sym++) {
+    if (lens[lens_index + sym] !== 0) {
+      work[offs[lens[lens_index + sym]]++] = sym;
+    }
+  }
+
+  /*
+   Create and fill in decoding tables.  In this loop, the table being
+   filled is at next and has curr index bits.  The code being used is huff
+   with length len.  That code is converted to an index by dropping drop
+   bits off of the bottom.  For codes where len is less than drop + curr,
+   those top drop + curr - len bits are incremented through all values to
+   fill the table with replicated entries.
+
+   root is the number of index bits for the root table.  When len exceeds
+   root, sub-tables are created pointed to by the root entry with an index
+   of the low root bits of huff.  This is saved in low to check for when a
+   new sub-table should be started.  drop is zero when the root table is
+   being filled, and drop is root when sub-tables are being filled.
+
+   When a new sub-table is needed, it is necessary to look ahead in the
+   code lengths to determine what size sub-table is needed.  The length
+   counts are used for this, and so count[] is decremented as codes are
+   entered in the tables.
+
+   used keeps track of how many table entries have been allocated from the
+   provided *table space.  It is checked for LENS and DIST tables against
+   the constants ENOUGH_LENS and ENOUGH_DISTS to guard against changes in
+   the initial root table size constants.  See the comments in inftrees.h
+   for more information.
+
+   sym increments through all symbols, and the loop terminates when
+   all codes of length max, i.e. all codes, have been processed.  This
+   routine permits incomplete codes, so another loop after this one fills
+   in the rest of the decoding tables with invalid code markers.
+   */
+
+  /* set up for code type */
+  // poor man optimization - use if-else instead of switch,
+  // to avoid deopts in old v8
+  if (type === CODES$1) {
+    base = extra = work;    /* dummy value--not used */
+    match = 20;
+
+  } else if (type === LENS$1) {
+    base = lbase;
+    extra = lext;
+    match = 257;
+
+  } else {                    /* DISTS */
+    base = dbase;
+    extra = dext;
+    match = 0;
+  }
+
+  /* initialize opts for loop */
+  huff = 0;                   /* starting code */
+  sym = 0;                    /* starting code symbol */
+  len = min;                  /* starting code length */
+  next = table_index;              /* current table to fill in */
+  curr = root;                /* current table index bits */
+  drop = 0;                   /* current bits to drop from code for index */
+  low = -1;                   /* trigger new sub-table when len > root */
+  used = 1 << root;          /* use root table entries */
+  mask = used - 1;            /* mask for comparing low */
+
+  /* check available table space */
+  if ((type === LENS$1 && used > ENOUGH_LENS$1) ||
+    (type === DISTS$1 && used > ENOUGH_DISTS$1)) {
+    return 1;
+  }
+
+  /* process all codes and make table entries */
+  for (;;) {
+    /* create table entry */
+    here_bits = len - drop;
+    if (work[sym] + 1 < match) {
+      here_op = 0;
+      here_val = work[sym];
+    }
+    else if (work[sym] >= match) {
+      here_op = extra[work[sym] - match];
+      here_val = base[work[sym] - match];
+    }
+    else {
+      here_op = 32 + 64;         /* end of block */
+      here_val = 0;
+    }
+
+    /* replicate for those indices with low len bits equal to huff */
+    incr = 1 << (len - drop);
+    fill = 1 << curr;
+    min = fill;                 /* save offset to next table */
+    do {
+      fill -= incr;
+      table[next + (huff >> drop) + fill] = (here_bits << 24) | (here_op << 16) | here_val |0;
+    } while (fill !== 0);
+
+    /* backwards increment the len-bit code huff */
+    incr = 1 << (len - 1);
+    while (huff & incr) {
+      incr >>= 1;
+    }
+    if (incr !== 0) {
+      huff &= incr - 1;
+      huff += incr;
+    } else {
+      huff = 0;
+    }
+
+    /* go to next symbol, update count, len */
+    sym++;
+    if (--count[len] === 0) {
+      if (len === max) { break; }
+      len = lens[lens_index + work[sym]];
+    }
+
+    /* create new sub-table if needed */
+    if (len > root && (huff & mask) !== low) {
+      /* if first time, transition to sub-tables */
+      if (drop === 0) {
+        drop = root;
+      }
+
+      /* increment past last table */
+      next += min;            /* here min is 1 << curr */
+
+      /* determine length of next table */
+      curr = len - drop;
+      left = 1 << curr;
+      while (curr + drop < max) {
+        left -= count[curr + drop];
+        if (left <= 0) { break; }
+        curr++;
+        left <<= 1;
+      }
+
+      /* check for enough space */
+      used += 1 << curr;
+      if ((type === LENS$1 && used > ENOUGH_LENS$1) ||
+        (type === DISTS$1 && used > ENOUGH_DISTS$1)) {
+        return 1;
+      }
+
+      /* point entry in root table to sub-table */
+      low = huff & mask;
+      /*table.op[low] = curr;
+      table.bits[low] = root;
+      table.val[low] = next - opts.table_index;*/
+      table[low] = (root << 24) | (curr << 16) | (next - table_index) |0;
+    }
+  }
+
+  /* fill in remaining table entry if code is incomplete (guaranteed to have
+   at most one remaining entry, since if the code is incomplete, the
+   maximum code length that was allowed to get this far is one bit) */
+  if (huff !== 0) {
+    //table.op[next + huff] = 64;            /* invalid code marker */
+    //table.bits[next + huff] = len - drop;
+    //table.val[next + huff] = 0;
+    table[next + huff] = ((len - drop) << 24) | (64 << 16) |0;
+  }
+
+  /* set return parameters */
+  //opts.table_index += used;
+  opts.bits = root;
+  return 0;
+};
+
+
+var inftrees = inflate_table;
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+
+
+
+
+
+const CODES = 0;
+const LENS = 1;
+const DISTS = 2;
+
+/* Public constants ==========================================================*/
+/* ===========================================================================*/
+
+const {
+  Z_FINISH: Z_FINISH$1, Z_BLOCK, Z_TREES,
+  Z_OK: Z_OK$1, Z_STREAM_END: Z_STREAM_END$1, Z_NEED_DICT: Z_NEED_DICT$1, Z_STREAM_ERROR: Z_STREAM_ERROR$1, Z_DATA_ERROR: Z_DATA_ERROR$1, Z_MEM_ERROR: Z_MEM_ERROR$1, Z_BUF_ERROR,
+  Z_DEFLATED
+} = constants$2;
+
+
+/* STATES ====================================================================*/
+/* ===========================================================================*/
+
+
+const    HEAD = 16180;       /* i: waiting for magic header */
+const    FLAGS = 16181;      /* i: waiting for method and flags (gzip) */
+const    TIME = 16182;       /* i: waiting for modification time (gzip) */
+const    OS = 16183;         /* i: waiting for extra flags and operating system (gzip) */
+const    EXLEN = 16184;      /* i: waiting for extra length (gzip) */
+const    EXTRA = 16185;      /* i: waiting for extra bytes (gzip) */
+const    NAME = 16186;       /* i: waiting for end of file name (gzip) */
+const    COMMENT = 16187;    /* i: waiting for end of comment (gzip) */
+const    HCRC = 16188;       /* i: waiting for header crc (gzip) */
+const    DICTID = 16189;    /* i: waiting for dictionary check value */
+const    DICT = 16190;      /* waiting for inflateSetDictionary() call */
+const        TYPE = 16191;      /* i: waiting for type bits, including last-flag bit */
+const        TYPEDO = 16192;    /* i: same, but skip check to exit inflate on new block */
+const        STORED = 16193;    /* i: waiting for stored size (length and complement) */
+const        COPY_ = 16194;     /* i/o: same as COPY below, but only first time in */
+const        COPY = 16195;      /* i/o: waiting for input or output to copy stored block */
+const        TABLE = 16196;     /* i: waiting for dynamic block table lengths */
+const        LENLENS = 16197;   /* i: waiting for code length code lengths */
+const        CODELENS = 16198;  /* i: waiting for length/lit and distance code lengths */
+const            LEN_ = 16199;      /* i: same as LEN below, but only first time in */
+const            LEN = 16200;       /* i: waiting for length/lit/eob code */
+const            LENEXT = 16201;    /* i: waiting for length extra bits */
+const            DIST = 16202;      /* i: waiting for distance code */
+const            DISTEXT = 16203;   /* i: waiting for distance extra bits */
+const            MATCH = 16204;     /* o: waiting for output space to copy string */
+const            LIT = 16205;       /* o: waiting for output space to write literal */
+const    CHECK = 16206;     /* i: waiting for 32-bit check value */
+const    LENGTH = 16207;    /* i: waiting for 32-bit length (gzip) */
+const    DONE = 16208;      /* finished check, done -- remain here until reset */
+const    BAD = 16209;       /* got a data error -- remain here until reset */
+const    MEM = 16210;       /* got an inflate() memory error -- remain here until reset */
+const    SYNC = 16211;      /* looking for synchronization bytes to restart inflate() */
+
+/* ===========================================================================*/
+
+
+
+const ENOUGH_LENS = 852;
+const ENOUGH_DISTS = 592;
+//const ENOUGH =  (ENOUGH_LENS+ENOUGH_DISTS);
+
+const MAX_WBITS = 15;
+/* 32K LZ77 window */
+const DEF_WBITS = MAX_WBITS;
+
+
+const zswap32 = (q) => {
+
+  return  (((q >>> 24) & 0xff) +
+          ((q >>> 8) & 0xff00) +
+          ((q & 0xff00) << 8) +
+          ((q & 0xff) << 24));
+};
+
+
+function InflateState() {
+  this.strm = null;           /* pointer back to this zlib stream */
+  this.mode = 0;              /* current inflate mode */
+  this.last = false;          /* true if processing last block */
+  this.wrap = 0;              /* bit 0 true for zlib, bit 1 true for gzip,
+                                 bit 2 true to validate check value */
+  this.havedict = false;      /* true if dictionary provided */
+  this.flags = 0;             /* gzip header method and flags (0 if zlib), or
+                                 -1 if raw or no header yet */
+  this.dmax = 0;              /* zlib header max distance (INFLATE_STRICT) */
+  this.check = 0;             /* protected copy of check value */
+  this.total = 0;             /* protected copy of output count */
+  // TODO: may be {}
+  this.head = null;           /* where to save gzip header information */
+
+  /* sliding window */
+  this.wbits = 0;             /* log base 2 of requested window size */
+  this.wsize = 0;             /* window size or zero if not using window */
+  this.whave = 0;             /* valid bytes in the window */
+  this.wnext = 0;             /* window write index */
+  this.window = null;         /* allocated sliding window, if needed */
+
+  /* bit accumulator */
+  this.hold = 0;              /* input bit accumulator */
+  this.bits = 0;              /* number of bits in "in" */
+
+  /* for string and stored block copying */
+  this.length = 0;            /* literal or length of data to copy */
+  this.offset = 0;            /* distance back to copy string from */
+
+  /* for table and code decoding */
+  this.extra = 0;             /* extra bits needed */
+
+  /* fixed and dynamic code tables */
+  this.lencode = null;          /* starting table for length/literal codes */
+  this.distcode = null;         /* starting table for distance codes */
+  this.lenbits = 0;           /* index bits for lencode */
+  this.distbits = 0;          /* index bits for distcode */
+
+  /* dynamic table building */
+  this.ncode = 0;             /* number of code length code lengths */
+  this.nlen = 0;              /* number of length code lengths */
+  this.ndist = 0;             /* number of distance code lengths */
+  this.have = 0;              /* number of code lengths in lens[] */
+  this.next = null;              /* next available space in codes[] */
+
+  this.lens = new Uint16Array(320); /* temporary storage for code lengths */
+  this.work = new Uint16Array(288); /* work area for code table building */
+
+  /*
+   because we don't have pointers in js, we use lencode and distcode directly
+   as buffers so we don't need codes
+  */
+  //this.codes = new Int32Array(ENOUGH);       /* space for code tables */
+  this.lendyn = null;              /* dynamic table for length/literal codes (JS specific) */
+  this.distdyn = null;             /* dynamic table for distance codes (JS specific) */
+  this.sane = 0;                   /* if false, allow invalid distance too far */
+  this.back = 0;                   /* bits back of last unprocessed length/lit */
+  this.was = 0;                    /* initial length of match */
+}
+
+
+const inflateStateCheck = (strm) => {
+
+  if (!strm) {
+    return 1;
+  }
+  const state = strm.state;
+  if (!state || state.strm !== strm ||
+    state.mode < HEAD || state.mode > SYNC) {
+    return 1;
+  }
+  return 0;
+};
+
+
+const inflateResetKeep = (strm) => {
+
+  if (inflateStateCheck(strm)) { return Z_STREAM_ERROR$1; }
+  const state = strm.state;
+  strm.total_in = strm.total_out = state.total = 0;
+  strm.msg = ''; /*Z_NULL*/
+  if (state.wrap) {       /* to support ill-conceived Java test suite */
+    strm.adler = state.wrap & 1;
+  }
+  state.mode = HEAD;
+  state.last = 0;
+  state.havedict = 0;
+  state.flags = -1;
+  state.dmax = 32768;
+  state.head = null/*Z_NULL*/;
+  state.hold = 0;
+  state.bits = 0;
+  //state.lencode = state.distcode = state.next = state.codes;
+  state.lencode = state.lendyn = new Int32Array(ENOUGH_LENS);
+  state.distcode = state.distdyn = new Int32Array(ENOUGH_DISTS);
+
+  state.sane = 1;
+  state.back = -1;
+  //Tracev((stderr, "inflate: reset\n"));
+  return Z_OK$1;
+};
+
+
+const inflateReset = (strm) => {
+
+  if (inflateStateCheck(strm)) { return Z_STREAM_ERROR$1; }
+  const state = strm.state;
+  state.wsize = 0;
+  state.whave = 0;
+  state.wnext = 0;
+  return inflateResetKeep(strm);
+
+};
+
+
+const inflateReset2 = (strm, windowBits) => {
+  let wrap;
+
+  /* get the state */
+  if (inflateStateCheck(strm)) { return Z_STREAM_ERROR$1; }
+  const state = strm.state;
+
+  /* extract wrap request from windowBits parameter */
+  if (windowBits < 0) {
+    wrap = 0;
+    windowBits = -windowBits;
+  }
+  else {
+    wrap = (windowBits >> 4) + 5;
+    if (windowBits < 48) {
+      windowBits &= 15;
+    }
+  }
+
+  /* set number of window bits, free window if different */
+  if (windowBits && (windowBits < 8 || windowBits > 15)) {
+    return Z_STREAM_ERROR$1;
+  }
+  if (state.window !== null && state.wbits !== windowBits) {
+    state.window = null;
+  }
+
+  /* update state and reset the rest of it */
+  state.wrap = wrap;
+  state.wbits = windowBits;
+  return inflateReset(strm);
+};
+
+
+const inflateInit2 = (strm, windowBits) => {
+
+  if (!strm) { return Z_STREAM_ERROR$1; }
+  //strm.msg = Z_NULL;                 /* in case we return an error */
+
+  const state = new InflateState();
+
+  //if (state === Z_NULL) return Z_MEM_ERROR;
+  //Tracev((stderr, "inflate: allocated\n"));
+  strm.state = state;
+  state.strm = strm;
+  state.window = null/*Z_NULL*/;
+  state.mode = HEAD;     /* to pass state test in inflateReset2() */
+  const ret = inflateReset2(strm, windowBits);
+  if (ret !== Z_OK$1) {
+    strm.state = null/*Z_NULL*/;
+  }
+  return ret;
+};
+
+
+const inflateInit = (strm) => {
+
+  return inflateInit2(strm, DEF_WBITS);
+};
+
+
+/*
+ Return state with length and distance decoding tables and index sizes set to
+ fixed code decoding.  Normally this returns fixed tables from inffixed.h.
+ If BUILDFIXED is defined, then instead this routine builds the tables the
+ first time it's called, and returns those tables the first time and
+ thereafter.  This reduces the size of the code by about 2K bytes, in
+ exchange for a little execution time.  However, BUILDFIXED should not be
+ used for threaded applications, since the rewriting of the tables and virgin
+ may not be thread-safe.
+ */
+let virgin = true;
+
+let lenfix, distfix; // We have no pointers in JS, so keep tables separate
+
+
+const fixedtables = (state) => {
+
+  /* build fixed huffman tables if first call (may not be thread safe) */
+  if (virgin) {
+    lenfix = new Int32Array(512);
+    distfix = new Int32Array(32);
+
+    /* literal/length table */
+    let sym = 0;
+    while (sym < 144) { state.lens[sym++] = 8; }
+    while (sym < 256) { state.lens[sym++] = 9; }
+    while (sym < 280) { state.lens[sym++] = 7; }
+    while (sym < 288) { state.lens[sym++] = 8; }
+
+    inftrees(LENS,  state.lens, 0, 288, lenfix,   0, state.work, { bits: 9 });
+
+    /* distance table */
+    sym = 0;
+    while (sym < 32) { state.lens[sym++] = 5; }
+
+    inftrees(DISTS, state.lens, 0, 32,   distfix, 0, state.work, { bits: 5 });
+
+    /* do this just once */
+    virgin = false;
+  }
+
+  state.lencode = lenfix;
+  state.lenbits = 9;
+  state.distcode = distfix;
+  state.distbits = 5;
+};
+
+
+/*
+ Update the window with the last wsize (normally 32K) bytes written before
+ returning.  If window does not exist yet, create it.  This is only called
+ when a window is already in use, or when output has been written during this
+ inflate call, but the end of the deflate stream has not been reached yet.
+ It is also called to create a window for dictionary data when a dictionary
+ is loaded.
+
+ Providing output buffers larger than 32K to inflate() should provide a speed
+ advantage, since only the last 32K of output is copied to the sliding window
+ upon return from inflate(), and since all distances after the first 32K of
+ output will fall in the output data, making match copies simpler and faster.
+ The advantage may be dependent on the size of the processor's data caches.
+ */
+const updatewindow = (strm, src, end, copy) => {
+
+  let dist;
+  const state = strm.state;
+
+  /* if it hasn't been done already, allocate space for the window */
+  if (state.window === null) {
+    state.wsize = 1 << state.wbits;
+    state.wnext = 0;
+    state.whave = 0;
+
+    state.window = new Uint8Array(state.wsize);
+  }
+
+  /* copy state->wsize or less output bytes into the circular window */
+  if (copy >= state.wsize) {
+    state.window.set(src.subarray(end - state.wsize, end), 0);
+    state.wnext = 0;
+    state.whave = state.wsize;
+  }
+  else {
+    dist = state.wsize - state.wnext;
+    if (dist > copy) {
+      dist = copy;
+    }
+    //zmemcpy(state->window + state->wnext, end - copy, dist);
+    state.window.set(src.subarray(end - copy, end - copy + dist), state.wnext);
+    copy -= dist;
+    if (copy) {
+      //zmemcpy(state->window, end - copy, copy);
+      state.window.set(src.subarray(end - copy, end), 0);
+      state.wnext = copy;
+      state.whave = state.wsize;
+    }
+    else {
+      state.wnext += dist;
+      if (state.wnext === state.wsize) { state.wnext = 0; }
+      if (state.whave < state.wsize) { state.whave += dist; }
+    }
+  }
+  return 0;
+};
+
+
+const inflate$2 = (strm, flush) => {
+
+  let state;
+  let input, output;          // input/output buffers
+  let next;                   /* next input INDEX */
+  let put;                    /* next output INDEX */
+  let have, left;             /* available input and output */
+  let hold;                   /* bit buffer */
+  let bits;                   /* bits in bit buffer */
+  let _in, _out;              /* save starting available input and output */
+  let copy;                   /* number of stored or match bytes to copy */
+  let from;                   /* where to copy match bytes from */
+  let from_source;
+  let here = 0;               /* current decoding table entry */
+  let here_bits, here_op, here_val; // paked "here" denormalized (JS specific)
+  //let last;                   /* parent table entry */
+  let last_bits, last_op, last_val; // paked "last" denormalized (JS specific)
+  let len;                    /* length to copy for repeats, bits to drop */
+  let ret;                    /* return code */
+  const hbuf = new Uint8Array(4);    /* buffer for gzip header crc calculation */
+  let opts;
+
+  let n; // temporary variable for NEED_BITS
+
+  const order = /* permutation of code lengths */
+    new Uint8Array([ 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 ]);
+
+
+  if (inflateStateCheck(strm) || !strm.output ||
+      (!strm.input && strm.avail_in !== 0)) {
+    return Z_STREAM_ERROR$1;
+  }
+
+  state = strm.state;
+  if (state.mode === TYPE) { state.mode = TYPEDO; }    /* skip check */
+
+
+  //--- LOAD() ---
+  put = strm.next_out;
+  output = strm.output;
+  left = strm.avail_out;
+  next = strm.next_in;
+  input = strm.input;
+  have = strm.avail_in;
+  hold = state.hold;
+  bits = state.bits;
+  //---
+
+  _in = have;
+  _out = left;
+  ret = Z_OK$1;
+
+  inf_leave: // goto emulation
+  for (;;) {
+    switch (state.mode) {
+      case HEAD:
+        if (state.wrap === 0) {
+          state.mode = TYPEDO;
+          break;
+        }
+        //=== NEEDBITS(16);
+        while (bits < 16) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        if ((state.wrap & 2) && hold === 0x8b1f) {  /* gzip header */
+          if (state.wbits === 0) {
+            state.wbits = 15;
+          }
+          state.check = 0/*crc32(0L, Z_NULL, 0)*/;
+          //=== CRC2(state.check, hold);
+          hbuf[0] = hold & 0xff;
+          hbuf[1] = (hold >>> 8) & 0xff;
+          state.check = crc32_1(state.check, hbuf, 2, 0);
+          //===//
+
+          //=== INITBITS();
+          hold = 0;
+          bits = 0;
+          //===//
+          state.mode = FLAGS;
+          break;
+        }
+        if (state.head) {
+          state.head.done = false;
+        }
+        if (!(state.wrap & 1) ||   /* check if zlib header allowed */
+          (((hold & 0xff)/*BITS(8)*/ << 8) + (hold >> 8)) % 31) {
+          strm.msg = 'incorrect header check';
+          state.mode = BAD;
+          break;
+        }
+        if ((hold & 0x0f)/*BITS(4)*/ !== Z_DEFLATED) {
+          strm.msg = 'unknown compression method';
+          state.mode = BAD;
+          break;
+        }
+        //--- DROPBITS(4) ---//
+        hold >>>= 4;
+        bits -= 4;
+        //---//
+        len = (hold & 0x0f)/*BITS(4)*/ + 8;
+        if (state.wbits === 0) {
+          state.wbits = len;
+        }
+        if (len > 15 || len > state.wbits) {
+          strm.msg = 'invalid window size';
+          state.mode = BAD;
+          break;
+        }
+
+        // !!! pako patch. Force use `options.windowBits` if passed.
+        // Required to always use max window size by default.
+        state.dmax = 1 << state.wbits;
+        //state.dmax = 1 << len;
+
+        state.flags = 0;               /* indicate zlib header */
+        //Tracev((stderr, "inflate:   zlib header ok\n"));
+        strm.adler = state.check = 1/*adler32(0L, Z_NULL, 0)*/;
+        state.mode = hold & 0x200 ? DICTID : TYPE;
+        //=== INITBITS();
+        hold = 0;
+        bits = 0;
+        //===//
+        break;
+      case FLAGS:
+        //=== NEEDBITS(16); */
+        while (bits < 16) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        state.flags = hold;
+        if ((state.flags & 0xff) !== Z_DEFLATED) {
+          strm.msg = 'unknown compression method';
+          state.mode = BAD;
+          break;
+        }
+        if (state.flags & 0xe000) {
+          strm.msg = 'unknown header flags set';
+          state.mode = BAD;
+          break;
+        }
+        if (state.head) {
+          state.head.text = ((hold >> 8) & 1);
+        }
+        if ((state.flags & 0x0200) && (state.wrap & 4)) {
+          //=== CRC2(state.check, hold);
+          hbuf[0] = hold & 0xff;
+          hbuf[1] = (hold >>> 8) & 0xff;
+          state.check = crc32_1(state.check, hbuf, 2, 0);
+          //===//
+        }
+        //=== INITBITS();
+        hold = 0;
+        bits = 0;
+        //===//
+        state.mode = TIME;
+        /* falls through */
+      case TIME:
+        //=== NEEDBITS(32); */
+        while (bits < 32) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        if (state.head) {
+          state.head.time = hold;
+        }
+        if ((state.flags & 0x0200) && (state.wrap & 4)) {
+          //=== CRC4(state.check, hold)
+          hbuf[0] = hold & 0xff;
+          hbuf[1] = (hold >>> 8) & 0xff;
+          hbuf[2] = (hold >>> 16) & 0xff;
+          hbuf[3] = (hold >>> 24) & 0xff;
+          state.check = crc32_1(state.check, hbuf, 4, 0);
+          //===
+        }
+        //=== INITBITS();
+        hold = 0;
+        bits = 0;
+        //===//
+        state.mode = OS;
+        /* falls through */
+      case OS:
+        //=== NEEDBITS(16); */
+        while (bits < 16) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        if (state.head) {
+          state.head.xflags = (hold & 0xff);
+          state.head.os = (hold >> 8);
+        }
+        if ((state.flags & 0x0200) && (state.wrap & 4)) {
+          //=== CRC2(state.check, hold);
+          hbuf[0] = hold & 0xff;
+          hbuf[1] = (hold >>> 8) & 0xff;
+          state.check = crc32_1(state.check, hbuf, 2, 0);
+          //===//
+        }
+        //=== INITBITS();
+        hold = 0;
+        bits = 0;
+        //===//
+        state.mode = EXLEN;
+        /* falls through */
+      case EXLEN:
+        if (state.flags & 0x0400) {
+          //=== NEEDBITS(16); */
+          while (bits < 16) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          state.length = hold;
+          if (state.head) {
+            state.head.extra_len = hold;
+          }
+          if ((state.flags & 0x0200) && (state.wrap & 4)) {
+            //=== CRC2(state.check, hold);
+            hbuf[0] = hold & 0xff;
+            hbuf[1] = (hold >>> 8) & 0xff;
+            state.check = crc32_1(state.check, hbuf, 2, 0);
+            //===//
+          }
+          //=== INITBITS();
+          hold = 0;
+          bits = 0;
+          //===//
+        }
+        else if (state.head) {
+          state.head.extra = null/*Z_NULL*/;
+        }
+        state.mode = EXTRA;
+        /* falls through */
+      case EXTRA:
+        if (state.flags & 0x0400) {
+          copy = state.length;
+          if (copy > have) { copy = have; }
+          if (copy) {
+            if (state.head) {
+              len = state.head.extra_len - state.length;
+              if (!state.head.extra) {
+                // Use untyped array for more convenient processing later
+                state.head.extra = new Uint8Array(state.head.extra_len);
+              }
+              state.head.extra.set(
+                input.subarray(
+                  next,
+                  // extra field is limited to 65536 bytes
+                  // - no need for additional size check
+                  next + copy
+                ),
+                /*len + copy > state.head.extra_max - len ? state.head.extra_max : copy,*/
+                len
+              );
+              //zmemcpy(state.head.extra + len, next,
+              //        len + copy > state.head.extra_max ?
+              //        state.head.extra_max - len : copy);
+            }
+            if ((state.flags & 0x0200) && (state.wrap & 4)) {
+              state.check = crc32_1(state.check, input, copy, next);
+            }
+            have -= copy;
+            next += copy;
+            state.length -= copy;
+          }
+          if (state.length) { break inf_leave; }
+        }
+        state.length = 0;
+        state.mode = NAME;
+        /* falls through */
+      case NAME:
+        if (state.flags & 0x0800) {
+          if (have === 0) { break inf_leave; }
+          copy = 0;
+          do {
+            // TODO: 2 or 1 bytes?
+            len = input[next + copy++];
+            /* use constant limit because in js we should not preallocate memory */
+            if (state.head && len &&
+                (state.length < 65536 /*state.head.name_max*/)) {
+              state.head.name += String.fromCharCode(len);
+            }
+          } while (len && copy < have);
+
+          if ((state.flags & 0x0200) && (state.wrap & 4)) {
+            state.check = crc32_1(state.check, input, copy, next);
+          }
+          have -= copy;
+          next += copy;
+          if (len) { break inf_leave; }
+        }
+        else if (state.head) {
+          state.head.name = null;
+        }
+        state.length = 0;
+        state.mode = COMMENT;
+        /* falls through */
+      case COMMENT:
+        if (state.flags & 0x1000) {
+          if (have === 0) { break inf_leave; }
+          copy = 0;
+          do {
+            len = input[next + copy++];
+            /* use constant limit because in js we should not preallocate memory */
+            if (state.head && len &&
+                (state.length < 65536 /*state.head.comm_max*/)) {
+              state.head.comment += String.fromCharCode(len);
+            }
+          } while (len && copy < have);
+          if ((state.flags & 0x0200) && (state.wrap & 4)) {
+            state.check = crc32_1(state.check, input, copy, next);
+          }
+          have -= copy;
+          next += copy;
+          if (len) { break inf_leave; }
+        }
+        else if (state.head) {
+          state.head.comment = null;
+        }
+        state.mode = HCRC;
+        /* falls through */
+      case HCRC:
+        if (state.flags & 0x0200) {
+          //=== NEEDBITS(16); */
+          while (bits < 16) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          if ((state.wrap & 4) && hold !== (state.check & 0xffff)) {
+            strm.msg = 'header crc mismatch';
+            state.mode = BAD;
+            break;
+          }
+          //=== INITBITS();
+          hold = 0;
+          bits = 0;
+          //===//
+        }
+        if (state.head) {
+          state.head.hcrc = ((state.flags >> 9) & 1);
+          state.head.done = true;
+        }
+        strm.adler = state.check = 0;
+        state.mode = TYPE;
+        break;
+      case DICTID:
+        //=== NEEDBITS(32); */
+        while (bits < 32) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        strm.adler = state.check = zswap32(hold);
+        //=== INITBITS();
+        hold = 0;
+        bits = 0;
+        //===//
+        state.mode = DICT;
+        /* falls through */
+      case DICT:
+        if (state.havedict === 0) {
+          //--- RESTORE() ---
+          strm.next_out = put;
+          strm.avail_out = left;
+          strm.next_in = next;
+          strm.avail_in = have;
+          state.hold = hold;
+          state.bits = bits;
+          //---
+          return Z_NEED_DICT$1;
+        }
+        strm.adler = state.check = 1/*adler32(0L, Z_NULL, 0)*/;
+        state.mode = TYPE;
+        /* falls through */
+      case TYPE:
+        if (flush === Z_BLOCK || flush === Z_TREES) { break inf_leave; }
+        /* falls through */
+      case TYPEDO:
+        if (state.last) {
+          //--- BYTEBITS() ---//
+          hold >>>= bits & 7;
+          bits -= bits & 7;
+          //---//
+          state.mode = CHECK;
+          break;
+        }
+        //=== NEEDBITS(3); */
+        while (bits < 3) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        state.last = (hold & 0x01)/*BITS(1)*/;
+        //--- DROPBITS(1) ---//
+        hold >>>= 1;
+        bits -= 1;
+        //---//
+
+        switch ((hold & 0x03)/*BITS(2)*/) {
+          case 0:                             /* stored block */
+            //Tracev((stderr, "inflate:     stored block%s\n",
+            //        state.last ? " (last)" : ""));
+            state.mode = STORED;
+            break;
+          case 1:                             /* fixed block */
+            fixedtables(state);
+            //Tracev((stderr, "inflate:     fixed codes block%s\n",
+            //        state.last ? " (last)" : ""));
+            state.mode = LEN_;             /* decode codes */
+            if (flush === Z_TREES) {
+              //--- DROPBITS(2) ---//
+              hold >>>= 2;
+              bits -= 2;
+              //---//
+              break inf_leave;
+            }
+            break;
+          case 2:                             /* dynamic block */
+            //Tracev((stderr, "inflate:     dynamic codes block%s\n",
+            //        state.last ? " (last)" : ""));
+            state.mode = TABLE;
+            break;
+          case 3:
+            strm.msg = 'invalid block type';
+            state.mode = BAD;
+        }
+        //--- DROPBITS(2) ---//
+        hold >>>= 2;
+        bits -= 2;
+        //---//
+        break;
+      case STORED:
+        //--- BYTEBITS() ---// /* go to byte boundary */
+        hold >>>= bits & 7;
+        bits -= bits & 7;
+        //---//
+        //=== NEEDBITS(32); */
+        while (bits < 32) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        if ((hold & 0xffff) !== ((hold >>> 16) ^ 0xffff)) {
+          strm.msg = 'invalid stored block lengths';
+          state.mode = BAD;
+          break;
+        }
+        state.length = hold & 0xffff;
+        //Tracev((stderr, "inflate:       stored length %u\n",
+        //        state.length));
+        //=== INITBITS();
+        hold = 0;
+        bits = 0;
+        //===//
+        state.mode = COPY_;
+        if (flush === Z_TREES) { break inf_leave; }
+        /* falls through */
+      case COPY_:
+        state.mode = COPY;
+        /* falls through */
+      case COPY:
+        copy = state.length;
+        if (copy) {
+          if (copy > have) { copy = have; }
+          if (copy > left) { copy = left; }
+          if (copy === 0) { break inf_leave; }
+          //--- zmemcpy(put, next, copy); ---
+          output.set(input.subarray(next, next + copy), put);
+          //---//
+          have -= copy;
+          next += copy;
+          left -= copy;
+          put += copy;
+          state.length -= copy;
+          break;
+        }
+        //Tracev((stderr, "inflate:       stored end\n"));
+        state.mode = TYPE;
+        break;
+      case TABLE:
+        //=== NEEDBITS(14); */
+        while (bits < 14) {
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+        }
+        //===//
+        state.nlen = (hold & 0x1f)/*BITS(5)*/ + 257;
+        //--- DROPBITS(5) ---//
+        hold >>>= 5;
+        bits -= 5;
+        //---//
+        state.ndist = (hold & 0x1f)/*BITS(5)*/ + 1;
+        //--- DROPBITS(5) ---//
+        hold >>>= 5;
+        bits -= 5;
+        //---//
+        state.ncode = (hold & 0x0f)/*BITS(4)*/ + 4;
+        //--- DROPBITS(4) ---//
+        hold >>>= 4;
+        bits -= 4;
+        //---//
+//#ifndef PKZIP_BUG_WORKAROUND
+        if (state.nlen > 286 || state.ndist > 30) {
+          strm.msg = 'too many length or distance symbols';
+          state.mode = BAD;
+          break;
+        }
+//#endif
+        //Tracev((stderr, "inflate:       table sizes ok\n"));
+        state.have = 0;
+        state.mode = LENLENS;
+        /* falls through */
+      case LENLENS:
+        while (state.have < state.ncode) {
+          //=== NEEDBITS(3);
+          while (bits < 3) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          state.lens[order[state.have++]] = (hold & 0x07);//BITS(3);
+          //--- DROPBITS(3) ---//
+          hold >>>= 3;
+          bits -= 3;
+          //---//
+        }
+        while (state.have < 19) {
+          state.lens[order[state.have++]] = 0;
+        }
+        // We have separate tables & no pointers. 2 commented lines below not needed.
+        //state.next = state.codes;
+        //state.lencode = state.next;
+        // Switch to use dynamic table
+        state.lencode = state.lendyn;
+        state.lenbits = 7;
+
+        opts = { bits: state.lenbits };
+        ret = inftrees(CODES, state.lens, 0, 19, state.lencode, 0, state.work, opts);
+        state.lenbits = opts.bits;
+
+        if (ret) {
+          strm.msg = 'invalid code lengths set';
+          state.mode = BAD;
+          break;
+        }
+        //Tracev((stderr, "inflate:       code lengths ok\n"));
+        state.have = 0;
+        state.mode = CODELENS;
+        /* falls through */
+      case CODELENS:
+        while (state.have < state.nlen + state.ndist) {
+          for (;;) {
+            here = state.lencode[hold & ((1 << state.lenbits) - 1)];/*BITS(state.lenbits)*/
+            here_bits = here >>> 24;
+            here_op = (here >>> 16) & 0xff;
+            here_val = here & 0xffff;
+
+            if ((here_bits) <= bits) { break; }
+            //--- PULLBYTE() ---//
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+            //---//
+          }
+          if (here_val < 16) {
+            //--- DROPBITS(here.bits) ---//
+            hold >>>= here_bits;
+            bits -= here_bits;
+            //---//
+            state.lens[state.have++] = here_val;
+          }
+          else {
+            if (here_val === 16) {
+              //=== NEEDBITS(here.bits + 2);
+              n = here_bits + 2;
+              while (bits < n) {
+                if (have === 0) { break inf_leave; }
+                have--;
+                hold += input[next++] << bits;
+                bits += 8;
+              }
+              //===//
+              //--- DROPBITS(here.bits) ---//
+              hold >>>= here_bits;
+              bits -= here_bits;
+              //---//
+              if (state.have === 0) {
+                strm.msg = 'invalid bit length repeat';
+                state.mode = BAD;
+                break;
+              }
+              len = state.lens[state.have - 1];
+              copy = 3 + (hold & 0x03);//BITS(2);
+              //--- DROPBITS(2) ---//
+              hold >>>= 2;
+              bits -= 2;
+              //---//
+            }
+            else if (here_val === 17) {
+              //=== NEEDBITS(here.bits + 3);
+              n = here_bits + 3;
+              while (bits < n) {
+                if (have === 0) { break inf_leave; }
+                have--;
+                hold += input[next++] << bits;
+                bits += 8;
+              }
+              //===//
+              //--- DROPBITS(here.bits) ---//
+              hold >>>= here_bits;
+              bits -= here_bits;
+              //---//
+              len = 0;
+              copy = 3 + (hold & 0x07);//BITS(3);
+              //--- DROPBITS(3) ---//
+              hold >>>= 3;
+              bits -= 3;
+              //---//
+            }
+            else {
+              //=== NEEDBITS(here.bits + 7);
+              n = here_bits + 7;
+              while (bits < n) {
+                if (have === 0) { break inf_leave; }
+                have--;
+                hold += input[next++] << bits;
+                bits += 8;
+              }
+              //===//
+              //--- DROPBITS(here.bits) ---//
+              hold >>>= here_bits;
+              bits -= here_bits;
+              //---//
+              len = 0;
+              copy = 11 + (hold & 0x7f);//BITS(7);
+              //--- DROPBITS(7) ---//
+              hold >>>= 7;
+              bits -= 7;
+              //---//
+            }
+            if (state.have + copy > state.nlen + state.ndist) {
+              strm.msg = 'invalid bit length repeat';
+              state.mode = BAD;
+              break;
+            }
+            while (copy--) {
+              state.lens[state.have++] = len;
+            }
+          }
+        }
+
+        /* handle error breaks in while */
+        if (state.mode === BAD) { break; }
+
+        /* check for end-of-block code (better have one) */
+        if (state.lens[256] === 0) {
+          strm.msg = 'invalid code -- missing end-of-block';
+          state.mode = BAD;
+          break;
+        }
+
+        /* build code tables -- note: do not change the lenbits or distbits
+           values here (9 and 6) without reading the comments in inftrees.h
+           concerning the ENOUGH constants, which depend on those values */
+        state.lenbits = 9;
+
+        opts = { bits: state.lenbits };
+        ret = inftrees(LENS, state.lens, 0, state.nlen, state.lencode, 0, state.work, opts);
+        // We have separate tables & no pointers. 2 commented lines below not needed.
+        // state.next_index = opts.table_index;
+        state.lenbits = opts.bits;
+        // state.lencode = state.next;
+
+        if (ret) {
+          strm.msg = 'invalid literal/lengths set';
+          state.mode = BAD;
+          break;
+        }
+
+        state.distbits = 6;
+        //state.distcode.copy(state.codes);
+        // Switch to use dynamic table
+        state.distcode = state.distdyn;
+        opts = { bits: state.distbits };
+        ret = inftrees(DISTS, state.lens, state.nlen, state.ndist, state.distcode, 0, state.work, opts);
+        // We have separate tables & no pointers. 2 commented lines below not needed.
+        // state.next_index = opts.table_index;
+        state.distbits = opts.bits;
+        // state.distcode = state.next;
+
+        if (ret) {
+          strm.msg = 'invalid distances set';
+          state.mode = BAD;
+          break;
+        }
+        //Tracev((stderr, 'inflate:       codes ok\n'));
+        state.mode = LEN_;
+        if (flush === Z_TREES) { break inf_leave; }
+        /* falls through */
+      case LEN_:
+        state.mode = LEN;
+        /* falls through */
+      case LEN:
+        if (have >= 6 && left >= 258) {
+          //--- RESTORE() ---
+          strm.next_out = put;
+          strm.avail_out = left;
+          strm.next_in = next;
+          strm.avail_in = have;
+          state.hold = hold;
+          state.bits = bits;
+          //---
+          inffast(strm, _out);
+          //--- LOAD() ---
+          put = strm.next_out;
+          output = strm.output;
+          left = strm.avail_out;
+          next = strm.next_in;
+          input = strm.input;
+          have = strm.avail_in;
+          hold = state.hold;
+          bits = state.bits;
+          //---
+
+          if (state.mode === TYPE) {
+            state.back = -1;
+          }
+          break;
+        }
+        state.back = 0;
+        for (;;) {
+          here = state.lencode[hold & ((1 << state.lenbits) - 1)];  /*BITS(state.lenbits)*/
+          here_bits = here >>> 24;
+          here_op = (here >>> 16) & 0xff;
+          here_val = here & 0xffff;
+
+          if (here_bits <= bits) { break; }
+          //--- PULLBYTE() ---//
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+          //---//
+        }
+        if (here_op && (here_op & 0xf0) === 0) {
+          last_bits = here_bits;
+          last_op = here_op;
+          last_val = here_val;
+          for (;;) {
+            here = state.lencode[last_val +
+                    ((hold & ((1 << (last_bits + last_op)) - 1))/*BITS(last.bits + last.op)*/ >> last_bits)];
+            here_bits = here >>> 24;
+            here_op = (here >>> 16) & 0xff;
+            here_val = here & 0xffff;
+
+            if ((last_bits + here_bits) <= bits) { break; }
+            //--- PULLBYTE() ---//
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+            //---//
+          }
+          //--- DROPBITS(last.bits) ---//
+          hold >>>= last_bits;
+          bits -= last_bits;
+          //---//
+          state.back += last_bits;
+        }
+        //--- DROPBITS(here.bits) ---//
+        hold >>>= here_bits;
+        bits -= here_bits;
+        //---//
+        state.back += here_bits;
+        state.length = here_val;
+        if (here_op === 0) {
+          //Tracevv((stderr, here.val >= 0x20 && here.val < 0x7f ?
+          //        "inflate:         literal '%c'\n" :
+          //        "inflate:         literal 0x%02x\n", here.val));
+          state.mode = LIT;
+          break;
+        }
+        if (here_op & 32) {
+          //Tracevv((stderr, "inflate:         end of block\n"));
+          state.back = -1;
+          state.mode = TYPE;
+          break;
+        }
+        if (here_op & 64) {
+          strm.msg = 'invalid literal/length code';
+          state.mode = BAD;
+          break;
+        }
+        state.extra = here_op & 15;
+        state.mode = LENEXT;
+        /* falls through */
+      case LENEXT:
+        if (state.extra) {
+          //=== NEEDBITS(state.extra);
+          n = state.extra;
+          while (bits < n) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          state.length += hold & ((1 << state.extra) - 1)/*BITS(state.extra)*/;
+          //--- DROPBITS(state.extra) ---//
+          hold >>>= state.extra;
+          bits -= state.extra;
+          //---//
+          state.back += state.extra;
+        }
+        //Tracevv((stderr, "inflate:         length %u\n", state.length));
+        state.was = state.length;
+        state.mode = DIST;
+        /* falls through */
+      case DIST:
+        for (;;) {
+          here = state.distcode[hold & ((1 << state.distbits) - 1)];/*BITS(state.distbits)*/
+          here_bits = here >>> 24;
+          here_op = (here >>> 16) & 0xff;
+          here_val = here & 0xffff;
+
+          if ((here_bits) <= bits) { break; }
+          //--- PULLBYTE() ---//
+          if (have === 0) { break inf_leave; }
+          have--;
+          hold += input[next++] << bits;
+          bits += 8;
+          //---//
+        }
+        if ((here_op & 0xf0) === 0) {
+          last_bits = here_bits;
+          last_op = here_op;
+          last_val = here_val;
+          for (;;) {
+            here = state.distcode[last_val +
+                    ((hold & ((1 << (last_bits + last_op)) - 1))/*BITS(last.bits + last.op)*/ >> last_bits)];
+            here_bits = here >>> 24;
+            here_op = (here >>> 16) & 0xff;
+            here_val = here & 0xffff;
+
+            if ((last_bits + here_bits) <= bits) { break; }
+            //--- PULLBYTE() ---//
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+            //---//
+          }
+          //--- DROPBITS(last.bits) ---//
+          hold >>>= last_bits;
+          bits -= last_bits;
+          //---//
+          state.back += last_bits;
+        }
+        //--- DROPBITS(here.bits) ---//
+        hold >>>= here_bits;
+        bits -= here_bits;
+        //---//
+        state.back += here_bits;
+        if (here_op & 64) {
+          strm.msg = 'invalid distance code';
+          state.mode = BAD;
+          break;
+        }
+        state.offset = here_val;
+        state.extra = (here_op) & 15;
+        state.mode = DISTEXT;
+        /* falls through */
+      case DISTEXT:
+        if (state.extra) {
+          //=== NEEDBITS(state.extra);
+          n = state.extra;
+          while (bits < n) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          state.offset += hold & ((1 << state.extra) - 1)/*BITS(state.extra)*/;
+          //--- DROPBITS(state.extra) ---//
+          hold >>>= state.extra;
+          bits -= state.extra;
+          //---//
+          state.back += state.extra;
+        }
+//#ifdef INFLATE_STRICT
+        if (state.offset > state.dmax) {
+          strm.msg = 'invalid distance too far back';
+          state.mode = BAD;
+          break;
+        }
+//#endif
+        //Tracevv((stderr, "inflate:         distance %u\n", state.offset));
+        state.mode = MATCH;
+        /* falls through */
+      case MATCH:
+        if (left === 0) { break inf_leave; }
+        copy = _out - left;
+        if (state.offset > copy) {         /* copy from window */
+          copy = state.offset - copy;
+          if (copy > state.whave) {
+            if (state.sane) {
+              strm.msg = 'invalid distance too far back';
+              state.mode = BAD;
+              break;
+            }
+// (!) This block is disabled in zlib defaults,
+// don't enable it for binary compatibility
+//#ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
+//          Trace((stderr, "inflate.c too far\n"));
+//          copy -= state.whave;
+//          if (copy > state.length) { copy = state.length; }
+//          if (copy > left) { copy = left; }
+//          left -= copy;
+//          state.length -= copy;
+//          do {
+//            output[put++] = 0;
+//          } while (--copy);
+//          if (state.length === 0) { state.mode = LEN; }
+//          break;
+//#endif
+          }
+          if (copy > state.wnext) {
+            copy -= state.wnext;
+            from = state.wsize - copy;
+          }
+          else {
+            from = state.wnext - copy;
+          }
+          if (copy > state.length) { copy = state.length; }
+          from_source = state.window;
+        }
+        else {                              /* copy from output */
+          from_source = output;
+          from = put - state.offset;
+          copy = state.length;
+        }
+        if (copy > left) { copy = left; }
+        left -= copy;
+        state.length -= copy;
+        do {
+          output[put++] = from_source[from++];
+        } while (--copy);
+        if (state.length === 0) { state.mode = LEN; }
+        break;
+      case LIT:
+        if (left === 0) { break inf_leave; }
+        output[put++] = state.length;
+        left--;
+        state.mode = LEN;
+        break;
+      case CHECK:
+        if (state.wrap) {
+          //=== NEEDBITS(32);
+          while (bits < 32) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            // Use '|' instead of '+' to make sure that result is signed
+            hold |= input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          _out -= left;
+          strm.total_out += _out;
+          state.total += _out;
+          if ((state.wrap & 4) && _out) {
+            strm.adler = state.check =
+                /*UPDATE_CHECK(state.check, put - _out, _out);*/
+                (state.flags ? crc32_1(state.check, output, _out, put - _out) : adler32_1(state.check, output, _out, put - _out));
+
+          }
+          _out = left;
+          // NB: crc32 stored as signed 32-bit int, zswap32 returns signed too
+          if ((state.wrap & 4) && (state.flags ? hold : zswap32(hold)) !== state.check) {
+            strm.msg = 'incorrect data check';
+            state.mode = BAD;
+            break;
+          }
+          //=== INITBITS();
+          hold = 0;
+          bits = 0;
+          //===//
+          //Tracev((stderr, "inflate:   check matches trailer\n"));
+        }
+        state.mode = LENGTH;
+        /* falls through */
+      case LENGTH:
+        if (state.wrap && state.flags) {
+          //=== NEEDBITS(32);
+          while (bits < 32) {
+            if (have === 0) { break inf_leave; }
+            have--;
+            hold += input[next++] << bits;
+            bits += 8;
+          }
+          //===//
+          if ((state.wrap & 4) && hold !== (state.total & 0xffffffff)) {
+            strm.msg = 'incorrect length check';
+            state.mode = BAD;
+            break;
+          }
+          //=== INITBITS();
+          hold = 0;
+          bits = 0;
+          //===//
+          //Tracev((stderr, "inflate:   length matches trailer\n"));
+        }
+        state.mode = DONE;
+        /* falls through */
+      case DONE:
+        ret = Z_STREAM_END$1;
+        break inf_leave;
+      case BAD:
+        ret = Z_DATA_ERROR$1;
+        break inf_leave;
+      case MEM:
+        return Z_MEM_ERROR$1;
+      case SYNC:
+        /* falls through */
+      default:
+        return Z_STREAM_ERROR$1;
+    }
+  }
+
+  // inf_leave <- here is real place for "goto inf_leave", emulated via "break inf_leave"
+
+  /*
+     Return from inflate(), updating the total counts and the check value.
+     If there was no progress during the inflate() call, return a buffer
+     error.  Call updatewindow() to create and/or update the window state.
+     Note: a memory error from inflate() is non-recoverable.
+   */
+
+  //--- RESTORE() ---
+  strm.next_out = put;
+  strm.avail_out = left;
+  strm.next_in = next;
+  strm.avail_in = have;
+  state.hold = hold;
+  state.bits = bits;
+  //---
+
+  if (state.wsize || (_out !== strm.avail_out && state.mode < BAD &&
+                      (state.mode < CHECK || flush !== Z_FINISH$1))) {
+    if (updatewindow(strm, strm.output, strm.next_out, _out - strm.avail_out)) ;
+  }
+  _in -= strm.avail_in;
+  _out -= strm.avail_out;
+  strm.total_in += _in;
+  strm.total_out += _out;
+  state.total += _out;
+  if ((state.wrap & 4) && _out) {
+    strm.adler = state.check = /*UPDATE_CHECK(state.check, strm.next_out - _out, _out);*/
+      (state.flags ? crc32_1(state.check, output, _out, strm.next_out - _out) : adler32_1(state.check, output, _out, strm.next_out - _out));
+  }
+  strm.data_type = state.bits + (state.last ? 64 : 0) +
+                    (state.mode === TYPE ? 128 : 0) +
+                    (state.mode === LEN_ || state.mode === COPY_ ? 256 : 0);
+  if (((_in === 0 && _out === 0) || flush === Z_FINISH$1) && ret === Z_OK$1) {
+    ret = Z_BUF_ERROR;
+  }
+  return ret;
+};
+
+
+const inflateEnd = (strm) => {
+
+  if (inflateStateCheck(strm)) {
+    return Z_STREAM_ERROR$1;
+  }
+
+  let state = strm.state;
+  if (state.window) {
+    state.window = null;
+  }
+  strm.state = null;
+  return Z_OK$1;
+};
+
+
+const inflateGetHeader = (strm, head) => {
+
+  /* check state */
+  if (inflateStateCheck(strm)) { return Z_STREAM_ERROR$1; }
+  const state = strm.state;
+  if ((state.wrap & 2) === 0) { return Z_STREAM_ERROR$1; }
+
+  /* save header structure */
+  state.head = head;
+  head.done = false;
+  return Z_OK$1;
+};
+
+
+const inflateSetDictionary = (strm, dictionary) => {
+  const dictLength = dictionary.length;
+
+  let state;
+  let dictid;
+  let ret;
+
+  /* check state */
+  if (inflateStateCheck(strm)) { return Z_STREAM_ERROR$1; }
+  state = strm.state;
+
+  if (state.wrap !== 0 && state.mode !== DICT) {
+    return Z_STREAM_ERROR$1;
+  }
+
+  /* check for correct dictionary identifier */
+  if (state.mode === DICT) {
+    dictid = 1; /* adler32(0, null, 0)*/
+    /* dictid = adler32(dictid, dictionary, dictLength); */
+    dictid = adler32_1(dictid, dictionary, dictLength, 0);
+    if (dictid !== state.check) {
+      return Z_DATA_ERROR$1;
+    }
+  }
+  /* copy dictionary to window using updatewindow(), which will amend the
+   existing dictionary if appropriate */
+  ret = updatewindow(strm, dictionary, dictLength, dictLength);
+  if (ret) {
+    state.mode = MEM;
+    return Z_MEM_ERROR$1;
+  }
+  state.havedict = 1;
+  // Tracev((stderr, "inflate:   dictionary set\n"));
+  return Z_OK$1;
+};
+
+
+var inflateReset_1 = inflateReset;
+var inflateReset2_1 = inflateReset2;
+var inflateResetKeep_1 = inflateResetKeep;
+var inflateInit_1 = inflateInit;
+var inflateInit2_1 = inflateInit2;
+var inflate_2$1 = inflate$2;
+var inflateEnd_1 = inflateEnd;
+var inflateGetHeader_1 = inflateGetHeader;
+var inflateSetDictionary_1 = inflateSetDictionary;
+var inflateInfo = 'pako inflate (from Nodeca project)';
+
+/* Not implemented
+module.exports.inflateCodesUsed = inflateCodesUsed;
+module.exports.inflateCopy = inflateCopy;
+module.exports.inflateGetDictionary = inflateGetDictionary;
+module.exports.inflateMark = inflateMark;
+module.exports.inflatePrime = inflatePrime;
+module.exports.inflateSync = inflateSync;
+module.exports.inflateSyncPoint = inflateSyncPoint;
+module.exports.inflateUndermine = inflateUndermine;
+module.exports.inflateValidate = inflateValidate;
+*/
+
+var inflate_1$2 = {
+	inflateReset: inflateReset_1,
+	inflateReset2: inflateReset2_1,
+	inflateResetKeep: inflateResetKeep_1,
+	inflateInit: inflateInit_1,
+	inflateInit2: inflateInit2_1,
+	inflate: inflate_2$1,
+	inflateEnd: inflateEnd_1,
+	inflateGetHeader: inflateGetHeader_1,
+	inflateSetDictionary: inflateSetDictionary_1,
+	inflateInfo: inflateInfo
+};
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+function GZheader() {
+  /* true if compressed data believed to be text */
+  this.text       = 0;
+  /* modification time */
+  this.time       = 0;
+  /* extra flags (not used when writing a gzip file) */
+  this.xflags     = 0;
+  /* operating system */
+  this.os         = 0;
+  /* pointer to extra field or Z_NULL if none */
+  this.extra      = null;
+  /* extra field length (valid if extra != Z_NULL) */
+  this.extra_len  = 0; // Actually, we don't need it in JS,
+                       // but leave for few code modifications
+
+  //
+  // Setup limits is not necessary because in js we should not preallocate memory
+  // for inflate use constant limit in 65536 bytes
+  //
+
+  /* space at extra (only when reading header) */
+  // this.extra_max  = 0;
+  /* pointer to zero-terminated file name or Z_NULL */
+  this.name       = '';
+  /* space at name (only when reading header) */
+  // this.name_max   = 0;
+  /* pointer to zero-terminated comment or Z_NULL */
+  this.comment    = '';
+  /* space at comment (only when reading header) */
+  // this.comm_max   = 0;
+  /* true if there was or will be a header crc */
+  this.hcrc       = 0;
+  /* true when done reading gzip header (not used when writing a gzip file) */
+  this.done       = false;
+}
+
+var gzheader = GZheader;
+
+const toString = Object.prototype.toString;
+
+/* Public constants ==========================================================*/
+/* ===========================================================================*/
+
+const {
+  Z_NO_FLUSH, Z_FINISH,
+  Z_OK, Z_STREAM_END, Z_NEED_DICT, Z_STREAM_ERROR, Z_DATA_ERROR, Z_MEM_ERROR
+} = constants$2;
+
+/* ===========================================================================*/
+
+
+/**
+ * class Inflate
+ *
+ * Generic JS-style wrapper for zlib calls. If you don't need
+ * streaming behaviour - use more simple functions: [[inflate]]
+ * and [[inflateRaw]].
+ **/
+
+/* internal
+ * inflate.chunks -> Array
+ *
+ * Chunks of output data, if [[Inflate#onData]] not overridden.
+ **/
+
+/**
+ * Inflate.result -> Uint8Array|String
+ *
+ * Uncompressed result, generated by default [[Inflate#onData]]
+ * and [[Inflate#onEnd]] handlers. Filled after you push last chunk
+ * (call [[Inflate#push]] with `Z_FINISH` / `true` param).
+ **/
+
+/**
+ * Inflate.err -> Number
+ *
+ * Error code after inflate finished. 0 (Z_OK) on success.
+ * Should be checked if broken data possible.
+ **/
+
+/**
+ * Inflate.msg -> String
+ *
+ * Error message, if [[Inflate.err]] != 0
+ **/
+
+
+/**
+ * new Inflate(options)
+ * - options (Object): zlib inflate options.
+ *
+ * Creates new inflator instance with specified params. Throws exception
+ * on bad params. Supported options:
+ *
+ * - `windowBits`
+ * - `dictionary`
+ *
+ * [http://zlib.net/manual.html#Advanced](http://zlib.net/manual.html#Advanced)
+ * for more information on these.
+ *
+ * Additional options, for internal needs:
+ *
+ * - `chunkSize` - size of generated data chunks (16K by default)
+ * - `raw` (Boolean) - do raw inflate
+ * - `to` (String) - if equal to 'string', then result will be converted
+ *   from utf8 to utf16 (javascript) string. When string output requested,
+ *   chunk length can differ from `chunkSize`, depending on content.
+ *
+ * By default, when no options set, autodetect deflate/gzip data format via
+ * wrapper header.
+ *
+ * ##### Example:
+ *
+ * ```javascript
+ * const pako = require('pako')
+ * const chunk1 = new Uint8Array([1,2,3,4,5,6,7,8,9])
+ * const chunk2 = new Uint8Array([10,11,12,13,14,15,16,17,18,19]);
+ *
+ * const inflate = new pako.Inflate({ level: 3});
+ *
+ * inflate.push(chunk1, false);
+ * inflate.push(chunk2, true);  // true -> last chunk
+ *
+ * if (inflate.err) { throw new Error(inflate.err); }
+ *
+ * console.log(inflate.result);
+ * ```
+ **/
+function Inflate$1(options) {
+  this.options = common.assign({
+    chunkSize: 1024 * 64,
+    windowBits: 15,
+    to: ''
+  }, options || {});
+
+  const opt = this.options;
+
+  // Force window size for `raw` data, if not set directly,
+  // because we have no header for autodetect.
+  if (opt.raw && (opt.windowBits >= 0) && (opt.windowBits < 16)) {
+    opt.windowBits = -opt.windowBits;
+    if (opt.windowBits === 0) { opt.windowBits = -15; }
+  }
+
+  // If `windowBits` not defined (and mode not raw) - set autodetect flag for gzip/deflate
+  if ((opt.windowBits >= 0) && (opt.windowBits < 16) &&
+      !(options && options.windowBits)) {
+    opt.windowBits += 32;
+  }
+
+  // Gzip header has no info about windows size, we can do autodetect only
+  // for deflate. So, if window size not set, force it to max when gzip possible
+  if ((opt.windowBits > 15) && (opt.windowBits < 48)) {
+    // bit 3 (16) -> gzipped data
+    // bit 4 (32) -> autodetect gzip/deflate
+    if ((opt.windowBits & 15) === 0) {
+      opt.windowBits |= 15;
+    }
+  }
+
+  this.err    = 0;      // error code, if happens (0 = Z_OK)
+  this.msg    = '';     // error message
+  this.ended  = false;  // used to avoid multiple onEnd() calls
+  this.chunks = [];     // chunks of compressed data
+
+  this.strm   = new zstream();
+  this.strm.avail_out = 0;
+
+  let status  = inflate_1$2.inflateInit2(
+    this.strm,
+    opt.windowBits
+  );
+
+  if (status !== Z_OK) {
+    throw new Error(messages[status]);
+  }
+
+  this.header = new gzheader();
+
+  inflate_1$2.inflateGetHeader(this.strm, this.header);
+
+  // Setup dictionary
+  if (opt.dictionary) {
+    // Convert data if needed
+    if (typeof opt.dictionary === 'string') {
+      opt.dictionary = strings.string2buf(opt.dictionary);
+    } else if (toString.call(opt.dictionary) === '[object ArrayBuffer]') {
+      opt.dictionary = new Uint8Array(opt.dictionary);
+    }
+    if (opt.raw) { //In raw mode we need to set the dictionary early
+      status = inflate_1$2.inflateSetDictionary(this.strm, opt.dictionary);
+      if (status !== Z_OK) {
+        throw new Error(messages[status]);
+      }
+    }
+  }
+}
+
+/**
+ * Inflate#push(data[, flush_mode]) -> Boolean
+ * - data (Uint8Array|ArrayBuffer): input data
+ * - flush_mode (Number|Boolean): 0..6 for corresponding Z_NO_FLUSH..Z_TREE
+ *   flush modes. See constants. Skipped or `false` means Z_NO_FLUSH,
+ *   `true` means Z_FINISH.
+ *
+ * Sends input data to inflate pipe, generating [[Inflate#onData]] calls with
+ * new output chunks. Returns `true` on success. If end of stream detected,
+ * [[Inflate#onEnd]] will be called.
+ *
+ * `flush_mode` is not needed for normal operation, because end of stream
+ * detected automatically. You may try to use it for advanced things, but
+ * this functionality was not tested.
+ *
+ * On fail call [[Inflate#onEnd]] with error code and return false.
+ *
+ * ##### Example
+ *
+ * ```javascript
+ * push(chunk, false); // push one of data chunks
+ * ...
+ * push(chunk, true);  // push last chunk
+ * ```
+ **/
+Inflate$1.prototype.push = function (data, flush_mode) {
+  const strm = this.strm;
+  const chunkSize = this.options.chunkSize;
+  const dictionary = this.options.dictionary;
+  let status, _flush_mode, last_avail_out;
+
+  if (this.ended) return false;
+
+  if (flush_mode === ~~flush_mode) _flush_mode = flush_mode;
+  else _flush_mode = flush_mode === true ? Z_FINISH : Z_NO_FLUSH;
+
+  // Convert data if needed
+  if (toString.call(data) === '[object ArrayBuffer]') {
+    strm.input = new Uint8Array(data);
+  } else {
+    strm.input = data;
+  }
+
+  strm.next_in = 0;
+  strm.avail_in = strm.input.length;
+
+  for (;;) {
+    if (strm.avail_out === 0) {
+      strm.output = new Uint8Array(chunkSize);
+      strm.next_out = 0;
+      strm.avail_out = chunkSize;
+    }
+
+    status = inflate_1$2.inflate(strm, _flush_mode);
+
+    if (status === Z_NEED_DICT && dictionary) {
+      status = inflate_1$2.inflateSetDictionary(strm, dictionary);
+
+      if (status === Z_OK) {
+        status = inflate_1$2.inflate(strm, _flush_mode);
+      } else if (status === Z_DATA_ERROR) {
+        // Replace code with more verbose
+        status = Z_NEED_DICT;
+      }
+    }
+
+    // Skip snyc markers if more data follows and not raw mode
+    while (strm.avail_in > 0 &&
+           status === Z_STREAM_END &&
+           strm.state.wrap > 0 &&
+           data[strm.next_in] !== 0)
+    {
+      inflate_1$2.inflateReset(strm);
+      status = inflate_1$2.inflate(strm, _flush_mode);
+    }
+
+    switch (status) {
+      case Z_STREAM_ERROR:
+      case Z_DATA_ERROR:
+      case Z_NEED_DICT:
+      case Z_MEM_ERROR:
+        this.onEnd(status);
+        this.ended = true;
+        return false;
+    }
+
+    // Remember real `avail_out` value, because we may patch out buffer content
+    // to align utf8 strings boundaries.
+    last_avail_out = strm.avail_out;
+
+    if (strm.next_out) {
+      if (strm.avail_out === 0 || status === Z_STREAM_END) {
+
+        if (this.options.to === 'string') {
+
+          let next_out_utf8 = strings.utf8border(strm.output, strm.next_out);
+
+          let tail = strm.next_out - next_out_utf8;
+          let utf8str = strings.buf2string(strm.output, next_out_utf8);
+
+          // move tail & realign counters
+          strm.next_out = tail;
+          strm.avail_out = chunkSize - tail;
+          if (tail) strm.output.set(strm.output.subarray(next_out_utf8, next_out_utf8 + tail), 0);
+
+          this.onData(utf8str);
+
+        } else {
+          this.onData(strm.output.length === strm.next_out ? strm.output : strm.output.subarray(0, strm.next_out));
+        }
+      }
+    }
+
+    // Must repeat iteration if out buffer is full
+    if (status === Z_OK && last_avail_out === 0) continue;
+
+    // Finalize if end of stream reached.
+    if (status === Z_STREAM_END) {
+      status = inflate_1$2.inflateEnd(this.strm);
+      this.onEnd(status);
+      this.ended = true;
+      return true;
+    }
+
+    if (strm.avail_in === 0) break;
+  }
+
+  return true;
+};
+
+
+/**
+ * Inflate#onData(chunk) -> Void
+ * - chunk (Uint8Array|String): output data. When string output requested,
+ *   each chunk will be string.
+ *
+ * By default, stores data blocks in `chunks[]` property and glue
+ * those in `onEnd`. Override this handler, if you need another behaviour.
+ **/
+Inflate$1.prototype.onData = function (chunk) {
+  this.chunks.push(chunk);
+};
+
+
+/**
+ * Inflate#onEnd(status) -> Void
+ * - status (Number): inflate status. 0 (Z_OK) on success,
+ *   other if not.
+ *
+ * Called either after you tell inflate that the input stream is
+ * complete (Z_FINISH). By default - join collected chunks,
+ * free memory and fill `results` / `err` properties.
+ **/
+Inflate$1.prototype.onEnd = function (status) {
+  // On success - join
+  if (status === Z_OK) {
+    if (this.options.to === 'string') {
+      this.result = this.chunks.join('');
+    } else {
+      this.result = common.flattenChunks(this.chunks);
+    }
+  }
+  this.chunks = [];
+  this.err = status;
+  this.msg = this.strm.msg;
+};
+
+
+/**
+ * inflate(data[, options]) -> Uint8Array|String
+ * - data (Uint8Array|ArrayBuffer): input data to decompress.
+ * - options (Object): zlib inflate options.
+ *
+ * Decompress `data` with inflate/ungzip and `options`. Autodetect
+ * format via wrapper header by default. That's why we don't provide
+ * separate `ungzip` method.
+ *
+ * Supported options are:
+ *
+ * - windowBits
+ *
+ * [http://zlib.net/manual.html#Advanced](http://zlib.net/manual.html#Advanced)
+ * for more information.
+ *
+ * Sugar (options):
+ *
+ * - `raw` (Boolean) - say that we work with raw stream, if you don't wish to specify
+ *   negative windowBits implicitly.
+ * - `to` (String) - if equal to 'string', then result will be converted
+ *   from utf8 to utf16 (javascript) string. When string output requested,
+ *   chunk length can differ from `chunkSize`, depending on content.
+ *
+ *
+ * ##### Example:
+ *
+ * ```javascript
+ * const pako = require('pako');
+ * const input = pako.deflate(new Uint8Array([1,2,3,4,5,6,7,8,9]));
+ * let output;
+ *
+ * try {
+ *   output = pako.inflate(input);
+ * } catch (err) {
+ *   console.log(err);
+ * }
+ * ```
+ **/
+function inflate$1(input, options) {
+  const inflator = new Inflate$1(options);
+
+  inflator.push(input);
+
+  // That will never happens, if you don't cheat with options :)
+  if (inflator.err) throw inflator.msg || messages[inflator.err];
+
+  return inflator.result;
+}
+var inflate_2 = inflate$1;
+
+var inflate_1$1 = {
+	inflate: inflate_2};
+
+const { inflate} = inflate_1$1;
+var inflate_1 = inflate;
+
+class DeflateDecoder extends BaseDecoder {
+    /** @param {ArrayBuffer} buffer */
+    decodeBlock(buffer) {
+        return inflate_1(new Uint8Array(buffer)).buffer;
+    }
+}
+
+var deflate = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: DeflateDecoder
+});
+
+class PackbitsDecoder extends BaseDecoder {
+    /** @param {ArrayBuffer} buffer */
+    decodeBlock(buffer) {
+        const dataView = new DataView(buffer);
+        const out = [];
+        for (let i = 0; i < buffer.byteLength; ++i) {
+            let header = dataView.getInt8(i);
+            if (header < 0) {
+                const next = dataView.getUint8(i + 1);
+                header = -header;
+                for (let j = 0; j <= header; ++j) {
+                    out.push(next);
+                }
+                i += 1;
+            }
+            else {
+                for (let j = 0; j <= header; ++j) {
+                    out.push(dataView.getUint8(i + j + 1));
+                }
+                i += header + 1;
+            }
+        }
+        return new Uint8Array(out).buffer;
+    }
+}
+
+var packbits = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: PackbitsDecoder
+});
+
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+var LercDecode = {exports: {}};
+
+/* jshint forin: false, bitwise: false */
+
+var hasRequiredLercDecode;
+
+function requireLercDecode () {
+	if (hasRequiredLercDecode) return LercDecode.exports;
+	hasRequiredLercDecode = 1;
+	(function (module) {
+		/*
+		Copyright 2015-2021 Esri
+
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
+
+		A copy of the license and additional notices are located with the
+		source distribution at:
+
+		http://github.com/Esri/lerc/
+
+		Contributors:  Johannes Schmid, (LERC v1)
+		               Chayanika Khatua, (LERC v1)
+		               Wenxue Ju (LERC v1, v2.x)
+		*/
+
+		/* Copyright 2015-2021 Esri. Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 @preserve */
+
+		/**
+		 * a module for decoding LERC blobs
+		 * @module Lerc
+		 */
+		(function() {
+		  //this decoder supports all lerc versions, each version has its own class (LercDecode and Lerc2Decode). 
+		  //the exported module handles format variation autoamtically.
+
+		  //the original LercDecode for Version 1
+		  var LercDecode = (function() {
+
+		    // Note: currently, this module only has an implementation for decoding LERC data, not encoding. The name of
+		    // the class was chosen to be future proof.
+
+		    var CntZImage = {};
+
+		    CntZImage.defaultNoDataValue = -34027999387901484e22; // smallest Float32 value
+
+		    /**
+		     * Decode a LERC byte stream and return an object containing the pixel data and some required and optional
+		     * information about it, such as the image's width and height.
+		     *
+		     * @param {ArrayBuffer} input The LERC input byte stream
+		     * @param {object} [options] Decoding options, containing any of the following properties:
+		     * @config {number} [inputOffset = 0]
+		     *        Skip the first inputOffset bytes of the input byte stream. A valid LERC file is expected at that position.
+		     * @config {Uint8Array} [encodedMask = null]
+		     *        If specified, the decoder will not read mask information from the input and use the specified encoded
+		     *        mask data instead. Mask header/data must not be present in the LERC byte stream in this case.
+		     * @config {number} [noDataValue = LercCode.defaultNoDataValue]
+		     *        Pixel value to use for masked pixels.
+		     * @config {ArrayBufferView|Array} [pixelType = Float32Array]
+		     *        The desired type of the pixelData array in the return value. Note that it is the caller's responsibility to
+		     *        provide an appropriate noDataValue if the default pixelType is overridden.
+		     * @config {boolean} [returnMask = false]
+		     *        If true, the return value will contain a maskData property of type Uint8Array which has one element per
+		     *        pixel, the value of which is 1 or 0 depending on whether that pixel's data is present or masked. If the
+		     *        input LERC data does not contain a mask, maskData will not be returned.
+		     * @config {boolean} [returnEncodedMask = false]
+		     *        If true, the return value will contain a encodedMaskData property, which can be passed into encode() as
+		     *        encodedMask.
+		     * @config {boolean} [returnFileInfo = false]
+		     *        If true, the return value will have a fileInfo property that contains metadata obtained from the
+		     *        LERC headers and the decoding process.
+		     * @config {boolean} [computeUsedBitDepths = false]
+		     *        If true, the fileInfo property in the return value will contain the set of all block bit depths
+		     *        encountered during decoding. Will only have an effect if returnFileInfo option is true.
+		     * @returns {{width, height, pixelData, minValue, maxValue, noDataValue, maskData, encodedMaskData, fileInfo}}
+		     */
+		    CntZImage.decode = function(input, options) {
+		      options = options || {};
+
+		      var skipMask = options.encodedMaskData || (options.encodedMaskData === null);
+		      var parsedData = parse(input, options.inputOffset || 0, skipMask);
+
+		      var noDataValue = (options.noDataValue !== null) ? options.noDataValue : CntZImage.defaultNoDataValue;
+
+		      var uncompressedData = uncompressPixelValues(parsedData, options.pixelType || Float32Array,
+		        options.encodedMaskData, noDataValue, options.returnMask);
+
+		      var result = {
+		        width: parsedData.width,
+		        height: parsedData.height,
+		        pixelData: uncompressedData.resultPixels,
+		        minValue: uncompressedData.minValue,
+		        maxValue: parsedData.pixels.maxValue,
+		        noDataValue: noDataValue
+		      };
+
+		      if (uncompressedData.resultMask) {
+		        result.maskData = uncompressedData.resultMask;
+		      }
+
+		      if (options.returnEncodedMask && parsedData.mask) {
+		        result.encodedMaskData = parsedData.mask.bitset ? parsedData.mask.bitset : null;
+		      }
+
+		      if (options.returnFileInfo) {
+		        result.fileInfo = formatFileInfo(parsedData);
+		        if (options.computeUsedBitDepths) {
+		          result.fileInfo.bitDepths = computeUsedBitDepths(parsedData);
+		        }
+		      }
+
+		      return result;
+		    };
+
+		    var uncompressPixelValues = function(data, TypedArrayClass, maskBitset, noDataValue, storeDecodedMask) {
+		      var blockIdx = 0;
+		      var numX = data.pixels.numBlocksX;
+		      var numY = data.pixels.numBlocksY;
+		      var blockWidth = Math.floor(data.width / numX);
+		      var blockHeight = Math.floor(data.height / numY);
+		      var scale = 2 * data.maxZError;
+		      var minValue = Number.MAX_VALUE, currentValue;
+		      maskBitset = maskBitset || ((data.mask) ? data.mask.bitset : null);
+
+		      var resultPixels, resultMask;
+		      resultPixels = new TypedArrayClass(data.width * data.height);
+		      if (storeDecodedMask && maskBitset) {
+		        resultMask = new Uint8Array(data.width * data.height);
+		      }
+		      var blockDataBuffer = new Float32Array(blockWidth * blockHeight);
+
+		      var xx, yy;
+		      for (var y = 0; y <= numY; y++) {
+		        var thisBlockHeight = (y !== numY) ? blockHeight : (data.height % numY);
+		        if (thisBlockHeight === 0) {
+		          continue;
+		        }
+		        for (var x = 0; x <= numX; x++) {
+		          var thisBlockWidth = (x !== numX) ? blockWidth : (data.width % numX);
+		          if (thisBlockWidth === 0) {
+		            continue;
+		          }
+
+		          var outPtr = y * data.width * blockHeight + x * blockWidth;
+		          var outStride = data.width - thisBlockWidth;
+
+		          var block = data.pixels.blocks[blockIdx];
+
+		          var blockData, blockPtr, constValue;
+		          if (block.encoding < 2) {
+		            // block is either uncompressed or bit-stuffed (encodings 0 and 1)
+		            if (block.encoding === 0) {
+		              // block is uncompressed
+		              blockData = block.rawData;
+		            } else {
+		              // block is bit-stuffed
+		              unstuff(block.stuffedData, block.bitsPerPixel, block.numValidPixels, block.offset, scale, blockDataBuffer, data.pixels.maxValue);
+		              blockData = blockDataBuffer;
+		            }
+		            blockPtr = 0;
+		          }
+		          else if (block.encoding === 2) {
+		            // block is all 0
+		            constValue = 0;
+		          }
+		          else {
+		            // block has constant value (encoding === 3)
+		            constValue = block.offset;
+		          }
+
+		          var maskByte;
+		          if (maskBitset) {
+		            for (yy = 0; yy < thisBlockHeight; yy++) {
+		              if (outPtr & 7) {
+		                //
+		                maskByte = maskBitset[outPtr >> 3];
+		                maskByte <<= outPtr & 7;
+		              }
+		              for (xx = 0; xx < thisBlockWidth; xx++) {
+		                if (!(outPtr & 7)) {
+		                  // read next byte from mask
+		                  maskByte = maskBitset[outPtr >> 3];
+		                }
+		                if (maskByte & 128) {
+		                  // pixel data present
+		                  if (resultMask) {
+		                    resultMask[outPtr] = 1;
+		                  }
+		                  currentValue = (block.encoding < 2) ? blockData[blockPtr++] : constValue;
+		                  minValue = minValue > currentValue ? currentValue : minValue;
+		                  resultPixels[outPtr++] = currentValue;
+		                } else {
+		                  // pixel data not present
+		                  if (resultMask) {
+		                    resultMask[outPtr] = 0;
+		                  }
+		                  resultPixels[outPtr++] = noDataValue;
+		                }
+		                maskByte <<= 1;
+		              }
+		              outPtr += outStride;
+		            }
+		          } else {
+		            // mask not present, simply copy block over
+		            if (block.encoding < 2) {
+		              // duplicating this code block for performance reasons
+		              // blockData case:
+		              for (yy = 0; yy < thisBlockHeight; yy++) {
+		                for (xx = 0; xx < thisBlockWidth; xx++) {
+		                  currentValue = blockData[blockPtr++];
+		                  minValue = minValue > currentValue ? currentValue : minValue;
+		                  resultPixels[outPtr++] = currentValue;
+		                }
+		                outPtr += outStride;
+		              }
+		            }
+		            else {
+		              // constValue case:
+		              minValue = minValue > constValue ? constValue : minValue;
+		              for (yy = 0; yy < thisBlockHeight; yy++) {
+		                for (xx = 0; xx < thisBlockWidth; xx++) {
+		                  resultPixels[outPtr++] = constValue;
+		                }
+		                outPtr += outStride;
+		              }
+		            }
+		          }
+		          if ((block.encoding === 1) && (blockPtr !== block.numValidPixels)) {
+		            throw "Block and Mask do not match";
+		          }
+		          blockIdx++;
+		        }
+		      }
+
+		      return {
+		        resultPixels: resultPixels,
+		        resultMask: resultMask,
+		        minValue: minValue
+		      };
+		    };
+
+		    var formatFileInfo = function(data) {
+		      return {
+		        "fileIdentifierString": data.fileIdentifierString,
+		        "fileVersion": data.fileVersion,
+		        "imageType": data.imageType,
+		        "height": data.height,
+		        "width": data.width,
+		        "maxZError": data.maxZError,
+		        "eofOffset": data.eofOffset,
+		        "mask": data.mask ? {
+		          "numBlocksX": data.mask.numBlocksX,
+		          "numBlocksY": data.mask.numBlocksY,
+		          "numBytes": data.mask.numBytes,
+		          "maxValue": data.mask.maxValue
+		        } : null,
+		        "pixels": {
+		          "numBlocksX": data.pixels.numBlocksX,
+		          "numBlocksY": data.pixels.numBlocksY,
+		          "numBytes": data.pixels.numBytes,
+		          "maxValue": data.pixels.maxValue,
+		          "noDataValue": data.noDataValue
+		        }
+		      };
+		    };
+
+		    var computeUsedBitDepths = function(data) {
+		      var numBlocks = data.pixels.numBlocksX * data.pixels.numBlocksY;
+		      var bitDepths = {};
+		      for (var i = 0; i < numBlocks; i++) {
+		        var block = data.pixels.blocks[i];
+		        if (block.encoding === 0) {
+		          bitDepths.float32 = true;
+		        } else if (block.encoding === 1) {
+		          bitDepths[block.bitsPerPixel] = true;
+		        } else {
+		          bitDepths[0] = true;
+		        }
+		      }
+
+		      return Object.keys(bitDepths);
+		    };
+
+		    var parse = function(input, fp, skipMask) {
+		      var data = {};
+
+		      // File header
+		      var fileIdView = new Uint8Array(input, fp, 10);
+		      data.fileIdentifierString = String.fromCharCode.apply(null, fileIdView);
+		      if (data.fileIdentifierString.trim() !== "CntZImage") {
+		        throw "Unexpected file identifier string: " + data.fileIdentifierString;
+		      }
+		      fp += 10;
+		      var view = new DataView(input, fp, 24);
+		      data.fileVersion = view.getInt32(0, true);
+		      data.imageType = view.getInt32(4, true);
+		      data.height = view.getUint32(8, true);
+		      data.width = view.getUint32(12, true);
+		      data.maxZError = view.getFloat64(16, true);
+		      fp += 24;
+
+		      // Mask Header
+		      if (!skipMask) {
+		        view = new DataView(input, fp, 16);
+		        data.mask = {};
+		        data.mask.numBlocksY = view.getUint32(0, true);
+		        data.mask.numBlocksX = view.getUint32(4, true);
+		        data.mask.numBytes = view.getUint32(8, true);
+		        data.mask.maxValue = view.getFloat32(12, true);
+		        fp += 16;
+
+		        // Mask Data
+		        if (data.mask.numBytes > 0) {
+		          var bitset = new Uint8Array(Math.ceil(data.width * data.height / 8));
+		          view = new DataView(input, fp, data.mask.numBytes);
+		          var cnt = view.getInt16(0, true);
+		          var ip = 2, op = 0;
+		          do {
+		            if (cnt > 0) {
+		              while (cnt--) { bitset[op++] = view.getUint8(ip++); }
+		            } else {
+		              var val = view.getUint8(ip++);
+		              cnt = -cnt;
+		              while (cnt--) { bitset[op++] = val; }
+		            }
+		            cnt = view.getInt16(ip, true);
+		            ip += 2;
+		          } while (ip < data.mask.numBytes);
+		          if ((cnt !== -32768) || (op < bitset.length)) {
+		            throw "Unexpected end of mask RLE encoding";
+		          }
+		          data.mask.bitset = bitset;
+		          fp += data.mask.numBytes;
+		        }
+		        else if ((data.mask.numBytes | data.mask.numBlocksY | data.mask.maxValue) === 0) {  // Special case, all nodata
+		          data.mask.bitset = new Uint8Array(Math.ceil(data.width * data.height / 8));
+		        }
+		      }
+
+		      // Pixel Header
+		      view = new DataView(input, fp, 16);
+		      data.pixels = {};
+		      data.pixels.numBlocksY = view.getUint32(0, true);
+		      data.pixels.numBlocksX = view.getUint32(4, true);
+		      data.pixels.numBytes = view.getUint32(8, true);
+		      data.pixels.maxValue = view.getFloat32(12, true);
+		      fp += 16;
+
+		      var numBlocksX = data.pixels.numBlocksX;
+		      var numBlocksY = data.pixels.numBlocksY;
+		      // the number of blocks specified in the header does not take into account the blocks at the end of
+		      // each row/column with a special width/height that make the image complete in case the width is not
+		      // evenly divisible by the number of blocks.
+		      var actualNumBlocksX = numBlocksX + ((data.width % numBlocksX) > 0 ? 1 : 0);
+		      var actualNumBlocksY = numBlocksY + ((data.height % numBlocksY) > 0 ? 1 : 0);
+		      data.pixels.blocks = new Array(actualNumBlocksX * actualNumBlocksY);
+		      var blockI = 0;
+		      for (var blockY = 0; blockY < actualNumBlocksY; blockY++) {
+		        for (var blockX = 0; blockX < actualNumBlocksX; blockX++) {
+
+		          // Block
+		          var size = 0;
+		          var bytesLeft = input.byteLength - fp;
+		          view = new DataView(input, fp, Math.min(10, bytesLeft));
+		          var block = {};
+		          data.pixels.blocks[blockI++] = block;
+		          var headerByte = view.getUint8(0); size++;
+		          block.encoding = headerByte & 63;
+		          if (block.encoding > 3) {
+		            throw "Invalid block encoding (" + block.encoding + ")";
+		          }
+		          if (block.encoding === 2) {
+		            fp++;
+		            continue;
+		          }
+		          if ((headerByte !== 0) && (headerByte !== 2)) {
+		            headerByte >>= 6;
+		            block.offsetType = headerByte;
+		            if (headerByte === 2) {
+		              block.offset = view.getInt8(1); size++;
+		            } else if (headerByte === 1) {
+		              block.offset = view.getInt16(1, true); size += 2;
+		            } else if (headerByte === 0) {
+		              block.offset = view.getFloat32(1, true); size += 4;
+		            } else {
+		              throw "Invalid block offset type";
+		            }
+
+		            if (block.encoding === 1) {
+		              headerByte = view.getUint8(size); size++;
+		              block.bitsPerPixel = headerByte & 63;
+		              headerByte >>= 6;
+		              block.numValidPixelsType = headerByte;
+		              if (headerByte === 2) {
+		                block.numValidPixels = view.getUint8(size); size++;
+		              } else if (headerByte === 1) {
+		                block.numValidPixels = view.getUint16(size, true); size += 2;
+		              } else if (headerByte === 0) {
+		                block.numValidPixels = view.getUint32(size, true); size += 4;
+		              } else {
+		                throw "Invalid valid pixel count type";
+		              }
+		            }
+		          }
+		          fp += size;
+
+		          if (block.encoding === 3) {
+		            continue;
+		          }
+
+		          var arrayBuf, store8;
+		          if (block.encoding === 0) {
+		            var numPixels = (data.pixels.numBytes - 1) / 4;
+		            if (numPixels !== Math.floor(numPixels)) {
+		              throw "uncompressed block has invalid length";
+		            }
+		            arrayBuf = new ArrayBuffer(numPixels * 4);
+		            store8 = new Uint8Array(arrayBuf);
+		            store8.set(new Uint8Array(input, fp, numPixels * 4));
+		            var rawData = new Float32Array(arrayBuf);
+		            block.rawData = rawData;
+		            fp += numPixels * 4;
+		          } else if (block.encoding === 1) {
+		            var dataBytes = Math.ceil(block.numValidPixels * block.bitsPerPixel / 8);
+		            var dataWords = Math.ceil(dataBytes / 4);
+		            arrayBuf = new ArrayBuffer(dataWords * 4);
+		            store8 = new Uint8Array(arrayBuf);
+		            store8.set(new Uint8Array(input, fp, dataBytes));
+		            block.stuffedData = new Uint32Array(arrayBuf);
+		            fp += dataBytes;
+		          }
+		        }
+		      }
+		      data.eofOffset = fp;
+		      return data;
+		    };
+
+		    var unstuff = function(src, bitsPerPixel, numPixels, offset, scale, dest, maxValue) {
+		      var bitMask = (1 << bitsPerPixel) - 1;
+		      var i = 0, o;
+		      var bitsLeft = 0;
+		      var n, buffer;
+		      var nmax = Math.ceil((maxValue - offset) / scale);
+		      // get rid of trailing bytes that are already part of next block
+		      var numInvalidTailBytes = src.length * 4 - Math.ceil(bitsPerPixel * numPixels / 8);
+		      src[src.length - 1] <<= 8 * numInvalidTailBytes;
+
+		      for (o = 0; o < numPixels; o++) {
+		        if (bitsLeft === 0) {
+		          buffer = src[i++];
+		          bitsLeft = 32;
+		        }
+		        if (bitsLeft >= bitsPerPixel) {
+		          n = (buffer >>> (bitsLeft - bitsPerPixel)) & bitMask;
+		          bitsLeft -= bitsPerPixel;
+		        } else {
+		          var missingBits = (bitsPerPixel - bitsLeft);
+		          n = ((buffer & bitMask) << missingBits) & bitMask;
+		          buffer = src[i++];
+		          bitsLeft = 32 - missingBits;
+		          n += (buffer >>> bitsLeft);
+		        }
+		        //pixel values may exceed max due to quantization
+		        dest[o] = n < nmax ? offset + n * scale : maxValue;
+		      }
+		      return dest;
+		    };
+
+		    return CntZImage;
+		  })();
+
+		  //version 2. Supports 2.1, 2.2, 2.3
+		  var Lerc2Decode = (function() {
+		    // Note: currently, this module only has an implementation for decoding LERC data, not encoding. The name of
+		    // the class was chosen to be future proof, following LercDecode.
+
+		    /*****************************************
+		    * private static class bitsutffer used by Lerc2Decode
+		    *******************************************/
+		    var BitStuffer = {
+		      //methods ending with 2 are for the new byte order used by Lerc2.3 and above.
+		      //originalUnstuff is used to unpack Huffman code table. code is duplicated to unstuffx for performance reasons.
+		      unstuff: function(src, dest, bitsPerPixel, numPixels, lutArr, offset, scale, maxValue) {
+		        var bitMask = (1 << bitsPerPixel) - 1;
+		        var i = 0, o;
+		        var bitsLeft = 0;
+		        var n, buffer, missingBits, nmax;
+
+		        // get rid of trailing bytes that are already part of next block
+		        var numInvalidTailBytes = src.length * 4 - Math.ceil(bitsPerPixel * numPixels / 8);
+		        src[src.length - 1] <<= 8 * numInvalidTailBytes;
+		        if (lutArr) {
+		          for (o = 0; o < numPixels; o++) {
+		            if (bitsLeft === 0) {
+		              buffer = src[i++];
+		              bitsLeft = 32;
+		            }
+		            if (bitsLeft >= bitsPerPixel) {
+		              n = (buffer >>> (bitsLeft - bitsPerPixel)) & bitMask;
+		              bitsLeft -= bitsPerPixel;
+		            }
+		            else {
+		              missingBits = (bitsPerPixel - bitsLeft);
+		              n = ((buffer & bitMask) << missingBits) & bitMask;
+		              buffer = src[i++];
+		              bitsLeft = 32 - missingBits;
+		              n += (buffer >>> bitsLeft);
+		            }
+		            dest[o] = lutArr[n];//offset + lutArr[n] * scale;
+		          }
+		        }
+		        else {
+		          nmax = Math.ceil((maxValue - offset) / scale);
+		          for (o = 0; o < numPixels; o++) {
+		            if (bitsLeft === 0) {
+		              buffer = src[i++];
+		              bitsLeft = 32;
+		            }
+		            if (bitsLeft >= bitsPerPixel) {
+		              n = (buffer >>> (bitsLeft - bitsPerPixel)) & bitMask;
+		              bitsLeft -= bitsPerPixel;
+		            }
+		            else {
+		              missingBits = (bitsPerPixel - bitsLeft);
+		              n = ((buffer & bitMask) << missingBits) & bitMask;
+		              buffer = src[i++];
+		              bitsLeft = 32 - missingBits;
+		              n += (buffer >>> bitsLeft);
+		            }
+		            //pixel values may exceed max due to quantization
+		            dest[o] = n < nmax ? offset + n * scale : maxValue;
+		          }
+		        }
+		      },
+
+		      unstuffLUT: function(src, bitsPerPixel, numPixels, offset, scale, maxValue) {
+		        var bitMask = (1 << bitsPerPixel) - 1;
+		        var i = 0, o = 0, missingBits = 0, bitsLeft = 0, n = 0;
+		        var buffer;
+		        var dest = [];
+
+		        // get rid of trailing bytes that are already part of next block
+		        var numInvalidTailBytes = src.length * 4 - Math.ceil(bitsPerPixel * numPixels / 8);
+		        src[src.length - 1] <<= 8 * numInvalidTailBytes;
+
+		        var nmax = Math.ceil((maxValue - offset) / scale);
+		        for (o = 0; o < numPixels; o++) {
+		          if (bitsLeft === 0) {
+		            buffer = src[i++];
+		            bitsLeft = 32;
+		          }
+		          if (bitsLeft >= bitsPerPixel) {
+		            n = (buffer >>> (bitsLeft - bitsPerPixel)) & bitMask;
+		            bitsLeft -= bitsPerPixel;
+		          } else {
+		            missingBits = (bitsPerPixel - bitsLeft);
+		            n = ((buffer & bitMask) << missingBits) & bitMask;
+		            buffer = src[i++];
+		            bitsLeft = 32 - missingBits;
+		            n += (buffer >>> bitsLeft);
+		          }
+		          //dest.push(n);
+		          dest[o] = n < nmax ? offset + n * scale : maxValue;
+		        }
+		        dest.unshift(offset);//1st one
+		        return dest;
+		      },
+
+		      unstuff2: function(src, dest, bitsPerPixel, numPixels, lutArr, offset, scale, maxValue) {
+		        var bitMask = (1 << bitsPerPixel) - 1;
+		        var i = 0, o;
+		        var bitsLeft = 0, bitPos = 0;
+		        var n, buffer, missingBits;
+		        if (lutArr) {
+		          for (o = 0; o < numPixels; o++) {
+		            if (bitsLeft === 0) {
+		              buffer = src[i++];
+		              bitsLeft = 32;
+		              bitPos = 0;
+		            }
+		            if (bitsLeft >= bitsPerPixel) {
+		              n = ((buffer >>> bitPos) & bitMask);
+		              bitsLeft -= bitsPerPixel;
+		              bitPos += bitsPerPixel;
+		            } else {
+		              missingBits = (bitsPerPixel - bitsLeft);
+		              n = (buffer >>> bitPos) & bitMask;
+		              buffer = src[i++];
+		              bitsLeft = 32 - missingBits;
+		              n |= (buffer & ((1 << missingBits) - 1)) << (bitsPerPixel - missingBits);
+		              bitPos = missingBits;
+		            }
+		            dest[o] = lutArr[n];
+		          }
+		        }
+		        else {
+		          var nmax = Math.ceil((maxValue - offset) / scale);
+		          for (o = 0; o < numPixels; o++) {
+		            if (bitsLeft === 0) {
+		              buffer = src[i++];
+		              bitsLeft = 32;
+		              bitPos = 0;
+		            }
+		            if (bitsLeft >= bitsPerPixel) {
+		              //no unsigned left shift
+		              n = ((buffer >>> bitPos) & bitMask);
+		              bitsLeft -= bitsPerPixel;
+		              bitPos += bitsPerPixel;
+		            } else {
+		              missingBits = (bitsPerPixel - bitsLeft);
+		              n = (buffer >>> bitPos) & bitMask;//((buffer & bitMask) << missingBits) & bitMask;
+		              buffer = src[i++];
+		              bitsLeft = 32 - missingBits;
+		              n |= (buffer & ((1 << missingBits) - 1)) << (bitsPerPixel - missingBits);
+		              bitPos = missingBits;
+		            }
+		            //pixel values may exceed max due to quantization
+		            dest[o] = n < nmax ? offset + n * scale : maxValue;
+		          }
+		        }
+		        return dest;
+		      },
+
+		      unstuffLUT2: function(src, bitsPerPixel, numPixels, offset, scale, maxValue) {
+		        var bitMask = (1 << bitsPerPixel) - 1;
+		        var i = 0, o = 0, missingBits = 0, bitsLeft = 0, n = 0, bitPos = 0;
+		        var buffer;
+		        var dest = [];
+		        var nmax = Math.ceil((maxValue - offset) / scale);
+		        for (o = 0; o < numPixels; o++) {
+		          if (bitsLeft === 0) {
+		            buffer = src[i++];
+		            bitsLeft = 32;
+		            bitPos = 0;
+		          }
+		          if (bitsLeft >= bitsPerPixel) {
+		            //no unsigned left shift
+		            n = ((buffer >>> bitPos) & bitMask);
+		            bitsLeft -= bitsPerPixel;
+		            bitPos += bitsPerPixel;
+		          } else {
+		            missingBits = (bitsPerPixel - bitsLeft);
+		            n = (buffer >>> bitPos) & bitMask;//((buffer & bitMask) << missingBits) & bitMask;
+		            buffer = src[i++];
+		            bitsLeft = 32 - missingBits;
+		            n |= (buffer & ((1 << missingBits) - 1)) << (bitsPerPixel - missingBits);
+		            bitPos = missingBits;
+		          }
+		          //dest.push(n);
+		          dest[o] = n < nmax ? offset + n * scale : maxValue;
+		        }
+		        dest.unshift(offset);
+		        return dest;
+		      },
+
+		      originalUnstuff: function(src, dest, bitsPerPixel, numPixels) {
+		        var bitMask = (1 << bitsPerPixel) - 1;
+		        var i = 0, o;
+		        var bitsLeft = 0;
+		        var n, buffer, missingBits;
+
+		        // get rid of trailing bytes that are already part of next block
+		        var numInvalidTailBytes = src.length * 4 - Math.ceil(bitsPerPixel * numPixels / 8);
+		        src[src.length - 1] <<= 8 * numInvalidTailBytes;
+
+		        for (o = 0; o < numPixels; o++) {
+		          if (bitsLeft === 0) {
+		            buffer = src[i++];
+		            bitsLeft = 32;
+		          }
+		          if (bitsLeft >= bitsPerPixel) {
+		            n = (buffer >>> (bitsLeft - bitsPerPixel)) & bitMask;
+		            bitsLeft -= bitsPerPixel;
+		          }
+		          else {
+		            missingBits = (bitsPerPixel - bitsLeft);
+		            n = ((buffer & bitMask) << missingBits) & bitMask;
+		            buffer = src[i++];
+		            bitsLeft = 32 - missingBits;
+		            n += (buffer >>> bitsLeft);
+		          }
+		          dest[o] = n;
+		        }
+		        return dest;
+		      },
+
+		      originalUnstuff2: function(src, dest, bitsPerPixel, numPixels) {
+		        var bitMask = (1 << bitsPerPixel) - 1;
+		        var i = 0, o;
+		        var bitsLeft = 0, bitPos = 0;
+		        var n, buffer, missingBits;
+		        //micro-optimizations
+		        for (o = 0; o < numPixels; o++) {
+		          if (bitsLeft === 0) {
+		            buffer = src[i++];
+		            bitsLeft = 32;
+		            bitPos = 0;
+		          }
+		          if (bitsLeft >= bitsPerPixel) {
+		            //no unsigned left shift
+		            n = ((buffer >>> bitPos) & bitMask);
+		            bitsLeft -= bitsPerPixel;
+		            bitPos += bitsPerPixel;
+		          } else {
+		            missingBits = (bitsPerPixel - bitsLeft);
+		            n = (buffer >>> bitPos) & bitMask;//((buffer & bitMask) << missingBits) & bitMask;
+		            buffer = src[i++];
+		            bitsLeft = 32 - missingBits;
+		            n |= (buffer & ((1 << missingBits) - 1)) << (bitsPerPixel - missingBits);
+		            bitPos = missingBits;
+		          }
+		          dest[o] = n;
+		        }
+		        return dest;
+		      }
+		    };
+
+		    /*****************************************
+		    *private static class used by Lerc2Decode
+		    ******************************************/
+		    var Lerc2Helpers = {
+		      HUFFMAN_LUT_BITS_MAX: 12, //use 2^12 lut, treat it like constant
+		      computeChecksumFletcher32: function(input) {
+
+		        var sum1 = 0xffff, sum2 = 0xffff;
+		        var len = input.length;
+		        var words = Math.floor(len / 2);
+		        var i = 0;
+		        while (words) {
+		          var tlen = (words >= 359) ? 359 : words;
+		          words -= tlen;
+		          do {
+		            sum1 += (input[i++] << 8);
+		            sum2 += sum1 += input[i++];
+		          } while (--tlen);
+
+		          sum1 = (sum1 & 0xffff) + (sum1 >>> 16);
+		          sum2 = (sum2 & 0xffff) + (sum2 >>> 16);
+		        }
+
+		        // add the straggler byte if it exists
+		        if (len & 1) {
+		          sum2 += sum1 += (input[i] << 8);
+		        }
+		        // second reduction step to reduce sums to 16 bits
+		        sum1 = (sum1 & 0xffff) + (sum1 >>> 16);
+		        sum2 = (sum2 & 0xffff) + (sum2 >>> 16);
+
+		        return (sum2 << 16 | sum1) >>> 0;
+		      },
+
+		      readHeaderInfo: function(input, data) {
+		        var ptr = data.ptr;
+		        var fileIdView = new Uint8Array(input, ptr, 6);
+		        var headerInfo = {};
+		        headerInfo.fileIdentifierString = String.fromCharCode.apply(null, fileIdView);
+		        if (headerInfo.fileIdentifierString.lastIndexOf("Lerc2", 0) !== 0) {
+		          throw "Unexpected file identifier string (expect Lerc2 ): " + headerInfo.fileIdentifierString;
+		        }
+		        ptr += 6;
+		        var view = new DataView(input, ptr, 8);
+		        var fileVersion = view.getInt32(0, true);
+		        headerInfo.fileVersion = fileVersion;
+		        ptr += 4;
+		        if (fileVersion >= 3) {
+		          headerInfo.checksum = view.getUint32(4, true); //nrows
+		          ptr += 4;
+		        }
+
+		        //keys start from here
+		        view = new DataView(input, ptr, 12);
+		        headerInfo.height = view.getUint32(0, true); //nrows
+		        headerInfo.width = view.getUint32(4, true); //ncols
+		        ptr += 8;
+		        if (fileVersion >= 4) {
+		          headerInfo.numDims = view.getUint32(8, true);
+		          ptr += 4;
+		        }
+		        else {
+		          headerInfo.numDims = 1;
+		        }
+
+		        view = new DataView(input, ptr, 40);
+		        headerInfo.numValidPixel = view.getUint32(0, true);
+		        headerInfo.microBlockSize = view.getInt32(4, true);
+		        headerInfo.blobSize = view.getInt32(8, true);
+		        headerInfo.imageType = view.getInt32(12, true);
+
+		        headerInfo.maxZError = view.getFloat64(16, true);
+		        headerInfo.zMin = view.getFloat64(24, true);
+		        headerInfo.zMax = view.getFloat64(32, true);
+		        ptr += 40;
+		        data.headerInfo = headerInfo;
+		        data.ptr = ptr;
+
+		        var checksum, keyLength;
+		        if (fileVersion >= 3) {
+		          keyLength = fileVersion >= 4 ? 52 : 48;
+		          checksum = this.computeChecksumFletcher32(new Uint8Array(input, ptr - keyLength, headerInfo.blobSize - 14));
+		          if (checksum !== headerInfo.checksum) {
+		            throw "Checksum failed.";
+		          }
+		        }
+		        return true;
+		      },
+
+		      checkMinMaxRanges: function(input, data) {
+		        var headerInfo = data.headerInfo;
+		        var OutPixelTypeArray = this.getDataTypeArray(headerInfo.imageType);
+		        var rangeBytes = headerInfo.numDims * this.getDataTypeSize(headerInfo.imageType);
+		        var minValues = this.readSubArray(input, data.ptr, OutPixelTypeArray, rangeBytes);
+		        var maxValues = this.readSubArray(input, data.ptr + rangeBytes, OutPixelTypeArray, rangeBytes);
+		        data.ptr += (2 * rangeBytes);
+		        var i, equal = true;
+		        for (i = 0; i < headerInfo.numDims; i++) {
+		          if (minValues[i] !== maxValues[i]) {
+		            equal = false;
+		            break;
+		          }
+		        }
+		        headerInfo.minValues = minValues;
+		        headerInfo.maxValues = maxValues;
+		        return equal;
+		      },
+
+		      readSubArray: function(input, ptr, OutPixelTypeArray, numBytes) {
+		        var rawData;
+		        if (OutPixelTypeArray === Uint8Array) {
+		          rawData = new Uint8Array(input, ptr, numBytes);
+		        }
+		        else {
+		          var arrayBuf = new ArrayBuffer(numBytes);
+		          var store8 = new Uint8Array(arrayBuf);
+		          store8.set(new Uint8Array(input, ptr, numBytes));
+		          rawData = new OutPixelTypeArray(arrayBuf);
+		        }
+		        return rawData;
+		      },
+
+		      readMask: function(input, data) {
+		        var ptr = data.ptr;
+		        var headerInfo = data.headerInfo;
+		        var numPixels = headerInfo.width * headerInfo.height;
+		        var numValidPixel = headerInfo.numValidPixel;
+
+		        var view = new DataView(input, ptr, 4);
+		        var mask = {};
+		        mask.numBytes = view.getUint32(0, true);
+		        ptr += 4;
+
+		        // Mask Data
+		        if ((0 === numValidPixel || numPixels === numValidPixel) && 0 !== mask.numBytes) {
+		          throw ("invalid mask");
+		        }
+		        var bitset, resultMask;
+		        if (numValidPixel === 0) {
+		          bitset = new Uint8Array(Math.ceil(numPixels / 8));
+		          mask.bitset = bitset;
+		          resultMask = new Uint8Array(numPixels);
+		          data.pixels.resultMask = resultMask;
+		          ptr += mask.numBytes;
+		        }// ????? else if (data.mask.numBytes > 0 && data.mask.numBytes< data.numValidPixel) {
+		        else if (mask.numBytes > 0) {
+		          bitset = new Uint8Array(Math.ceil(numPixels / 8));
+		          view = new DataView(input, ptr, mask.numBytes);
+		          var cnt = view.getInt16(0, true);
+		          var ip = 2, op = 0, val = 0;
+		          do {
+		            if (cnt > 0) {
+		              while (cnt--) { bitset[op++] = view.getUint8(ip++); }
+		            } else {
+		              val = view.getUint8(ip++);
+		              cnt = -cnt;
+		              while (cnt--) { bitset[op++] = val; }
+		            }
+		            cnt = view.getInt16(ip, true);
+		            ip += 2;
+		          } while (ip < mask.numBytes);
+		          if ((cnt !== -32768) || (op < bitset.length)) {
+		            throw "Unexpected end of mask RLE encoding";
+		          }
+
+		          resultMask = new Uint8Array(numPixels);
+		          var mb = 0, k = 0;
+
+		          for (k = 0; k < numPixels; k++) {
+		            if (k & 7) {
+		              mb = bitset[k >> 3];
+		              mb <<= k & 7;
+		            }
+		            else {
+		              mb = bitset[k >> 3];
+		            }
+		            if (mb & 128) {
+		              resultMask[k] = 1;
+		            }
+		          }
+		          data.pixels.resultMask = resultMask;
+
+		          mask.bitset = bitset;
+		          ptr += mask.numBytes;
+		        }
+		        data.ptr = ptr;
+		        data.mask = mask;
+		        return true;
+		      },
+
+		      readDataOneSweep: function(input, data, OutPixelTypeArray, useBSQForOutputDim) {
+		        var ptr = data.ptr;
+		        var headerInfo = data.headerInfo;
+		        var numDims = headerInfo.numDims;
+		        var numPixels = headerInfo.width * headerInfo.height;
+		        var imageType = headerInfo.imageType;
+		        var numBytes = headerInfo.numValidPixel * Lerc2Helpers.getDataTypeSize(imageType) * numDims;
+		        //data.pixels.numBytes = numBytes;
+		        var rawData;
+		        var mask = data.pixels.resultMask;
+		        if (OutPixelTypeArray === Uint8Array) {
+		          rawData = new Uint8Array(input, ptr, numBytes);
+		        }
+		        else {
+		          var arrayBuf = new ArrayBuffer(numBytes);
+		          var store8 = new Uint8Array(arrayBuf);
+		          store8.set(new Uint8Array(input, ptr, numBytes));
+		          rawData = new OutPixelTypeArray(arrayBuf);
+		        }
+		        if (rawData.length === numPixels * numDims) {
+		          if (useBSQForOutputDim) {
+		            data.pixels.resultPixels = Lerc2Helpers.swapDimensionOrder(rawData, numPixels, numDims, OutPixelTypeArray, true);
+		          }
+		          else {
+		            data.pixels.resultPixels = rawData;
+		          }
+		        }
+		        else  //mask
+		        {
+		          data.pixels.resultPixels = new OutPixelTypeArray(numPixels * numDims);
+		          var z = 0, k = 0, i = 0, nStart = 0;
+		          if (numDims > 1) {
+		            if (useBSQForOutputDim) {
+		              for (k = 0; k < numPixels; k++) {
+		                if (mask[k]) {
+		                  nStart = k;
+		                  for (i = 0; i < numDims; i++, nStart+=numPixels) {
+		                    data.pixels.resultPixels[nStart] = rawData[z++];
+		                  }
+		                }
+		              }
+		            }
+		            else {
+		              for (k = 0; k < numPixels; k++) {
+		                if (mask[k]) {
+		                  nStart = k * numDims;
+		                  for (i = 0; i < numDims; i++) {
+		                    data.pixels.resultPixels[nStart + i] = rawData[z++];
+		                  }
+		                }
+		              }
+		            }
+		          }
+		          else {
+		            for (k = 0; k < numPixels; k++) {
+		              if (mask[k]) {
+		                data.pixels.resultPixels[k] = rawData[z++];
+		              }
+		            }
+		          }
+		        }
+		        ptr += numBytes;
+		        data.ptr = ptr;       //return data;
+		        return true;
+		      },
+
+		      readHuffmanTree: function(input, data) {
+		        var BITS_MAX = this.HUFFMAN_LUT_BITS_MAX; //8 is slow for the large test image
+		        //var size_max = 1 << BITS_MAX;
+		        /* ************************
+		        * reading code table
+		        *************************/
+		        var view = new DataView(input, data.ptr, 16);
+		        data.ptr += 16;
+		        var version = view.getInt32(0, true);
+		        if (version < 2) {
+		          throw "unsupported Huffman version";
+		        }
+		        var size = view.getInt32(4, true);
+		        var i0 = view.getInt32(8, true);
+		        var i1 = view.getInt32(12, true);
+		        if (i0 >= i1) {
+		          return false;
+		        }
+		        var blockDataBuffer = new Uint32Array(i1 - i0);
+		        Lerc2Helpers.decodeBits(input, data, blockDataBuffer);
+		        var codeTable = []; //size
+		        var i, j, k, len;
+
+		        for (i = i0; i < i1; i++) {
+		          j = i - (i < size ? 0 : size);//wrap around
+		          codeTable[j] = { first: blockDataBuffer[i - i0], second: null };
+		        }
+
+		        var dataBytes = input.byteLength - data.ptr;
+		        var dataWords = Math.ceil(dataBytes / 4);
+		        var arrayBuf = new ArrayBuffer(dataWords * 4);
+		        var store8 = new Uint8Array(arrayBuf);
+		        store8.set(new Uint8Array(input, data.ptr, dataBytes));
+		        var stuffedData = new Uint32Array(arrayBuf); //must start from x*4
+		        var bitPos = 0, word, srcPtr = 0;
+		        word = stuffedData[0];
+		        for (i = i0; i < i1; i++) {
+		          j = i - (i < size ? 0 : size);//wrap around
+		          len = codeTable[j].first;
+		          if (len > 0) {
+		            codeTable[j].second = (word << bitPos) >>> (32 - len);
+
+		            if (32 - bitPos >= len) {
+		              bitPos += len;
+		              if (bitPos === 32) {
+		                bitPos = 0;
+		                srcPtr++;
+		                word = stuffedData[srcPtr];
+		              }
+		            }
+		            else {
+		              bitPos += len - 32;
+		              srcPtr++;
+		              word = stuffedData[srcPtr];
+		              codeTable[j].second |= word >>> (32 - bitPos);
+		            }
+		          }
+		        }
+
+		        //finished reading code table
+
+		        /* ************************
+		        * building lut
+		        *************************/
+		        var numBitsLUT = 0, numBitsLUTQick = 0;
+		        var tree = new TreeNode();
+		        for (i = 0; i < codeTable.length; i++) {
+		          if (codeTable[i] !== undefined) {
+		            numBitsLUT = Math.max(numBitsLUT, codeTable[i].first);
+		          }
+		        }
+		        if (numBitsLUT >= BITS_MAX) {
+		          numBitsLUTQick = BITS_MAX;
+		        }
+		        else {
+		          numBitsLUTQick = numBitsLUT;
+		        }
+		        // for debugging purpose
+		        // if (numBitsLUT >= 30) {
+		        //   console.log("WARning, large NUM LUT BITS IS " + numBitsLUT);
+		        // }
+		        var decodeLut = [], entry, code, numEntries, jj, currentBit, node;
+		        for (i = i0; i < i1; i++) {
+		          j = i - (i < size ? 0 : size);//wrap around
+		          len = codeTable[j].first;
+		          if (len > 0) {
+		            entry = [len, j];
+		            if (len <= numBitsLUTQick) {
+		              code = codeTable[j].second << (numBitsLUTQick - len);
+		              numEntries = 1 << (numBitsLUTQick - len);
+		              for (k = 0; k < numEntries; k++) {
+		                decodeLut[code | k] = entry;
+		              }
+		            }
+		            else {
+		              //build tree
+		              code = codeTable[j].second;
+		              node = tree;
+		              for (jj = len - 1; jj >= 0; jj--) {
+		                currentBit = code >>> jj & 1; //no left shift as length could be 30,31
+		                if (currentBit) {
+		                  if (!node.right) {
+		                    node.right = new TreeNode();
+		                  }
+		                  node = node.right;
+		                }
+		                else {
+		                  if (!node.left) {
+		                    node.left = new TreeNode();
+		                  }
+		                  node = node.left;
+		                }
+		                if (jj === 0 && !node.val) {
+		                  node.val = entry[1];
+		                }
+		              }
+		            }
+		          }
+		        }
+		        return {
+		          decodeLut: decodeLut,
+		          numBitsLUTQick: numBitsLUTQick,
+		          numBitsLUT: numBitsLUT,
+		          tree: tree,
+		          stuffedData: stuffedData,
+		          srcPtr: srcPtr,
+		          bitPos: bitPos
+		        };
+		      },
+
+		      readHuffman: function(input, data, OutPixelTypeArray, useBSQForOutputDim) {
+		        var headerInfo = data.headerInfo;
+		        var numDims = headerInfo.numDims;
+		        var height = data.headerInfo.height;
+		        var width = data.headerInfo.width;
+		        var numPixels = width * height;
+		        //var size_max = 1 << BITS_MAX;
+		        /* ************************
+		        * reading huffman structure info
+		        *************************/
+		        var huffmanInfo = this.readHuffmanTree(input, data);
+		        var decodeLut = huffmanInfo.decodeLut;
+		        var tree = huffmanInfo.tree;
+		        //stuffedData includes huffman headers
+		        var stuffedData = huffmanInfo.stuffedData;
+		        var srcPtr = huffmanInfo.srcPtr;
+		        var bitPos = huffmanInfo.bitPos;
+		        var numBitsLUTQick = huffmanInfo.numBitsLUTQick;
+		        var numBitsLUT = huffmanInfo.numBitsLUT;
+		        var offset = data.headerInfo.imageType === 0 ? 128 : 0;
+		        /*************************
+		        *  decode
+		        ***************************/
+		        var node, val, delta, mask = data.pixels.resultMask, valTmp, valTmpQuick, currentBit;
+		        var i, j, k, ii;
+		        var prevVal = 0;
+		        if (bitPos > 0) {
+		          srcPtr++;
+		          bitPos = 0;
+		        }
+		        var word = stuffedData[srcPtr];
+		        var deltaEncode = data.encodeMode === 1;
+		        var resultPixelsAllDim = new OutPixelTypeArray(numPixels * numDims);
+		        var resultPixels = resultPixelsAllDim;
+		        var iDim;
+		        // TODO: reevaluate the need to keep inlined decoding code as IE support is phasing out
+		        if (numDims < 2 || deltaEncode) {
+		          for (iDim = 0; iDim < numDims; iDim++) {
+		            if (numDims > 1) {
+		              //get the mem block of current dimension
+		              resultPixels = new OutPixelTypeArray(resultPixelsAllDim.buffer, numPixels * iDim, numPixels);
+		              prevVal = 0;
+		            }
+		            if (data.headerInfo.numValidPixel === width * height) { //all valid
+		              for (k = 0, i = 0; i < height; i++) {
+		                for (j = 0; j < width; j++, k++) {
+		                  val = 0;
+		                  valTmp = (word << bitPos) >>> (32 - numBitsLUTQick);
+		                  valTmpQuick = valTmp;// >>> deltaBits;
+		                  if (32 - bitPos < numBitsLUTQick) {
+		                    valTmp |= ((stuffedData[srcPtr + 1]) >>> (64 - bitPos - numBitsLUTQick));
+		                    valTmpQuick = valTmp;// >>> deltaBits;
+		                  }
+		                  if (decodeLut[valTmpQuick])    // if there, move the correct number of bits and done
+		                  {
+		                    val = decodeLut[valTmpQuick][1];
+		                    bitPos += decodeLut[valTmpQuick][0];
+		                  }
+		                  else {
+		                    valTmp = (word << bitPos) >>> (32 - numBitsLUT);
+		                    valTmpQuick = valTmp;// >>> deltaBits;
+		                    if (32 - bitPos < numBitsLUT) {
+		                      valTmp |= ((stuffedData[srcPtr + 1]) >>> (64 - bitPos - numBitsLUT));
+		                      valTmpQuick = valTmp;// >>> deltaBits;
+		                    }
+		                    node = tree;
+		                    for (ii = 0; ii < numBitsLUT; ii++) {
+		                      currentBit = valTmp >>> (numBitsLUT - ii - 1) & 1;
+		                      node = currentBit ? node.right : node.left;
+		                      if (!(node.left || node.right)) {
+		                        val = node.val;
+		                        bitPos = bitPos + ii + 1;
+		                        break;
+		                      }
+		                    }
+		                  }
+		    
+		                  if (bitPos >= 32) {
+		                    bitPos -= 32;
+		                    srcPtr++;
+		                    word = stuffedData[srcPtr];
+		                  }
+		    
+		                  delta = val - offset;
+		                  if (deltaEncode) {
+		                    if (j > 0) {
+		                      delta += prevVal;    // use overflow
+		                    }
+		                    else if (i > 0) {
+		                      delta += resultPixels[k - width];
+		                    }
+		                    else {
+		                      delta += prevVal;
+		                    }
+		                    delta &= 0xFF; //overflow
+		                    resultPixels[k] = delta;//overflow
+		                    prevVal = delta;
+		                  }
+		                  else {
+		                    resultPixels[k] = delta;
+		                  }
+		                }
+		              }
+		            }
+		            else { //not all valid, use mask
+		              for (k = 0, i = 0; i < height; i++) {
+		                for (j = 0; j < width; j++, k++) {
+		                  if (mask[k]) {
+		                    val = 0;
+		                    valTmp = (word << bitPos) >>> (32 - numBitsLUTQick);
+		                    valTmpQuick = valTmp;// >>> deltaBits;
+		                    if (32 - bitPos < numBitsLUTQick) {
+		                      valTmp |= ((stuffedData[srcPtr + 1]) >>> (64 - bitPos - numBitsLUTQick));
+		                      valTmpQuick = valTmp;// >>> deltaBits;
+		                    }
+		                    if (decodeLut[valTmpQuick])    // if there, move the correct number of bits and done
+		                    {
+		                      val = decodeLut[valTmpQuick][1];
+		                      bitPos += decodeLut[valTmpQuick][0];
+		                    }
+		                    else {
+		                      valTmp = (word << bitPos) >>> (32 - numBitsLUT);
+		                      valTmpQuick = valTmp;// >>> deltaBits;
+		                      if (32 - bitPos < numBitsLUT) {
+		                        valTmp |= ((stuffedData[srcPtr + 1]) >>> (64 - bitPos - numBitsLUT));
+		                        valTmpQuick = valTmp;// >>> deltaBits;
+		                      }
+		                      node = tree;
+		                      for (ii = 0; ii < numBitsLUT; ii++) {
+		                        currentBit = valTmp >>> (numBitsLUT - ii - 1) & 1;
+		                        node = currentBit ? node.right : node.left;
+		                        if (!(node.left || node.right)) {
+		                          val = node.val;
+		                          bitPos = bitPos + ii + 1;
+		                          break;
+		                        }
+		                      }
+		                    }
+		    
+		                    if (bitPos >= 32) {
+		                      bitPos -= 32;
+		                      srcPtr++;
+		                      word = stuffedData[srcPtr];
+		                    }
+		    
+		                    delta = val - offset;
+		                    if (deltaEncode) {
+		                      if (j > 0 && mask[k - 1]) {
+		                        delta += prevVal;    // use overflow
+		                      }
+		                      else if (i > 0 && mask[k - width]) {
+		                        delta += resultPixels[k - width];
+		                      }
+		                      else {
+		                        delta += prevVal;
+		                      }
+		    
+		                      delta &= 0xFF; //overflow
+		                      resultPixels[k] = delta;//overflow
+		                      prevVal = delta;
+		                    }
+		                    else {
+		                      resultPixels[k] = delta;
+		                    }
+		                  }
+		                }
+		              }
+		            }
+		          }
+		        }
+		        else {
+		          for (k = 0, i = 0; i < height; i++) {
+		            for (j = 0; j < width; j++) {
+		              k = i * width + j;
+		              if (!mask || mask[k]) {
+		                for (iDim = 0; iDim < numDims; iDim++, k+=numPixels) {
+		                  val = 0;
+		                  valTmp = (word << bitPos) >>> (32 - numBitsLUTQick);
+		                  valTmpQuick = valTmp;
+		                  if (32 - bitPos < numBitsLUTQick) {
+		                    valTmp |= ((stuffedData[srcPtr + 1]) >>> (64 - bitPos - numBitsLUTQick));
+		                    valTmpQuick = valTmp;
+		                  }
+		                  if (decodeLut[valTmpQuick])
+		                  {
+		                    val = decodeLut[valTmpQuick][1];
+		                    bitPos += decodeLut[valTmpQuick][0];
+		                  }
+		                  else {
+		                    valTmp = (word << bitPos) >>> (32 - numBitsLUT);
+		                    valTmpQuick = valTmp;
+		                    if (32 - bitPos < numBitsLUT) {
+		                      valTmp |= ((stuffedData[srcPtr + 1]) >>> (64 - bitPos - numBitsLUT));
+		                      valTmpQuick = valTmp;
+		                    }
+		                    node = tree;
+		                    for (ii = 0; ii < numBitsLUT; ii++) {
+		                      currentBit = valTmp >>> (numBitsLUT - ii - 1) & 1;
+		                      node = currentBit ? node.right : node.left;
+		                      if (!(node.left || node.right)) {
+		                        val = node.val;
+		                        bitPos = bitPos + ii + 1;
+		                        break;
+		                      }
+		                    }
+		                  }
+
+		                  if (bitPos >= 32) {
+		                    bitPos -= 32;
+		                    srcPtr++;
+		                    word = stuffedData[srcPtr];
+		                  }
+
+		                  delta = val - offset;
+		                  resultPixels[k] = delta;
+		                }
+		              }
+		            }
+		          }
+		        }
+		        data.ptr = data.ptr + (srcPtr + 1) * 4 + (bitPos > 0 ? 4 : 0);
+		        data.pixels.resultPixels = resultPixelsAllDim;
+		        //swap for BIP layout
+		        if (numDims > 1 && !useBSQForOutputDim) {
+		          data.pixels.resultPixels = Lerc2Helpers.swapDimensionOrder(resultPixelsAllDim, numPixels, numDims, OutPixelTypeArray);
+		        }
+		      },
+
+		      decodeBits: function(input, data, blockDataBuffer, offset, iDim) {
+		        {
+		          //bitstuff encoding is 3
+		          var headerInfo = data.headerInfo;
+		          var fileVersion = headerInfo.fileVersion;
+		          //var block = {};
+		          var blockPtr = 0;
+		          var viewByteLength = ((input.byteLength - data.ptr) >= 5) ? 5 : (input.byteLength - data.ptr);
+		          var view = new DataView(input, data.ptr, viewByteLength);
+		          var headerByte = view.getUint8(0);
+		          blockPtr++;
+		          var bits67 = headerByte >> 6;
+		          var n = (bits67 === 0) ? 4 : 3 - bits67;
+		          var doLut = (headerByte & 32) > 0 ? true : false;//5th bit
+		          var numBits = headerByte & 31;
+		          var numElements = 0;
+		          if (n === 1) {
+		            numElements = view.getUint8(blockPtr); blockPtr++;
+		          } else if (n === 2) {
+		            numElements = view.getUint16(blockPtr, true); blockPtr += 2;
+		          } else if (n === 4) {
+		            numElements = view.getUint32(blockPtr, true); blockPtr += 4;
+		          } else {
+		            throw "Invalid valid pixel count type";
+		          }
+		          //fix: huffman codes are bit stuffed, but not bound by data's max value, so need to use originalUnstuff
+		          //offset = offset || 0;
+		          var scale = 2 * headerInfo.maxZError;
+		          var stuffedData, arrayBuf, store8, dataBytes, dataWords;
+		          var lutArr, lutData, lutBytes, bitsPerPixel;
+		          var zMax = headerInfo.numDims > 1 ? headerInfo.maxValues[iDim] : headerInfo.zMax;
+		          if (doLut) {
+		            data.counter.lut++;
+		            lutBytes = view.getUint8(blockPtr);
+		            blockPtr++;
+		            dataBytes = Math.ceil((lutBytes - 1) * numBits / 8);
+		            dataWords = Math.ceil(dataBytes / 4);
+		            arrayBuf = new ArrayBuffer(dataWords * 4);
+		            store8 = new Uint8Array(arrayBuf);
+
+		            data.ptr += blockPtr;
+		            store8.set(new Uint8Array(input, data.ptr, dataBytes));
+
+		            lutData = new Uint32Array(arrayBuf);
+		            data.ptr += dataBytes;
+
+		            bitsPerPixel = 0;
+		            while ((lutBytes - 1) >>> bitsPerPixel) {
+		              bitsPerPixel++;
+		            }
+		            dataBytes = Math.ceil(numElements * bitsPerPixel / 8);
+		            dataWords = Math.ceil(dataBytes / 4);
+		            arrayBuf = new ArrayBuffer(dataWords * 4);
+		            store8 = new Uint8Array(arrayBuf);
+		            store8.set(new Uint8Array(input, data.ptr, dataBytes));
+		            stuffedData = new Uint32Array(arrayBuf);
+		            data.ptr += dataBytes;
+		            if (fileVersion >= 3) {
+		              lutArr = BitStuffer.unstuffLUT2(lutData, numBits, lutBytes - 1, offset, scale, zMax);
+		            }
+		            else {
+		              lutArr = BitStuffer.unstuffLUT(lutData, numBits, lutBytes - 1, offset, scale, zMax);
+		            }
+		            //lutArr.unshift(0);
+		            if (fileVersion >= 3) {
+		              //BitStuffer.unstuff2(block, blockDataBuffer, headerInfo.zMax);
+		              BitStuffer.unstuff2(stuffedData, blockDataBuffer, bitsPerPixel, numElements, lutArr);
+		            }
+		            else {
+		              BitStuffer.unstuff(stuffedData, blockDataBuffer, bitsPerPixel, numElements, lutArr);
+		            }
+		          }
+		          else {
+		            //console.debug("bitstuffer");
+		            data.counter.bitstuffer++;
+		            bitsPerPixel = numBits;
+		            data.ptr += blockPtr;
+		            if (bitsPerPixel > 0) {
+		              dataBytes = Math.ceil(numElements * bitsPerPixel / 8);
+		              dataWords = Math.ceil(dataBytes / 4);
+		              arrayBuf = new ArrayBuffer(dataWords * 4);
+		              store8 = new Uint8Array(arrayBuf);
+		              store8.set(new Uint8Array(input, data.ptr, dataBytes));
+		              stuffedData = new Uint32Array(arrayBuf);
+		              data.ptr += dataBytes;
+		              if (fileVersion >= 3) {
+		                if (offset == null) {
+		                  BitStuffer.originalUnstuff2(stuffedData, blockDataBuffer, bitsPerPixel, numElements);
+		                }
+		                else {
+		                  BitStuffer.unstuff2(stuffedData, blockDataBuffer, bitsPerPixel, numElements, false, offset, scale, zMax);
+		                }
+		              }
+		              else {
+		                if (offset == null) {
+		                  BitStuffer.originalUnstuff(stuffedData, blockDataBuffer, bitsPerPixel, numElements);
+		                }
+		                else {
+		                  BitStuffer.unstuff(stuffedData, blockDataBuffer, bitsPerPixel, numElements, false, offset, scale, zMax);
+		                }
+		              }
+		            }
+		          }
+		        }
+
+		      },
+
+		      readTiles: function(input, data, OutPixelTypeArray, useBSQForOutputDim) {
+		        var headerInfo = data.headerInfo;
+		        var width = headerInfo.width;
+		        var height = headerInfo.height;
+		        var numPixels = width * height;
+		        var microBlockSize = headerInfo.microBlockSize;
+		        var imageType = headerInfo.imageType;
+		        var dataTypeSize = Lerc2Helpers.getDataTypeSize(imageType);
+		        var numBlocksX = Math.ceil(width / microBlockSize);
+		        var numBlocksY = Math.ceil(height / microBlockSize);
+		        data.pixels.numBlocksY = numBlocksY;
+		        data.pixels.numBlocksX = numBlocksX;
+		        data.pixels.ptr = 0;
+		        var row = 0, col = 0, blockY = 0, blockX = 0, thisBlockHeight = 0, thisBlockWidth = 0, bytesLeft = 0, headerByte = 0, bits67 = 0, testCode = 0, outPtr = 0, outStride = 0, numBytes = 0, bytesleft = 0, z = 0, blockPtr = 0;
+		        var view, block, arrayBuf, store8, rawData;
+		        var blockEncoding;
+		        var blockDataBuffer = new OutPixelTypeArray(microBlockSize * microBlockSize);
+		        var lastBlockHeight = (height % microBlockSize) || microBlockSize;
+		        var lastBlockWidth = (width % microBlockSize) || microBlockSize;
+		        var offsetType, offset;
+		        var numDims = headerInfo.numDims, iDim;
+		        var mask = data.pixels.resultMask;
+		        var resultPixels = data.pixels.resultPixels;
+		        var fileVersion = headerInfo.fileVersion;
+		        var fileVersionCheckNum = fileVersion >= 5 ? 14 : 15;
+		        var isDiffEncoding;
+		        var zMax = headerInfo.zMax;
+		        //var resultPixelsAllDim = resultPixels;
+		        var resultPixelsPrevDim;
+		        for (blockY = 0; blockY < numBlocksY; blockY++) {
+		          thisBlockHeight = (blockY !== numBlocksY - 1) ? microBlockSize : lastBlockHeight;
+		          for (blockX = 0; blockX < numBlocksX; blockX++) {
+		            //console.debug("y" + blockY + " x" + blockX);
+		            thisBlockWidth = (blockX !== numBlocksX - 1) ? microBlockSize : lastBlockWidth;
+
+		            outPtr = blockY * width * microBlockSize + blockX * microBlockSize;
+		            outStride = width - thisBlockWidth;
+
+		            for (iDim = 0; iDim < numDims; iDim++) {
+		              if (numDims > 1) {
+		                resultPixelsPrevDim = resultPixels;
+		                outPtr = blockY * width * microBlockSize + blockX * microBlockSize;
+		                resultPixels = new OutPixelTypeArray(data.pixels.resultPixels.buffer, numPixels * iDim * dataTypeSize, numPixels);
+		                zMax = headerInfo.maxValues[iDim];
+		              } else {
+		                resultPixelsPrevDim = null;
+		              }
+		              bytesLeft = input.byteLength - data.ptr;
+		              view = new DataView(input, data.ptr, Math.min(10, bytesLeft));
+		              block = {};
+		              blockPtr = 0;
+		              headerByte = view.getUint8(0);
+		              blockPtr++;
+		              isDiffEncoding = headerInfo.fileVersion >= 5 ? headerByte & 4 : 0;
+		              bits67 = (headerByte >> 6) & 0xFF;
+		              testCode = (headerByte >> 2) & fileVersionCheckNum;    // use bits 2345 for integrity check
+		              if (testCode !== (((blockX * microBlockSize) >> 3) & fileVersionCheckNum)) {
+		                throw "integrity issue";
+		              }
+
+		              if (isDiffEncoding && iDim === 0) {
+		                throw "integrity issue";
+		              }
+
+		              blockEncoding = headerByte & 3;
+		              if (blockEncoding > 3) {
+		                data.ptr += blockPtr;
+		                throw "Invalid block encoding (" + blockEncoding + ")";
+		              }
+		              else if (blockEncoding === 2) { //constant 0
+		                if (isDiffEncoding) {
+		                  if (mask) {
+		                    for (row = 0; row < thisBlockHeight; row++) {
+		                      for (col = 0; col < thisBlockWidth; col++) {
+		                        if (mask[outPtr]) {
+		                          resultPixels[outPtr] = resultPixelsPrevDim[outPtr];
+		                        }
+		                        outPtr++;
+		                      }
+		                    }
+		                  }
+		                  else {
+		                    for (row = 0; row < thisBlockHeight; row++) {
+		                      for (col = 0; col < thisBlockWidth; col++) {
+		                        resultPixels[outPtr] = resultPixelsPrevDim[outPtr];
+		                        outPtr++;
+		                      }
+		                    }
+		                  }
+		                }
+		                data.counter.constant++;
+		                data.ptr += blockPtr;
+		                continue;
+		              }
+		              else if (blockEncoding === 0) {  //uncompressed
+		                if (isDiffEncoding) {
+		                  // doesn't make sense, should not happen
+		                  throw "integrity issue";
+		                }
+		                data.counter.uncompressed++;
+		                data.ptr += blockPtr;
+		                numBytes = thisBlockHeight * thisBlockWidth * dataTypeSize;
+		                bytesleft = input.byteLength - data.ptr;
+		                numBytes = numBytes < bytesleft ? numBytes : bytesleft;
+		                //bit alignment
+		                arrayBuf = new ArrayBuffer((numBytes % dataTypeSize) === 0 ? numBytes : (numBytes + dataTypeSize - numBytes % dataTypeSize));
+		                store8 = new Uint8Array(arrayBuf);
+		                store8.set(new Uint8Array(input, data.ptr, numBytes));
+		                rawData = new OutPixelTypeArray(arrayBuf);
+		                z = 0;
+		                if (mask) {
+		                  for (row = 0; row < thisBlockHeight; row++) {
+		                    for (col = 0; col < thisBlockWidth; col++) {
+		                      if (mask[outPtr]) {
+		                        resultPixels[outPtr] = rawData[z++];
+		                      }
+		                      outPtr++;
+		                    }
+		                    outPtr += outStride;
+		                  }
+		                }
+		                else {//all valid
+		                  for (row = 0; row < thisBlockHeight; row++) {
+		                    for (col = 0; col < thisBlockWidth; col++) {
+		                      resultPixels[outPtr++] = rawData[z++];
+		                    }
+		                    outPtr += outStride;
+		                  }
+		                }
+		                data.ptr += z * dataTypeSize;
+		              }
+		              else { //1 or 3
+		                offsetType = Lerc2Helpers.getDataTypeUsed((isDiffEncoding && imageType < 6) ? 4 : imageType, bits67);
+		                offset = Lerc2Helpers.getOnePixel(block, blockPtr, offsetType, view);
+		                blockPtr += Lerc2Helpers.getDataTypeSize(offsetType);
+		                if (blockEncoding === 3) //constant offset value
+		                {
+		                  data.ptr += blockPtr;
+		                  data.counter.constantoffset++;
+		                  //you can delete the following resultMask case in favor of performance because val is constant and users use nodata mask, otherwise nodatavalue post processing handles it too.
+		                  //while the above statement is true, we're not doing it as we want to keep invalid pixel value at 0 rather than arbitrary values
+		                  if (mask) {
+		                    for (row = 0; row < thisBlockHeight; row++) {
+		                      for (col = 0; col < thisBlockWidth; col++) {
+		                        if (mask[outPtr]) {
+		                          resultPixels[outPtr] = isDiffEncoding ? Math.min(zMax, resultPixelsPrevDim[outPtr] + offset) : offset;
+		                        }
+		                        outPtr++;
+		                      }
+		                      outPtr += outStride;
+		                    }
+		                  }
+		                  else {
+		                    for (row = 0; row < thisBlockHeight; row++) {
+		                      for (col = 0; col < thisBlockWidth; col++) {
+		                        resultPixels[outPtr] = isDiffEncoding ? Math.min(zMax, resultPixelsPrevDim[outPtr] + offset) : offset;
+		                        outPtr++;
+		                      }
+		                      outPtr += outStride;
+		                    }
+		                  }
+		                }
+		                else { //bitstuff encoding is 3
+		                  data.ptr += blockPtr;
+		                  //heavy lifting
+		                  Lerc2Helpers.decodeBits(input, data, blockDataBuffer, offset, iDim);
+		                  blockPtr = 0;
+		                  // duplicate code to favor performance, diff encoding is for multidimension only
+		                  if (isDiffEncoding) {
+		                    if (mask) {
+		                      for (row = 0; row < thisBlockHeight; row++) {
+		                        for (col = 0; col < thisBlockWidth; col++) {
+		                          if (mask[outPtr]) {
+		                            resultPixels[outPtr] = blockDataBuffer[blockPtr++] + resultPixelsPrevDim[outPtr];
+		                          }
+		                          outPtr++;
+		                        }
+		                        outPtr += outStride;
+		                      }
+		                    }
+		                    else {
+		                      for (row = 0; row < thisBlockHeight; row++) {
+		                        for (col = 0; col < thisBlockWidth; col++) {
+		                          resultPixels[outPtr] = blockDataBuffer[blockPtr++] + resultPixelsPrevDim[outPtr];
+		                          outPtr++;
+		                        }
+		                        outPtr += outStride;
+		                      }
+		                    }
+		                  }
+		                  else if (mask) {
+		                    for (row = 0; row < thisBlockHeight; row++) {
+		                      for (col = 0; col < thisBlockWidth; col++) {
+		                        if (mask[outPtr]) {
+		                          resultPixels[outPtr] = blockDataBuffer[blockPtr++];
+		                        }
+		                        outPtr++;
+		                      }
+		                      outPtr += outStride;
+		                    }
+		                  }
+		                  else {
+		                    for (row = 0; row < thisBlockHeight; row++) {
+		                      for (col = 0; col < thisBlockWidth; col++) {
+		                        resultPixels[outPtr++] = blockDataBuffer[blockPtr++];
+		                      }
+		                      outPtr += outStride;
+		                    }
+		                  }
+		                }
+		              }
+		            }
+		          }
+		        }
+		        //swap for BIP: it's always easier for clients to handle BSQ so we keep existing logic and introduce a swap here to minimze changes
+		        if (numDims > 1 && !useBSQForOutputDim) {
+		          data.pixels.resultPixels = Lerc2Helpers.swapDimensionOrder(data.pixels.resultPixels, numPixels, numDims, OutPixelTypeArray);
+		        }
+		      },
+
+		      /*****************
+		      *  private methods (helper methods)
+		      *****************/
+
+		      formatFileInfo: function(data) {
+		        return {
+		          "fileIdentifierString": data.headerInfo.fileIdentifierString,
+		          "fileVersion": data.headerInfo.fileVersion,
+		          "imageType": data.headerInfo.imageType,
+		          "height": data.headerInfo.height,
+		          "width": data.headerInfo.width,
+		          "numValidPixel": data.headerInfo.numValidPixel,
+		          "microBlockSize": data.headerInfo.microBlockSize,
+		          "blobSize": data.headerInfo.blobSize,
+		          "maxZError": data.headerInfo.maxZError,
+		          "pixelType": Lerc2Helpers.getPixelType(data.headerInfo.imageType),
+		          "eofOffset": data.eofOffset,
+		          "mask": data.mask ? {
+		            "numBytes": data.mask.numBytes
+		          } : null,
+		          "pixels": {
+		            "numBlocksX": data.pixels.numBlocksX,
+		            "numBlocksY": data.pixels.numBlocksY,
+		            //"numBytes": data.pixels.numBytes,
+		            "maxValue": data.headerInfo.zMax,
+		            "minValue": data.headerInfo.zMin,
+		            "noDataValue": data.noDataValue
+		          }
+		        };
+		      },
+
+		      constructConstantSurface: function(data, useBSQForOutputDim) {
+		        var val = data.headerInfo.zMax;
+		        var valMin = data.headerInfo.zMin;
+		        var maxValues = data.headerInfo.maxValues;
+		        var numDims = data.headerInfo.numDims;
+		        var numPixels = data.headerInfo.height * data.headerInfo.width;
+		        var i = 0, k = 0, nStart = 0;
+		        var mask = data.pixels.resultMask;
+		        var resultPixels = data.pixels.resultPixels;
+		        if (mask) {
+		          if (numDims > 1) {
+		            if (useBSQForOutputDim) {
+		              for (i = 0; i < numDims; i++) {
+		                nStart = i * numPixels;
+		                val = maxValues[i];
+		                for (k = 0; k < numPixels; k++) {
+		                  if (mask[k]) {
+		                    resultPixels[nStart + k] = val;
+		                  }
+		                }
+		              }  
+		            }
+		            else {
+		              for (k = 0; k < numPixels; k++) {
+		                if (mask[k]) {
+		                  nStart = k * numDims;
+		                  for (i = 0; i < numDims; i++) {
+		                    resultPixels[nStart + numDims] = maxValues[i];
+		                  }
+		                }
+		              }
+		            }
+		          }
+		          else {
+		            for (k = 0; k < numPixels; k++) {
+		              if (mask[k]) {
+		                resultPixels[k] = val;
+		              }
+		            }
+		          }
+		        }
+		        else {
+		          if (numDims > 1 && valMin !== val) {
+		            if (useBSQForOutputDim) {
+		              for (i = 0; i < numDims; i++) {
+		                nStart = i * numPixels;
+		                val = maxValues[i];
+		                for (k = 0; k < numPixels; k++) {
+		                  resultPixels[nStart + k] = val;
+		                }
+		              }
+		            }
+		            else {
+		              for (k = 0; k < numPixels; k++) {
+		                nStart = k * numDims;
+		                for (i = 0; i < numDims; i++) {
+		                  resultPixels[nStart + i] = maxValues[i];
+		                }
+		              }
+		            }
+		          }
+		          else {
+		            for (k = 0; k < numPixels * numDims; k++) {
+		              resultPixels[k] = val;
+		            }
+		          }
+		        }
+		        return;
+		      },
+
+		      getDataTypeArray: function(t) {
+		        var tp;
+		        switch (t) {
+		          case 0: //char
+		            tp = Int8Array;
+		            break;
+		          case 1: //byte
+		            tp = Uint8Array;
+		            break;
+		          case 2: //short
+		            tp = Int16Array;
+		            break;
+		          case 3: //ushort
+		            tp = Uint16Array;
+		            break;
+		          case 4:
+		            tp = Int32Array;
+		            break;
+		          case 5:
+		            tp = Uint32Array;
+		            break;
+		          case 6:
+		            tp = Float32Array;
+		            break;
+		          case 7:
+		            tp = Float64Array;
+		            break;
+		          default:
+		            tp = Float32Array;
+		        }
+		        return tp;
+		      },
+
+		      getPixelType: function(t) {
+		        var tp;
+		        switch (t) {
+		          case 0: //char
+		            tp = "S8";
+		            break;
+		          case 1: //byte
+		            tp = "U8";
+		            break;
+		          case 2: //short
+		            tp = "S16";
+		            break;
+		          case 3: //ushort
+		            tp = "U16";
+		            break;
+		          case 4:
+		            tp = "S32";
+		            break;
+		          case 5:
+		            tp = "U32";
+		            break;
+		          case 6:
+		            tp = "F32";
+		            break;
+		          case 7:
+		            tp = "F64";
+		            break;
+		          default:
+		            tp = "F32";
+		        }
+		        return tp;
+		      },
+
+		      isValidPixelValue: function(t, val) {
+		        if (val == null) {
+		          return false;
+		        }
+		        var isValid;
+		        switch (t) {
+		          case 0: //char
+		            isValid = val >= -128 && val <= 127;
+		            break;
+		          case 1: //byte  (unsigned char)
+		            isValid = val >= 0 && val <= 255;
+		            break;
+		          case 2: //short
+		            isValid = val >= -32768 && val <= 32767;
+		            break;
+		          case 3: //ushort
+		            isValid = val >= 0 && val <= 65536;
+		            break;
+		          case 4: //int 32
+		            isValid = val >= -2147483648 && val <= 2147483647;
+		            break;
+		          case 5: //uinit 32
+		            isValid = val >= 0 && val <= 4294967296;
+		            break;
+		          case 6:
+		            isValid = val >= -34027999387901484e22 && val <= 3.4027999387901484e+38;
+		            break;
+		          case 7:
+		            isValid = val >= -17976931348623157e292 && val <= 1.7976931348623157e+308;
+		            break;
+		          default:
+		            isValid = false;
+		        }
+		        return isValid;
+		      },
+
+		      getDataTypeSize: function(t) {
+		        var s = 0;
+		        switch (t) {
+		          case 0: //ubyte
+		          case 1: //byte
+		            s = 1;
+		            break;
+		          case 2: //short
+		          case 3: //ushort
+		            s = 2;
+		            break;
+		          case 4:
+		          case 5:
+		          case 6:
+		            s = 4;
+		            break;
+		          case 7:
+		            s = 8;
+		            break;
+		          default:
+		            s = t;
+		        }
+		        return s;
+		      },
+
+		      getDataTypeUsed: function(dt, tc) {
+		        var t = dt;
+		        switch (dt) {
+		          case 2: //short
+		          case 4: //long
+		            t = dt - tc;
+		            break;
+		          case 3: //ushort
+		          case 5: //ulong
+		            t = dt - 2 * tc;
+		            break;
+		          case 6: //float
+		            if (0 === tc) {
+		              t = dt;
+		            }
+		            else if (1 === tc) {
+		              t = 2;
+		            }
+		            else {
+		              t = 1;//byte
+		            }
+		            break;
+		          case 7: //double
+		            if (0 === tc) {
+		              t = dt;
+		            }
+		            else {
+		              t = dt - 2 * tc + 1;
+		            }
+		            break;
+		          default:
+		            t = dt;
+		            break;
+		        }
+		        return t;
+		      },
+
+		      getOnePixel: function(block, blockPtr, offsetType, view) {
+		        var temp = 0;
+		        switch (offsetType) {
+		          case 0: //char
+		            temp = view.getInt8(blockPtr);
+		            break;
+		          case 1: //byte
+		            temp = view.getUint8(blockPtr);
+		            break;
+		          case 2:
+		            temp = view.getInt16(blockPtr, true);
+		            break;
+		          case 3:
+		            temp = view.getUint16(blockPtr, true);
+		            break;
+		          case 4:
+		            temp = view.getInt32(blockPtr, true);
+		            break;
+		          case 5:
+		            temp = view.getUInt32(blockPtr, true);
+		            break;
+		          case 6:
+		            temp = view.getFloat32(blockPtr, true);
+		            break;
+		          case 7:
+		            temp = view.getFloat64(blockPtr, true);
+		            break;
+		          default:
+		            throw ("the decoder does not understand this pixel type");
+		        }
+		        return temp;
+		      },
+
+		      swapDimensionOrder: function(pixels, numPixels, numDims, OutPixelTypeArray, inputIsBIP) {
+		        var i = 0, j = 0, iDim = 0, temp = 0, swap = pixels;
+		        if (numDims > 1) {
+		          swap = new OutPixelTypeArray(numPixels * numDims);
+		          if (inputIsBIP) {
+		            for (i=0; i<numPixels; i++) {
+		              temp = i;
+		              for (iDim=0; iDim < numDims; iDim++, temp += numPixels) {
+		                swap[temp] = pixels[j++];
+		              }
+		            }  
+		          }
+		          else {
+		            for (i=0; i<numPixels; i++) {
+		              temp = i;
+		              for (iDim=0; iDim < numDims; iDim++, temp += numPixels) {
+		                swap[j++] = pixels[temp];
+		              }
+		            }
+		          }
+		        }
+		        return swap;
+		      }
+		    };
+
+		    /***************************************************
+		    *private class for a tree node. Huffman code is in Lerc2Helpers
+		    ****************************************************/
+		    var TreeNode = function(val, left, right) {
+		      this.val = val;
+		      this.left = left;
+		      this.right = right;
+		    };
+
+		    var Lerc2Decode = {
+		      /*
+		      * ********removed options compared to LERC1. We can bring some of them back if needed.
+		       * removed pixel type. LERC2 is typed and doesn't require user to give pixel type
+		       * changed encodedMaskData to maskData. LERC2 's js version make it faster to use maskData directly.
+		       * removed returnMask. mask is used by LERC2 internally and is cost free. In case of user input mask, it's returned as well and has neglible cost.
+		       * removed nodatavalue. Because LERC2 pixels are typed, nodatavalue will sacrify a useful value for many types (8bit, 16bit) etc,
+		       *       user has to be knowledgable enough about raster and their data to avoid usability issues. so nodata value is simply removed now.
+		       *       We can add it back later if their's a clear requirement.
+		       * removed encodedMask. This option was not implemented in LercDecode. It can be done after decoding (less efficient)
+		       * removed computeUsedBitDepths.
+		       *
+		       *
+		       * response changes compared to LERC1
+		       * 1. encodedMaskData is not available
+		       * 2. noDataValue is optional (returns only if user's noDataValue is with in the valid data type range)
+		       * 3. maskData is always available
+		      */
+		      /*****************
+		      *  public properties
+		      ******************/
+		      //HUFFMAN_LUT_BITS_MAX: 12, //use 2^12 lut, not configurable
+
+		      /*****************
+		      *  public methods
+		      *****************/
+
+		      /**
+		       * Decode a LERC2 byte stream and return an object containing the pixel data and optional metadata.
+		       *
+		       * @param {ArrayBuffer} input The LERC input byte stream
+		       * @param {object} [options] options Decoding options
+		       * @param {number} [options.inputOffset] The number of bytes to skip in the input byte stream. A valid LERC file is expected at that position
+		       * @param {boolean} [options.returnFileInfo] If true, the return value will have a fileInfo property that contains metadata obtained from the LERC headers and the decoding process
+		       * @param {boolean} [options.returnPixelInterleavedDims]  If true, returned dimensions are pixel-interleaved, a.k.a [p1_dim0, p1_dim1, p1_dimn, p2_dim0...], default is [p1_dim0, p2_dim0, ..., p1_dim1, p2_dim1...]
+		       */
+		      decode: function(/*byte array*/ input, /*object*/ options) {
+		        //currently there's a bug in the sparse array, so please do not set to false
+		        options = options || {};
+		        var noDataValue = options.noDataValue;
+
+		        //initialize
+		        var i = 0, data = {};
+		        data.ptr = options.inputOffset || 0;
+		        data.pixels = {};
+
+		        // File header
+		        if (!Lerc2Helpers.readHeaderInfo(input, data)) {
+		          return;
+		        }
+
+		        var headerInfo = data.headerInfo;
+		        var fileVersion = headerInfo.fileVersion;
+		        var OutPixelTypeArray = Lerc2Helpers.getDataTypeArray(headerInfo.imageType);
+
+		        // version check
+		        if (fileVersion > 5) {
+		          throw "unsupported lerc version 2." + fileVersion;
+		        }
+
+		        // Mask Header
+		        Lerc2Helpers.readMask(input, data);
+		        if (headerInfo.numValidPixel !== headerInfo.width * headerInfo.height && !data.pixels.resultMask) {
+		          data.pixels.resultMask = options.maskData;
+		        }
+
+		        var numPixels = headerInfo.width * headerInfo.height;
+		        data.pixels.resultPixels = new OutPixelTypeArray(numPixels * headerInfo.numDims);
+
+		        data.counter = {
+		          onesweep: 0,
+		          uncompressed: 0,
+		          lut: 0,
+		          bitstuffer: 0,
+		          constant: 0,
+		          constantoffset: 0
+		        };
+		        var useBSQForOutputDim = !options.returnPixelInterleavedDims;
+		        if (headerInfo.numValidPixel !== 0) {
+		          //not tested
+		          if (headerInfo.zMax === headerInfo.zMin) //constant surface
+		          {
+		            Lerc2Helpers.constructConstantSurface(data, useBSQForOutputDim);
+		          }
+		          else if (fileVersion >= 4 && Lerc2Helpers.checkMinMaxRanges(input, data)) {
+		            Lerc2Helpers.constructConstantSurface(data, useBSQForOutputDim);
+		          }
+		          else {
+		            var view = new DataView(input, data.ptr, 2);
+		            var bReadDataOneSweep = view.getUint8(0);
+		            data.ptr++;
+		            if (bReadDataOneSweep) {
+		              //console.debug("OneSweep");
+		              Lerc2Helpers.readDataOneSweep(input, data, OutPixelTypeArray, useBSQForOutputDim);
+		            }
+		            else {
+		              //lerc2.1: //bitstuffing + lut
+		              //lerc2.2: //bitstuffing + lut + huffman
+		              //lerc2.3: new bitstuffer
+		              if (fileVersion > 1 && headerInfo.imageType <= 1 && Math.abs(headerInfo.maxZError - 0.5) < 0.00001) {
+		                //this is 2.x plus 8 bit (unsigned and signed) data, possiblity of Huffman
+		                var flagHuffman = view.getUint8(1);
+		                data.ptr++;
+		                data.encodeMode = flagHuffman;
+		                if (flagHuffman > 2 || (fileVersion < 4 && flagHuffman > 1)) {
+		                  throw "Invalid Huffman flag " + flagHuffman;
+		                }
+		                if (flagHuffman) {//1 - delta Huffman, 2 - Huffman
+		                  //console.log("Huffman");
+		                  Lerc2Helpers.readHuffman(input, data, OutPixelTypeArray, useBSQForOutputDim);
+		                }
+		                else {
+		                  //console.log("Tiles");
+		                  Lerc2Helpers.readTiles(input, data, OutPixelTypeArray, useBSQForOutputDim);
+		                }
+		              }
+		              else { //lerc2.x non-8 bit data
+		                //console.log("Tiles");
+		                Lerc2Helpers.readTiles(input, data, OutPixelTypeArray, useBSQForOutputDim);
+		              }
+		            }
+		          }
+		        }
+
+		        data.eofOffset = data.ptr;
+		        var diff;
+		        if (options.inputOffset) {
+		          diff = data.headerInfo.blobSize + options.inputOffset - data.ptr;
+		          if (Math.abs(diff) >= 1) {
+		            //console.debug("incorrect eof: dataptr " + data.ptr + " offset " + options.inputOffset + " blobsize " + data.headerInfo.blobSize + " diff: " + diff);
+		            data.eofOffset = options.inputOffset + data.headerInfo.blobSize;
+		          }
+		        }
+		        else {
+		          diff = data.headerInfo.blobSize - data.ptr;
+		          if (Math.abs(diff) >= 1) {
+		            //console.debug("incorrect first band eof: dataptr " + data.ptr + " blobsize " + data.headerInfo.blobSize + " diff: " + diff);
+		            data.eofOffset = data.headerInfo.blobSize;
+		          }
+		        }
+
+		        var result = {
+		          width: headerInfo.width,
+		          height: headerInfo.height,
+		          pixelData: data.pixels.resultPixels,
+		          minValue: headerInfo.zMin,
+		          maxValue: headerInfo.zMax,
+		          validPixelCount: headerInfo.numValidPixel,
+		          dimCount: headerInfo.numDims,
+		          dimStats: {
+		            minValues: headerInfo.minValues,
+		            maxValues: headerInfo.maxValues
+		          },
+		          maskData: data.pixels.resultMask
+		          //noDataValue: noDataValue
+		        };
+
+		        //we should remove this if there's no existing client
+		        //optional noDataValue processing, it's user's responsiblity
+		        if (data.pixels.resultMask && Lerc2Helpers.isValidPixelValue(headerInfo.imageType, noDataValue)) {
+		          var mask = data.pixels.resultMask;
+		          for (i = 0; i < numPixels; i++) {
+		            if (!mask[i]) {
+		              result.pixelData[i] = noDataValue;
+		            }
+		          }
+		          result.noDataValue = noDataValue;
+		        }
+		        data.noDataValue = noDataValue;
+		        if (options.returnFileInfo) {
+		          result.fileInfo = Lerc2Helpers.formatFileInfo(data);
+		        }
+		        return result;
+		      },
+
+		      getBandCount: function(/*byte array*/ input) {
+		        var count = 0;
+		        var i = 0;
+		        var temp = {};
+		        temp.ptr = 0;
+		        temp.pixels = {};
+		        while (i < input.byteLength - 58) {
+		          Lerc2Helpers.readHeaderInfo(input, temp);
+		          i += temp.headerInfo.blobSize;
+		          count++;
+		          temp.ptr = i;
+		        }
+		        return count;
+		      }
+		    };
+
+		    return Lerc2Decode;
+		  })();
+
+		  var isPlatformLittleEndian = (function() {
+		    var a = new ArrayBuffer(4);
+		    var b = new Uint8Array(a);
+		    var c = new Uint32Array(a);
+		    c[0] = 1;
+		    return b[0] === 1;
+		  })();
+
+		  var Lerc = {
+		    /************wrapper**********************************************/
+		    /**
+		     * A wrapper for decoding both LERC1 and LERC2 byte streams capable of handling multiband pixel blocks for various pixel types.
+		     *
+		     * @alias module:Lerc
+		     * @param {ArrayBuffer} input The LERC input byte stream
+		     * @param {object} [options] The decoding options below are optional.
+		     * @param {number} [options.inputOffset] The number of bytes to skip in the input byte stream. A valid Lerc file is expected at that position.
+		     * @param {string} [options.pixelType] (LERC1 only) Default value is F32. Valid pixel types for input are U8/S8/S16/U16/S32/U32/F32.
+		     * @param {number} [options.noDataValue] (LERC1 only). It is recommended to use the returned mask instead of setting this value.
+		     * @param {boolean} [options.returnPixelInterleavedDims] (nDim LERC2 only) If true, returned dimensions are pixel-interleaved, a.k.a [p1_dim0, p1_dim1, p1_dimn, p2_dim0...], default is [p1_dim0, p2_dim0, ..., p1_dim1, p2_dim1...]
+		     * @returns {{width, height, pixels, pixelType, mask, statistics}}
+		       * @property {number} width Width of decoded image.
+		       * @property {number} height Height of decoded image.
+		       * @property {array} pixels [band1, band2, …] Each band is a typed array of width*height.
+		       * @property {string} pixelType The type of pixels represented in the output.
+		       * @property {mask} mask Typed array with a size of width*height, or null if all pixels are valid.
+		       * @property {array} statistics [statistics_band1, statistics_band2, …] Each element is a statistics object representing min and max values
+		    **/
+		    decode: function(encodedData, options) {
+		      if (!isPlatformLittleEndian) {
+		        throw "Big endian system is not supported.";
+		      }
+		      options = options || {};
+		      var inputOffset = options.inputOffset || 0;
+		      var fileIdView = new Uint8Array(encodedData, inputOffset, 10);
+		      var fileIdentifierString = String.fromCharCode.apply(null, fileIdView);
+		      var lerc, majorVersion;
+		      if (fileIdentifierString.trim() === "CntZImage") {
+		        lerc = LercDecode;
+		        majorVersion = 1;
+		      }
+		      else if (fileIdentifierString.substring(0, 5) === "Lerc2") {
+		        lerc = Lerc2Decode;
+		        majorVersion = 2;
+		      }
+		      else {
+		        throw "Unexpected file identifier string: " + fileIdentifierString;
+		      }
+
+		      var iPlane = 0, eof = encodedData.byteLength - 10, encodedMaskData, bandMasks = [], bandMask, maskData;
+		      var decodedPixelBlock = {
+		        width: 0,
+		        height: 0,
+		        pixels: [],
+		        pixelType: options.pixelType,
+		        mask: null,
+		        statistics: []
+		      };
+		      var uniqueBandMaskCount = 0;
+
+		      while (inputOffset < eof) {
+		        var result = lerc.decode(encodedData, {
+		          inputOffset: inputOffset,//for both lerc1 and lerc2
+		          encodedMaskData: encodedMaskData,//lerc1 only
+		          maskData: maskData,//lerc2 only
+		          returnMask: iPlane === 0 ? true : false,//lerc1 only
+		          returnEncodedMask: iPlane === 0 ? true : false,//lerc1 only
+		          returnFileInfo: true,//for both lerc1 and lerc2
+		          returnPixelInterleavedDims: options.returnPixelInterleavedDims,//for ndim lerc2 only
+		          pixelType: options.pixelType || null,//lerc1 only
+		          noDataValue: options.noDataValue || null//lerc1 only
+		        });
+
+		        inputOffset = result.fileInfo.eofOffset;
+		        maskData = result.maskData;//lerc2
+		        if (iPlane === 0) {
+		          encodedMaskData = result.encodedMaskData;//lerc1
+		          decodedPixelBlock.width = result.width;
+		          decodedPixelBlock.height = result.height;
+		          decodedPixelBlock.dimCount = result.dimCount || 1;
+		          //decodedPixelBlock.dimStats = decodedPixelBlock.dimStats;
+		          decodedPixelBlock.pixelType = result.pixelType || result.fileInfo.pixelType;
+		          decodedPixelBlock.mask = maskData;
+		        }
+		        if (majorVersion > 1) {
+		          if (maskData) {
+		            bandMasks.push(maskData);
+		          }
+		          if (result.fileInfo.mask && result.fileInfo.mask.numBytes > 0) {
+		            uniqueBandMaskCount++;
+		          }
+		        }
+
+		        iPlane++;
+		        decodedPixelBlock.pixels.push(result.pixelData);
+		        decodedPixelBlock.statistics.push({
+		          minValue: result.minValue,
+		          maxValue: result.maxValue,
+		          noDataValue: result.noDataValue,
+		          dimStats: result.dimStats
+		        });
+		      }
+		      var i, j, numPixels;
+		      if (majorVersion > 1 && uniqueBandMaskCount > 1) {
+		        numPixels = decodedPixelBlock.width * decodedPixelBlock.height;
+		        decodedPixelBlock.bandMasks = bandMasks;
+		        maskData = new Uint8Array(numPixels);
+		        maskData.set(bandMasks[0]);
+		        for (i = 1; i < bandMasks.length; i++) {
+		          bandMask = bandMasks[i];
+		          for (j = 0; j < numPixels; j++) {
+		            maskData[j] = maskData[j] & bandMask[j];
+		          }
+		        }
+		        decodedPixelBlock.maskData = maskData;
+		      }
+
+		      return decodedPixelBlock;
+		    }
+		  };
+
+		  if (module.exports) {/* jshint ignore:line */
+		    //commonJS module 1.0/1.1/1.1.1 systems, such as nodeJS
+		    //http://wiki.commonjs.org/wiki/Modules
+		    module.exports = Lerc;/* jshint ignore:line */
+		  }
+		  else {
+		    //assign to this, most likely window
+		    this.Lerc = Lerc;
+		  }
+
+		})(); 
+	} (LercDecode));
+	return LercDecode.exports;
+}
+
+var LercDecodeExports = requireLercDecode();
+var Lerc = /*@__PURE__*/getDefaultExportFromCjs(LercDecodeExports);
+
+let init$1;
+let instance$1;
+let heap$1;
+const IMPORT_OBJECT$1 = {
+  env: {
+    emscripten_notify_memory_growth: _ => {
+      heap$1 = new Uint8Array(instance$1.exports.memory.buffer);
+    }
+  }
+};
+/**
+ * ZSTD (Zstandard) decoder.
+ */
+let ZSTDDecoder$1 = class ZSTDDecoder {
+  init() {
+    if (init$1) return init$1;
+    if (typeof fetch !== 'undefined') {
+      // Web.
+      init$1 = fetch(`data:application/wasm;base64,${wasm$1}`).then(response => response.arrayBuffer()).then(arrayBuffer => WebAssembly.instantiate(arrayBuffer, IMPORT_OBJECT$1)).then(this._init);
+    } else {
+      // Node.js.
+      init$1 = WebAssembly.instantiate(Buffer.from(wasm$1, 'base64'), IMPORT_OBJECT$1).then(this._init);
+    }
+    return init$1;
+  }
+  _init(result) {
+    instance$1 = result.instance;
+    IMPORT_OBJECT$1.env.emscripten_notify_memory_growth(0); // initialize heap.
+  }
+  decode(array, uncompressedSize = 0) {
+    if (!instance$1) throw new Error('ZSTDDecoder: Await .init() before decoding.');
+    // Write compressed data into WASM memory.
+    const compressedSize = array.byteLength;
+    const compressedPtr = instance$1.exports.malloc(compressedSize);
+    heap$1.set(array, compressedPtr);
+    // Decompress into WASM memory.
+    uncompressedSize = uncompressedSize || Number(instance$1.exports.ZSTD_findDecompressedSize(compressedPtr, compressedSize));
+    const uncompressedPtr = instance$1.exports.malloc(uncompressedSize);
+    const actualSize = instance$1.exports.ZSTD_decompress(uncompressedPtr, uncompressedSize, compressedPtr, compressedSize);
+    // Read decompressed data and free WASM memory.
+    const dec = heap$1.slice(uncompressedPtr, uncompressedPtr + actualSize);
+    instance$1.exports.free(compressedPtr);
+    instance$1.exports.free(uncompressedPtr);
+    return dec;
+  }
+};
+/**
+ * BSD License
+ *
+ * For Zstandard software
+ *
+ * Copyright (c) 2016-present, Yann Collet, Facebook, Inc. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither the name Facebook nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+// wasm:begin
+const wasm$1 = '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AikACDcACCAHIDo3AAAgEUEZSA0BIARBGGohBANAIAIpABAhOiAEIAIpABg3AAggBCA6NwAAIAIpACAhOiAEIAIpACg3ABggBCA6NwAQIAJBIGohAiAEQSBqIgQgCkkNAAsMAQsCQAJAIAUoAswCIhEgBUHgAWogJUEHcUEMbGoiDygCACICaiIHIBxLDQAgCSAPKAIEIgogAmoiBmogG0sNACAGQSBqIBQgCWtNDQELIAUgDygCCDYCoAEgBSAPKQIANwOYASAJIBQgBUGYAWogBUHMAmogHCALIBcgIhAgIQYMAQsgAiAJaiEEIA8oAgghFSARKQAAITogCSARKQAINwAIIAkgOjcAAAJAIAJBEUkNACARKQAQITogCSARKQAYNwAYIAkgOjcAECACQRBrQRFIDQAgEUEQaiECIAlBIGohEgNAIAIpABAhOiASIAIpABg3AAggEiA6NwAAIAIpACAhOiASIAIpACg3ABggEiA6NwAQIAJBIGohAiASQSBqIhIgBEkNAAsLIAQgFWshAiAFIAc2AswCIAQgC2sgFUkEQCAVIAQgF2tLDQwgIiAiIAIgC2siD2oiByAKak8EQCAKRQ0CIAQgByAK/AoAAAwCC0EAIA9rIgIEQCAEIAcgAvwKAAALIAogD2ohCiAEIA9rIQQgCyECCyAVQRBPBEAgAikAACE6IAQgAikACDcACCAEIDo3AAAgCkERSA0BIAQgCmohByAEQRBqIQQDQCACKQAQITogBCACKQAYNwAIIAQgOjcAACACKQAgITogBCACKQAoNwAYIAQgOjcAECACQSBqIQIgBEEgaiIEIAdJDQALDAELAkAgFUEHTQRAIAQgAi0AADoAACAEIAItAAE6AAEgBCACLQACOgACIAQgAi0AAzoAAyAEIAIgFUECdCIHQeAaaigCAGoiAigAADYABCACIAdBgBtqKAIAayECDAELIAQgAikAADcAAAsgCkEJSQ0AIAQgCmohDyAEQQhqIgcgAkEIaiICa0EPTARAA0AgByACKQAANwAAIAJBCGohAiAHQQhqIgcgD0kNAAwCCwALIAIpAAAhOiAHIAIpAAg3AAggByA6NwAAIApBGUgNACAEQRhqIQQDQCACKQAQITogBCACKQAYNwAIIAQgOjcAACACKQAgITogBCACKQAoNwAYIAQgOjcAECACQSBqIQIgBEEgaiIEIA9JDQALCyAGQYh/SwRAIAYhAwwLCyAFQeABaiAlQQdxQQxsaiICIA02AgggAiAMNgIEIAIgEDYCAAsgBiAJaiEJICVBAWohJSAQIC1qIAxqIS0MAQsLIAUoArABIAUoArQBRw0HIAUoAqwBQSBHDQcgDiAoayEQA0ACQCAOIBBMBEBBACECA0AgAkEDRg0CIDIgAkECdCIDaiADICZqKAIANgIAIAJBAWohAgwACwALIAVB4AFqIBBBB3FBDGxqIQoCfwJAIAgoAoTsAUECRgRAIAUoAswCIg8gCigCACIEaiIHIAgoAoDsASICSwRAIAIgD0cEQCACIA9rIgIgFCAJa0sNCyAJIA8gAhAfIAogBCACayIENgIAIAIgCWohCQsgBSAWNgLMAiAIQQA2AoTsAQJAAkACQCAEQYCABEoNACAJIAooAgQiDSAEaiIGaiAbSw0AIAZBIGogFCAJa00NAQsgBSAKKAIINgJQIAUgCikCADcDSCAJIBQgBUHIAGogBUHMAmogGSALIBcgIhAgIQYMAQsgBCAWaiEHIAQgCWohDCAKKAIIIQogFikAACE6IAkgFikACDcACCAJIDo3AAACQCAEQRFJDQAgHikAACE6IAkgHikACDcAGCAJIDo3ABAgBEEQa0ERSA0AIAlBIGohAiAeIQQDQCAEKQAQITogAiAEKQAYNwAIIAIgOjcAACAEKQAgITogAiAEKQAoNwAYIAIgOjcAECAEQSBqIQQgAkEgaiICIAxJDQALCyAMIAprIQIgBSAHNgLMAiAMIAtrIApJBEAgCiAMIBdrSw0PICIgIiACIAtrIgdqIgQgDWpPBEAgDUUNAiAMIAQgDfwKAAAMAgtBACAHayICBEAgDCAEIAL8CgAACyAHIA1qIQ0gDCAHayEMIAshAgsgCkEQTwRAIAIpAAAhOiAMIAIpAAg3AAggDCA6NwAAIA1BEUgNASAMIA1qIQcgDEEQaiEEA0AgAikAECE6IAQgAikAGDcACCAEIDo3AAAgAikAICE6IAQgAikAKDcAGCAEIDo3ABAgAkEgaiECIARBIGoiBCAHSQ0ACwwBCwJAIApBB00EQCAMIAItAAA6AAAgDCACLQABOgABIAwgAi0AAjoAAiAMIAItAAM6AAMgDCACIApBAnQiBEHgGmooAgBqIgIoAAA2AAQgAiAEQYAbaigCAGshAgwBCyAMIAIpAAA3AAALIA1BCUkNACAMIA1qIQcgDEEIaiIEIAJBCGoiAmtBD0wEQANAIAQgAikAADcAACACQQhqIQIgBEEIaiIEIAdJDQAMAgsACyACKQAAITogBCACKQAINwAIIAQgOjcAACANQRlIDQAgDEEYaiEEA0AgAikAECE6IAQgAikAGDcACCAEIDo3AAAgAikAICE6IAQgAikAKDcAGCAEIDo3ABAgAkEgaiECIARBIGoiBCAHSQ0ACwsgBkGJf08EQCAGIQMMDgsgGSEcIAYgCWoMAwsgB0EgayECAkACQCAHIBxLDQAgCSAKKAIEIhIgBGoiDGogAksNACAMQSBqIBQgCWtNDQELIAUgCigCCDYCYCAFIAopAgA3A1ggCSAUIAIgBUHYAGogBUHMAmogHCALIBcgIhAhIQwMAgsgBCAJaiEGIAooAgghCiAPKQAAITogCSAPKQAINwAIIAkgOjcAAAJAIARBEUkNACAPKQAQITogCSAPKQAYNwAYIAkgOjcAECAEQRBrQRFIDQAgD0EQaiECIAlBIGohBANAIAIpABAhOiAEIAIpABg3AAggBCA6NwAAIAIpACAhOiAEIAIpACg3ABggBCA6NwAQIAJBIGohAiAEQSBqIgQgBkkNAAsLIAYgCmshAiAFIAc2AswCIAYgC2sgCkkEQCAKIAYgF2tLDQ0gIiAiIAIgC2siB2oiBCASak8EQCASRQ0DIAYgBCAS/AoAAAwDC0EAIAdrIgIEQCAGIAQgAvwKAAALIAcgEmohEiAGIAdrIQYgCyECCyAKQRBPBEAgAikAACE6IAYgAikACDcACCAGIDo3AAAgEkERSA0CIAYgEmohByAGQRBqIQQDQCACKQAQITogBCACKQAYNwAIIAQgOjcAACACKQAgITogBCACKQAoNwAYIAQgOjcAECACQSBqIQIgBEEgaiIEIAdJDQALDAILAkAgCkEHTQRAIAYgAi0AADoAACAGIAItAAE6AAEgBiACLQACOgACIAYgAi0AAzoAAyAGIAIgCkECdCIEQeAaaigCAGoiAigAADYABCACIARBgBtqKAIAayECDAELIAYgAikAADcAAAsgEkEJSQ0BIAYgEmohByAGQQhqIgQgAkEIaiICa0EPTARAA0AgBCACKQAANwAAIAJBCGohAiAE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';
+
+/**
+ * @typedef {import('./basedecoder.js').BaseDecoderParameters & { LercParameters?: any }} LercDecoderParameters
+ */
+const zstd$2 = new ZSTDDecoder$1();
+class LercDecoder extends BaseDecoder {
+    /**
+     * @param {ArrayBufferLike} buffer
+     * @returns {ArrayBufferLike}
+     */
+    decodeBlock(buffer) {
+        const params = /** @type {LercDecoderParameters} */ (this.parameters);
+        const addCompression = params.LercParameters?.[LercParameters.AddCompression];
+        /** @type {ArrayBufferLike} */
+        let decoded = buffer;
+        switch (addCompression) {
+            case LercAddCompression.None:
+                break;
+            case LercAddCompression.Deflate:
+                decoded = inflate_1(new Uint8Array(decoded)).buffer;
+                break;
+            case LercAddCompression.Zstandard:
+                decoded = zstd$2.decode(new Uint8Array(decoded)).buffer;
+                break;
+            default:
+                throw new Error(`Unsupported LERC additional compression method identifier: ${addCompression}`);
+        }
+        const lercResult = Lerc.decode(decoded, { returnPixelInterleavedDims: this.parameters.planarConfiguration === 1 });
+        const lercData = lercResult.pixels[0];
+        return lercData.buffer;
+    }
+}
+
+var lerc = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: LercDecoder,
+	zstd: zstd$2
+});
+
+/**
+ * Some C structs for reference:
+    typedef struct ZSTD_inBuffer_s {
+        const void* src;
+        size_t size;
+        size_t pos;
+    } ZSTD_inBuffer;
+
+    typedef struct ZSTD_outBuffer_s {
+        void*  dst;
+        size_t size;
+        size_t pos;
+    } ZSTD_outBuffer;
+ */
+let init;
+let instance;
+let heap;
+let heapView;
+const IMPORT_OBJECT = {
+  env: {
+    emscripten_notify_memory_growth: _ => {
+      heap = new Uint8Array(instance.exports.memory.buffer);
+      heapView = new DataView(heap.buffer);
+    }
+  }
+};
+/**
+ * ZSTD (Zstandard) decoder.
+ */
+class ZSTDDecoder {
+  init() {
+    if (init) return init;
+    if (typeof fetch !== 'undefined') {
+      // Web.
+      init = fetch(`data:application/wasm;base64,${wasm}`).then(response => response.arrayBuffer()).then(arrayBuffer => WebAssembly.instantiate(arrayBuffer, IMPORT_OBJECT)).then(this._init);
+    } else {
+      // Node.js.
+      init = WebAssembly.instantiate(Buffer.from(wasm, 'base64'), IMPORT_OBJECT).then(this._init);
+    }
+    return init;
+  }
+  _init(result) {
+    instance = result.instance;
+    IMPORT_OBJECT.env.emscripten_notify_memory_growth(0); // initialize heap.
+  }
+  decode(array, uncompressedSize = 0) {
+    if (!instance) throw new Error('ZSTDDecoder: Await .init() before decoding.');
+    // Write compressed data into WASM memory.
+    const compressedSize = array.byteLength;
+    const compressedPtr = instance.exports.malloc(compressedSize);
+    heap.set(array, compressedPtr);
+    // Decompress into WASM memory.
+    if (uncompressedSize === 0) {
+      uncompressedSize = Number(instance.exports.ZSTD_findDecompressedSize(compressedPtr, compressedSize));
+    }
+    if (uncompressedSize === -1) {
+      instance.exports.free(compressedPtr);
+      const parts = [];
+      for (const out of this.decodeStreaming([array])) {
+        parts.push(out);
+      }
+      // if we just received a single part, we can return it directly
+      if (parts.length === 1) {
+        return parts[0];
+      }
+      // we may need to stitch together all the accumulated parts
+      const fullByteLength = parts.reduce((acc, arr) => acc + arr.byteLength, 0);
+      const result = new Uint8Array(fullByteLength);
+      let offset = 0;
+      for (const part of parts) {
+        result.set(part, offset);
+        offset += part.byteLength;
+      }
+      return result;
+    }
+    const uncompressedPtr = instance.exports.malloc(uncompressedSize);
+    const actualSize = instance.exports.ZSTD_decompress(uncompressedPtr, uncompressedSize, compressedPtr, compressedSize);
+    // Read decompressed data and free WASM memory.
+    const dec = heap.slice(uncompressedPtr, uncompressedPtr + actualSize);
+    instance.exports.free(compressedPtr);
+    instance.exports.free(uncompressedPtr);
+    return dec;
+  }
+  *decodeStreaming(arrays) {
+    // code converted to JS from here https://github.com/facebook/zstd/blob/v1.5.0/examples/streaming_decompression.c
+    if (!instance) throw new Error('ZSTDDecoder: Await .init() before decoding.');
+    const buffInSize = instance.exports.ZSTD_DStreamInSize();
+    const buffIn = instance.exports.malloc(buffInSize);
+    const buffOutSize = instance.exports.ZSTD_DStreamOutSize();
+    const buffOut = instance.exports.malloc(buffOutSize);
+    const dctxPtr = instance.exports.ZSTD_createDCtx();
+    const sizeOfPointer = 4; // in WASM 32, a pointer has 32 bits/4 bytes
+    const sizeOfSizeT = 4; // in WASM 32, a size_t has 32 bits/4 bytes
+    // we cannot create a struct to pass a pointer to. Thus we need to alloc for the input/output structs and set the fields manually
+    const inputPtr = instance.exports.malloc(sizeOfPointer + sizeOfSizeT * 2);
+    const outputPtr = instance.exports.malloc(sizeOfPointer + sizeOfSizeT * 2);
+    let lastRet = 0;
+    for (const array of arrays) {
+      const compressedPtr = instance.exports.malloc(array.byteLength);
+      heap.set(array, compressedPtr);
+      // set input struct fields: src, size, pos
+      heapView.setInt32(inputPtr, compressedPtr, true);
+      heapView.setInt32(inputPtr + sizeOfPointer, array.byteLength, true);
+      heapView.setInt32(inputPtr + sizeOfPointer + sizeOfSizeT, 0, true);
+      // we must repeat as long as ZSTD_inBuffer.size < ZSTD_inBuffer.pos
+      while (heapView.getUint32(inputPtr + sizeOfPointer + sizeOfSizeT, true) < heapView.getUint32(inputPtr + sizeOfPointer, true)) {
+        // set output struct fields: src, size, pos
+        heapView.setInt32(outputPtr, buffOut, true);
+        heapView.setInt32(outputPtr + sizeOfPointer, buffOutSize, true);
+        heapView.setInt32(outputPtr + sizeOfPointer + sizeOfSizeT, 0, true);
+        lastRet = instance.exports.ZSTD_decompressStream(dctxPtr, outputPtr, inputPtr);
+        // see how many bytes were written to the output buffer
+        const outputPos = heapView.getUint32(outputPtr + sizeOfPointer + sizeOfSizeT, true);
+        yield heap.slice(buffOut, buffOut + outputPos);
+      }
+      instance.exports.free(compressedPtr);
+    }
+    instance.exports.ZSTD_freeDCtx(dctxPtr);
+    instance.exports.free(buffIn);
+    instance.exports.free(buffOut);
+    instance.exports.free(inputPtr);
+    instance.exports.free(outputPtr);
+    if (lastRet !== 0) {
+      throw new Error('Incomplete stream, more data expected.');
+    }
+  }
+}
+/**
+ * BSD License
+ *
+ * For Zstandard software
+ *
+ * Copyright (c) 2016-present, Yann Collet, Facebook, Inc. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither the name Facebook nor the names of its contributors may be used to
+ *    endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+// wasm:begin
+const wasm = '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QQhyIQBBACEDA0AgACADTQ0DIANBQGshAwwACwALQWwhCiAOIA5B/ABqIA5B+ABqIAUgBhAGIgJBiH9LDQEgDigCeCIDIARLDQEgACAOIA4oAnwgByAIIAMgDRAlIAEgADYCACACIQoMAQtBbCEKCyAOQYABaiQAIAoLcAEEfyAAQgA3AgAgAgRAIAFBCmohBiABKAIEIQRBACECQQAhAQNAIAEgBHZFBEAgAiAGIAFBA3RqLQAAIgUgAiAFSxshAiABQQFqIQEgAyAFQRZLaiEDDAELCyAAIAI2AgQgACADQQggBGt0NgIACwuuAQEEfyABIAIoAgQiAyABKAIEaiIENgIEIAAgA0ECdEGwGWooAgAgASgCAEEAIARrdnE2AgACQCAEQSFPBEAgAUGwGjYCCAwBCyABKAIIIgMgASgCEE8EQCABEAwMAQsgAyABKAIMIgVGDQAgASADIAMgBWsgBEEDdiIGIAMgBmsgBUkbIgNrIgU2AgggASAEIANBA3RrNgIEIAEgBSgAADYCAAsgACACQQhqNgIEC40CAgN/AX4gACACaiEEAkACQCACQQhOBEAgACABayICQXlIDQELA0AgACAETw0CIAAgAS0AADoAACAAQQFqIQAgAUEBaiEBDAALAAsCQAJAIAJBb0sNACAAIARBIGsiAksNACABKQAAIQYgACABKQAINwAIIAAgBjcAACACIABrIgVBEU4EQCAAQRBqIQAgASEDA0AgAykAECEGIAAgAykAGDcACCAAIAY3AAAgAykAICEGIAAgAykAKDcAGCAAIAY3ABAgA0EgaiEDIABBIGoiACACSQ0ACwsgASAFaiEBDAELIAAhAgsDQCACIARPDQEgAiABLQAAOgAAIAJBAWohAiABQQFqIQEMAAsACwvfAQEGf0G6fyEKAkAgAigCBCIIIAIoAgAiCWoiDSABIABrSw0AQWwhCiAJIAQgAygCACILa0sNACAAIAlqIgQgAigCCCIMayECIAAgAUEgayIBIAsgCUEAEDMgAyAJIAtqNgIAAkACQCAEIAVrIAxPBEAgAiEFDAELIAwgBCAGa0sNAiAHIAcgAiAFayIDaiICIAhqTwRAIAhFDQIgBCACIAj8CgAADAILQQAgA2siAARAIAQgAiAA/AoAAAsgAyAIaiEIIAQgA2shBAsgBCABIAUgCEEBEDML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';
+
+const zstd = new ZSTDDecoder();
+class ZstdDecoder extends BaseDecoder {
+    /** @param {ArrayBuffer} buffer */
+    decodeBlock(buffer) {
+        return /** @type {ArrayBuffer} */ (zstd.decode(new Uint8Array(buffer)).buffer);
+    }
+}
+
+var zstd$1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: ZstdDecoder,
+	zstd: zstd
+});
+
+/**
+ * class WebImageDecoder
+ *
+ * This decoder uses the browsers image decoding facilities to read image
+ * formats like WebP when supported.
+ */
+class WebImageDecoder extends BaseDecoder {
+    /**
+     * @param {import('./basedecoder.js').BaseDecoderParameters} parameters
+     */
+    constructor(parameters) {
+        super(parameters);
+        if (typeof createImageBitmap === 'undefined') {
+            throw new Error('Cannot decode WebImage as `createImageBitmap` is not available');
+        }
+        else if (typeof document === 'undefined' && typeof OffscreenCanvas === 'undefined') {
+            throw new Error('Cannot decode WebImage as neither `document` nor `OffscreenCanvas` is not available');
+        }
+    }
+    /** @param {ArrayBuffer} buffer */
+    async decodeBlock(buffer) {
+        const blob = new Blob([buffer]);
+        const imageBitmap = await createImageBitmap(blob);
+        let canvas;
+        if (typeof document !== 'undefined') {
+            canvas = document.createElement('canvas');
+            canvas.width = imageBitmap.width;
+            canvas.height = imageBitmap.height;
+        }
+        else {
+            canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+        }
+        // Draw the image onto the canvas to extract the pixel data.
+        // Note: createImageBitmap always returns RGBA data.
+        const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
+        ctx.drawImage(imageBitmap, 0, 0);
+        const imageData = ctx.getImageData(0, 0, imageBitmap.width, imageBitmap.height).data;
+        // Return the correct channels to the caller
+        const samplesPerPixel = this.parameters.samplesPerPixel || 4;
+        if (samplesPerPixel === 4) {
+            // RGBA, return as is
+            return imageData.buffer;
+        }
+        else if (samplesPerPixel === 3) {
+            // RGB, remove alpha channel before returning
+            const rgb = new Uint8ClampedArray(imageBitmap.width * imageBitmap.height * 3);
+            for (let i = 0, j = 0; i < rgb.length; i += 3, j += 4) {
+                rgb[i] = imageData[j];
+                rgb[i + 1] = imageData[j + 1];
+                rgb[i + 2] = imageData[j + 2];
+            }
+            return rgb.buffer;
+        }
+        else {
+            throw new Error(`Unsupported SamplesPerPixel value: ${samplesPerPixel}`);
+        }
+    }
+}
+
+var webimage = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: WebImageDecoder
+});
 
 export { AbstractAttributeSet, AbstractPin, AbstractRaster, AbstractSymbolGroup, AbstractTileLoader, Acetate, AcetateExtrudedPoint, AcetateFuelPoint, AcetateHeadingTriangle, AcetateInteractive, AcetateRotatingExtrusion, AcetateSolidBorder, AcetateSolidExtrusion, AcetateStitchedTiles, AcetateStroke, AcetateVertices, Allocator, ArrowHeadField, ArrugatedRaster, Arrugator, Attribution, Balloon, BaseCRS, BlurField, Button, ButtonGroup, ButtonToggle, Callout, CartesianMap, Chain, Circle, CircleFill, CircleGauge, CircleStroke, Clusterer, ConformalOGCAPIMaps, ConformalRaster, ConformalWMS, Control, DelaunayMesh, Dot, EditBar, Evented, ExpandBox, ExtrudedPoint, Fill, FrameBuffer, FuelPoint, GPX, GenericVectorTileLoader, GeoJSON, GeoTIFF, GeoTIFFLoader, Geometry, GleoMap, GleoMouseEvent, GleoPointerEvent, GleoSymbol, GliiFactory, GreyScaleField$1 as GreyScaleField, HTMLImages, HTMLPin, Hair, Halo, HeadingTriangle, HeatChain$1 as HeatChain, HeatMap, HeatMirage, HeatPoint, HeatStroke, HexBin, HueVectorField, IndexBuffer, InertialEasing, InterleavedAttributes, JSONFG, KML, LatLng, LineArrugator, LngLat, LoDAllocator, LoDIndices, Loader, MercatorMap, MercatorTiles, Mesh, MonteCarloFill, MovingFeaturesJSON, MultiProgram, MultiSymbol, OffScreenIndicator, OffsetCRS, ParticleSimulator, ParticleTrailSimulator, Pbf, Pie, Platina, Point, PointIndices, ProtoMapsLoader, ProtobufVectorTileLoader, QuadBin, QuadMarginBin, RBush, RadarSweep, RasterTileLoader, RawGeometry, GreyScaleField as RedGreenField, RenderBuffer, ScalarFieldAnimated, ScaleBar, ScaledHeatMap, ScaledHexBin, SequentialIndices, SequentialSparseIndices, ShelfPack, SingleAttribute, SlopePoint, SparseIndices, HeatChain as SpeedChain, Spider, Sprite, Stroke, StrokeRoad, SymbolGroup, TextLabel, Texture, Tile, TileEvent, TilePyramid, TintedSprite, TinyQueue$1 as TinyQueue, TriangleIndices, TwinkleField, VectorStylesheetLoader, VectorTile, VectorTileFeature, VectorTileLayer, VerboseAllocator, VertexDot, WavyFill, WebGL1Clear, WebGL1Program, WireframeTriangleIndices, ZoomButton, ZoomIn, ZoomInOut, ZoomOut, TinyQueue as tinyqueue };
