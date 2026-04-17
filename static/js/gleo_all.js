@@ -1,3 +1,2138 @@
+import { GeoTIFFImage, fromUrl, GeoTIFF as GeoTIFF$1 } from 'geotiff';
+import { PMTiles } from 'pmtiles';
+
+// © Dean McNamee <dean@gmail.com>, 2012.
+// © Iván Sánchez Ortega <ivan@sanchezortega, 2017.
+//
+// See:
+//  https://github.com/deanm/css-color-parser-js
+//  https://github.com/IvanSanchez/css-color-parser-js
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+
+// http://www.w3.org/TR/css3-color/
+var kCSSColorTable = {
+	transparent: [0, 0, 0, 0],
+	aliceblue: [240, 248, 255, 255],
+	antiquewhite: [250, 235, 215, 255],
+	aqua: [0, 255, 255, 255],
+	aquamarine: [127, 255, 212, 255],
+	azure: [240, 255, 255, 255],
+	beige: [245, 245, 220, 255],
+	bisque: [255, 228, 196, 255],
+	black: [0, 0, 0, 255],
+	blanchedalmond: [255, 235, 205, 255],
+	blue: [0, 0, 255, 255],
+	blueviolet: [138, 43, 226, 255],
+	brown: [165, 42, 42, 255],
+	burlywood: [222, 184, 135, 255],
+	cadetblue: [95, 158, 160, 255],
+	chartreuse: [127, 255, 0, 255],
+	chocolate: [210, 105, 30, 255],
+	coral: [255, 127, 80, 255],
+	cornflowerblue: [100, 149, 237, 255],
+	cornsilk: [255, 248, 220, 255],
+	crimson: [220, 20, 60, 255],
+	cyan: [0, 255, 255, 255],
+	darkblue: [0, 0, 139, 255],
+	darkcyan: [0, 139, 139, 255],
+	darkgoldenrod: [184, 134, 11, 255],
+	darkgray: [169, 169, 169, 255],
+	darkgreen: [0, 100, 0, 255],
+	darkgrey: [169, 169, 169, 255],
+	darkkhaki: [189, 183, 107, 255],
+	darkmagenta: [139, 0, 139, 255],
+	darkolivegreen: [85, 107, 47, 255],
+	darkorange: [255, 140, 0, 255],
+	darkorchid: [153, 50, 204, 255],
+	darkred: [139, 0, 0, 255],
+	darksalmon: [233, 150, 122, 255],
+	darkseagreen: [143, 188, 143, 255],
+	darkslateblue: [72, 61, 139, 255],
+	darkslategray: [47, 79, 79, 255],
+	darkslategrey: [47, 79, 79, 255],
+	darkturquoise: [0, 206, 209, 255],
+	darkviolet: [148, 0, 211, 255],
+	deeppink: [255, 20, 147, 255],
+	deepskyblue: [0, 191, 255, 255],
+	dimgray: [105, 105, 105, 255],
+	dimgrey: [105, 105, 105, 255],
+	dodgerblue: [30, 144, 255, 255],
+	firebrick: [178, 34, 34, 255],
+	floralwhite: [255, 250, 240, 255],
+	forestgreen: [34, 139, 34, 255],
+	fuchsia: [255, 0, 255, 255],
+	gainsboro: [220, 220, 220, 255],
+	ghostwhite: [248, 248, 255, 255],
+	gold: [255, 215, 0, 255],
+	goldenrod: [218, 165, 32, 255],
+	gray: [128, 128, 128, 255],
+	green: [0, 128, 0, 255],
+	greenyellow: [173, 255, 47, 255],
+	grey: [128, 128, 128, 255],
+	honeydew: [240, 255, 240, 255],
+	hotpink: [255, 105, 180, 255],
+	indianred: [205, 92, 92, 255],
+	indigo: [75, 0, 130, 255],
+	ivory: [255, 255, 240, 255],
+	khaki: [240, 230, 140, 255],
+	lavender: [230, 230, 250, 255],
+	lavenderblush: [255, 240, 245, 255],
+	lawngreen: [124, 252, 0, 255],
+	lemonchiffon: [255, 250, 205, 255],
+	lightblue: [173, 216, 230, 255],
+	lightcoral: [240, 128, 128, 255],
+	lightcyan: [224, 255, 255, 255],
+	lightgoldenrodyellow: [250, 250, 210, 255],
+	lightgray: [211, 211, 211, 255],
+	lightgreen: [144, 238, 144, 255],
+	lightgrey: [211, 211, 211, 255],
+	lightpink: [255, 182, 193, 255],
+	lightsalmon: [255, 160, 122, 255],
+	lightseagreen: [32, 178, 170, 255],
+	lightskyblue: [135, 206, 250, 255],
+	lightslategray: [119, 136, 153, 255],
+	lightslategrey: [119, 136, 153, 255],
+	lightsteelblue: [176, 196, 222, 255],
+	lightyellow: [255, 255, 224, 255],
+	lime: [0, 255, 0, 255],
+	limegreen: [50, 205, 50, 255],
+	linen: [250, 240, 230, 255],
+	magenta: [255, 0, 255, 255],
+	maroon: [128, 0, 0, 255],
+	mediumaquamarine: [102, 205, 170, 255],
+	mediumblue: [0, 0, 205, 255],
+	mediumorchid: [186, 85, 211, 255],
+	mediumpurple: [147, 112, 219, 255],
+	mediumseagreen: [60, 179, 113, 255],
+	mediumslateblue: [123, 104, 238, 255],
+	mediumspringgreen: [0, 250, 154, 255],
+	mediumturquoise: [72, 209, 204, 255],
+	mediumvioletred: [199, 21, 133, 255],
+	midnightblue: [25, 25, 112, 255],
+	mintcream: [245, 255, 250, 255],
+	mistyrose: [255, 228, 225, 255],
+	moccasin: [255, 228, 181, 255],
+	navajowhite: [255, 222, 173, 255],
+	navy: [0, 0, 128, 255],
+	oldlace: [253, 245, 230, 255],
+	olive: [128, 128, 0, 255],
+	olivedrab: [107, 142, 35, 255],
+	orange: [255, 165, 0, 255],
+	orangered: [255, 69, 0, 255],
+	orchid: [218, 112, 214, 255],
+	palegoldenrod: [238, 232, 170, 255],
+	palegreen: [152, 251, 152, 255],
+	paleturquoise: [175, 238, 238, 255],
+	palevioletred: [219, 112, 147, 255],
+	papayawhip: [255, 239, 213, 255],
+	peachpuff: [255, 218, 185, 255],
+	peru: [205, 133, 63, 255],
+	pink: [255, 192, 203, 255],
+	plum: [221, 160, 221, 255],
+	powderblue: [176, 224, 230, 255],
+	purple: [128, 0, 128, 255],
+	rebeccapurple: [102, 51, 153, 255],
+	red: [255, 0, 0, 255],
+	rosybrown: [188, 143, 143, 255],
+	royalblue: [65, 105, 225, 255],
+	saddlebrown: [139, 69, 19, 255],
+	salmon: [250, 128, 114, 255],
+	sandybrown: [244, 164, 96, 255],
+	seagreen: [46, 139, 87, 255],
+	seashell: [255, 245, 238, 255],
+	sienna: [160, 82, 45, 255],
+	silver: [192, 192, 192, 255],
+	skyblue: [135, 206, 235, 255],
+	slateblue: [106, 90, 205, 255],
+	slategray: [112, 128, 144, 255],
+	slategrey: [112, 128, 144, 255],
+	snow: [255, 250, 250, 255],
+	springgreen: [0, 255, 127, 255],
+	steelblue: [70, 130, 180, 255],
+	tan: [210, 180, 140, 255],
+	teal: [0, 128, 128, 255],
+	thistle: [216, 191, 216, 255],
+	tomato: [255, 99, 71, 255],
+	turquoise: [64, 224, 208, 255],
+	violet: [238, 130, 238, 255],
+	wheat: [245, 222, 179, 255],
+	white: [255, 255, 255, 255],
+	whitesmoke: [245, 245, 245, 255],
+	yellow: [255, 255, 0, 255],
+	yellowgreen: [154, 205, 50, 255],
+};
+
+function clamp_css_byte(i) {
+	// Clamp to integer 0 .. 255.
+	i = Math.round(i); // Seems to be what Chrome does (vs truncation).
+	return i < 0 ? 0 : i > 255 ? 255 : i;
+}
+
+function clamp_css_float(f) {
+	// Clamp to float 0.0 .. 1.0.
+	return f < 0 ? 0 : f > 1 ? 1 : f;
+}
+
+function parse_css_int(str) {
+	// int or percentage.
+	if (str[str.length - 1] === "%") return clamp_css_byte((parseFloat(str) / 100) * 255);
+	return clamp_css_byte(parseInt(str));
+}
+
+function parse_css_float(str) {
+	// float or percentage.
+	if (str[str.length - 1] === "%") return clamp_css_float(parseFloat(str) / 100);
+	return clamp_css_float(parseFloat(str));
+}
+
+function css_hue_to_rgb(m1, m2, h) {
+	if (h < 0) h += 1;
+	else if (h > 1) h -= 1;
+
+	if (h * 6 < 1) return m1 + (m2 - m1) * h * 6;
+	if (h * 2 < 1) return m2;
+	if (h * 3 < 2) return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+	return m1;
+}
+
+function parseCSSColor(css_str) {
+	if (
+		css_str instanceof Array ||
+		css_str instanceof Uint8Array ||
+		css_str instanceof Uint8ClampedArray
+	) {
+		if (typeof css_str[0] === "number") {
+			if (css_str.length === 4) {
+				return css_str;
+			} else if (css_str.length === 3) {
+				return [...css_str, 255];
+			}
+		} else {
+			return null;
+		}
+	}
+
+	// Remove all whitespace, not compliant, but should just be more accepting.
+	var str = css_str.replace(/ /g, "").toLowerCase();
+
+	// Color keywords (and transparent) lookup.
+	if (str in kCSSColorTable) return kCSSColorTable[str].slice(); // dup.
+
+	// #abc and #abc123 syntax.
+	if (str[0] === "#") {
+		var iv = parseInt(str.substr(1), 16); // TODO(deanm): Stricter parsing.
+		if (str.length === 4) {
+			// #rgb
+			if (!(iv >= 0 && iv <= 0xfff)) return null; // Covers NaN.
+			return [
+				((iv & 0xf00) >> 4) | ((iv & 0xf00) >> 8),
+				(iv & 0x0f0) | ((iv & 0x0f0) >> 4),
+				((iv & 0x00f) << 4) | (iv & 0x00f),
+				255,
+			];
+		} else if (str.length === 7) {
+			// #rrggbb
+			if (!(iv >= 0 && iv <= 0xffffff)) return null; // Covers NaN.
+			return [(iv & 0xff0000) >> 16, (iv & 0x00ff00) >> 8, iv & 0x0000ff, 255];
+		} else if (str.length === 5) {
+			// #rgba
+			if (!(iv >= 0 && iv <= 0xffff)) return null; // Covers NaN.
+			return [
+				((iv & 0xf000) >> 8) | ((iv & 0xf000) >> 12),
+				((iv & 0x0f00) >> 4) | ((iv & 0x0f00) >> 8),
+				(iv & 0x00f0) | ((iv & 0x00f0) >> 4),
+				((iv & 0x000f) << 4) | (iv & 0x000f),
+			];
+		} else if (str.length === 9) {
+			// #rrggbbaa
+			if (!(iv >= 0 && iv <= 0xffffffff)) return null; // Covers NaN.
+			return [
+				((iv & 0xff000000) >> 24) & 0xff,
+				(iv & 0x00ff0000) >> 16,
+				(iv & 0x0000ff00) >> 8,
+				iv & 0x000000ff,
+			];
+		}
+
+		return null;
+	}
+
+	var op = str.indexOf("("),
+		ep = str.indexOf(")");
+	if (op !== -1 && ep + 1 === str.length) {
+		var fname = str.substr(0, op);
+		var params = str.substr(op + 1, ep - (op + 1)).split(",");
+		var alpha = 255; // To allow case fallthrough.
+		switch (fname) {
+			case "rgba":
+				if (params.length !== 4) return null;
+				alpha = parse_css_int(params.pop());
+			// Fall through.
+			case "rgb":
+				if (params.length !== 3) return null;
+				return [
+					parse_css_int(params[0]),
+					parse_css_int(params[1]),
+					parse_css_int(params[2]),
+					alpha,
+				];
+			case "hsla":
+				if (params.length !== 4) return null;
+				alpha = Math.round(parse_css_float(params.pop()) * 255);
+			// Fall through.
+			case "hsl":
+				if (params.length !== 3) return null;
+				var h = (((parseFloat(params[0]) % 360) + 360) % 360) / 360; // 0 .. 1
+				// NOTE(deanm): According to the CSS spec s/l should only be
+				// percentages, but we don't bother and let float or percentage.
+				var s = parse_css_float(params[1]);
+				var l = parse_css_float(params[2]);
+				var m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
+				var m1 = l * 2 - m2;
+				return [
+					clamp_css_byte(css_hue_to_rgb(m1, m2, h + 1 / 3) * 255),
+					clamp_css_byte(css_hue_to_rgb(m1, m2, h) * 255),
+					clamp_css_byte(css_hue_to_rgb(m1, m2, h - 1 / 3) * 255),
+					alpha,
+				];
+			default:
+				return null;
+		}
+	}
+
+	return null;
+}
+
+function earcut(data, holeIndices, dim) {
+
+    dim = dim || 2;
+
+    var hasHoles = holeIndices && holeIndices.length,
+        outerLen = hasHoles ? holeIndices[0] * dim : data.length,
+        outerNode = linkedList(data, 0, outerLen, dim, true),
+        triangles = [];
+
+    if (!outerNode || outerNode.next === outerNode.prev) return triangles;
+
+    var minX, minY, maxX, maxY, x, y, invSize;
+
+    if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim);
+
+    // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
+    if (data.length > 80 * dim) {
+        minX = maxX = data[0];
+        minY = maxY = data[1];
+
+        for (var i = dim; i < outerLen; i += dim) {
+            x = data[i];
+            y = data[i + 1];
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        }
+
+        // minX, minY and invSize are later used to transform coords into integers for z-order calculation
+        invSize = Math.max(maxX - minX, maxY - minY);
+        invSize = invSize !== 0 ? 1 / invSize : 0;
+    }
+
+    earcutLinked(outerNode, triangles, dim, minX, minY, invSize);
+
+    return triangles;
+}
+
+// create a circular doubly linked list from polygon points in the specified winding order
+function linkedList(data, start, end, dim, clockwise) {
+    var i, last;
+
+    if (clockwise === (signedArea$2(data, start, end, dim) > 0)) {
+        for (i = start; i < end; i += dim) last = insertNode(i, data[i], data[i + 1], last);
+    } else {
+        for (i = end - dim; i >= start; i -= dim) last = insertNode(i, data[i], data[i + 1], last);
+    }
+
+    if (last && equals(last, last.next)) {
+        removeNode(last);
+        last = last.next;
+    }
+
+    return last;
+}
+
+// eliminate colinear or duplicate points
+function filterPoints(start, end) {
+    if (!start) return start;
+    if (!end) end = start;
+
+    var p = start,
+        again;
+    do {
+        again = false;
+
+        if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
+            removeNode(p);
+            p = end = p.prev;
+            if (p === p.next) break;
+            again = true;
+
+        } else {
+            p = p.next;
+        }
+    } while (again || p !== end);
+
+    return end;
+}
+
+// main ear slicing loop which triangulates a polygon (given as a linked list)
+function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
+    if (!ear) return;
+
+    // interlink polygon nodes in z-order
+    if (!pass && invSize) indexCurve(ear, minX, minY, invSize);
+
+    var stop = ear,
+        prev, next;
+
+    // iterate through ears, slicing them one by one
+    while (ear.prev !== ear.next) {
+        prev = ear.prev;
+        next = ear.next;
+
+        if (invSize ? isEarHashed(ear, minX, minY, invSize) : isEar(ear)) {
+            // cut off the triangle
+            triangles.push(prev.i / dim);
+            triangles.push(ear.i / dim);
+            triangles.push(next.i / dim);
+
+            removeNode(ear);
+
+            // skipping the next vertex leads to less sliver triangles
+            ear = next.next;
+            stop = next.next;
+
+            continue;
+        }
+
+        ear = next;
+
+        // if we looped through the whole remaining polygon and can't find any more ears
+        if (ear === stop) {
+            // try filtering points and slicing again
+            if (!pass) {
+                earcutLinked(filterPoints(ear), triangles, dim, minX, minY, invSize, 1);
+
+            // if this didn't work, try curing all small self-intersections locally
+            } else if (pass === 1) {
+                ear = cureLocalIntersections(filterPoints(ear), triangles, dim);
+                earcutLinked(ear, triangles, dim, minX, minY, invSize, 2);
+
+            // as a last resort, try splitting the remaining polygon into two
+            } else if (pass === 2) {
+                splitEarcut(ear, triangles, dim, minX, minY, invSize);
+            }
+
+            break;
+        }
+    }
+}
+
+// check whether a polygon node forms a valid ear with adjacent nodes
+function isEar(ear) {
+    var a = ear.prev,
+        b = ear,
+        c = ear.next;
+
+    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
+
+    // now make sure we don't have other points inside the potential ear
+    var p = ear.next.next;
+
+    while (p !== ear.prev) {
+        if (pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
+            area(p.prev, p, p.next) >= 0) return false;
+        p = p.next;
+    }
+
+    return true;
+}
+
+function isEarHashed(ear, minX, minY, invSize) {
+    var a = ear.prev,
+        b = ear,
+        c = ear.next;
+
+    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
+
+    // triangle bbox; min & max are calculated like this for speed
+    var minTX = a.x < b.x ? (a.x < c.x ? a.x : c.x) : (b.x < c.x ? b.x : c.x),
+        minTY = a.y < b.y ? (a.y < c.y ? a.y : c.y) : (b.y < c.y ? b.y : c.y),
+        maxTX = a.x > b.x ? (a.x > c.x ? a.x : c.x) : (b.x > c.x ? b.x : c.x),
+        maxTY = a.y > b.y ? (a.y > c.y ? a.y : c.y) : (b.y > c.y ? b.y : c.y);
+
+    // z-order range for the current triangle bbox;
+    var minZ = zOrder(minTX, minTY, minX, minY, invSize),
+        maxZ = zOrder(maxTX, maxTY, minX, minY, invSize);
+
+    var p = ear.prevZ,
+        n = ear.nextZ;
+
+    // look for points inside the triangle in both directions
+    while (p && p.z >= minZ && n && n.z <= maxZ) {
+        if (p !== ear.prev && p !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
+            area(p.prev, p, p.next) >= 0) return false;
+        p = p.prevZ;
+
+        if (n !== ear.prev && n !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
+            area(n.prev, n, n.next) >= 0) return false;
+        n = n.nextZ;
+    }
+
+    // look for remaining points in decreasing z-order
+    while (p && p.z >= minZ) {
+        if (p !== ear.prev && p !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
+            area(p.prev, p, p.next) >= 0) return false;
+        p = p.prevZ;
+    }
+
+    // look for remaining points in increasing z-order
+    while (n && n.z <= maxZ) {
+        if (n !== ear.prev && n !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
+            area(n.prev, n, n.next) >= 0) return false;
+        n = n.nextZ;
+    }
+
+    return true;
+}
+
+// go through all polygon nodes and cure small local self-intersections
+function cureLocalIntersections(start, triangles, dim) {
+    var p = start;
+    do {
+        var a = p.prev,
+            b = p.next.next;
+
+        if (!equals(a, b) && intersects$1(a, p, p.next, b) && locallyInside(a, b) && locallyInside(b, a)) {
+
+            triangles.push(a.i / dim);
+            triangles.push(p.i / dim);
+            triangles.push(b.i / dim);
+
+            // remove two nodes involved
+            removeNode(p);
+            removeNode(p.next);
+
+            p = start = b;
+        }
+        p = p.next;
+    } while (p !== start);
+
+    return filterPoints(p);
+}
+
+// try splitting polygon into two and triangulate them independently
+function splitEarcut(start, triangles, dim, minX, minY, invSize) {
+    // look for a valid diagonal that divides the polygon into two
+    var a = start;
+    do {
+        var b = a.next.next;
+        while (b !== a.prev) {
+            if (a.i !== b.i && isValidDiagonal(a, b)) {
+                // split the polygon in two by the diagonal
+                var c = splitPolygon(a, b);
+
+                // filter colinear points around the cuts
+                a = filterPoints(a, a.next);
+                c = filterPoints(c, c.next);
+
+                // run earcut on each half
+                earcutLinked(a, triangles, dim, minX, minY, invSize);
+                earcutLinked(c, triangles, dim, minX, minY, invSize);
+                return;
+            }
+            b = b.next;
+        }
+        a = a.next;
+    } while (a !== start);
+}
+
+// link every hole into the outer loop, producing a single-ring polygon without holes
+function eliminateHoles(data, holeIndices, outerNode, dim) {
+    var queue = [],
+        i, len, start, end, list;
+
+    for (i = 0, len = holeIndices.length; i < len; i++) {
+        start = holeIndices[i] * dim;
+        end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
+        list = linkedList(data, start, end, dim, false);
+        if (list === list.next) list.steiner = true;
+        queue.push(getLeftmost(list));
+    }
+
+    queue.sort(compareX);
+
+    // process holes from left to right
+    for (i = 0; i < queue.length; i++) {
+        outerNode = eliminateHole(queue[i], outerNode);
+        outerNode = filterPoints(outerNode, outerNode.next);
+    }
+
+    return outerNode;
+}
+
+function compareX(a, b) {
+    return a.x - b.x;
+}
+
+// find a bridge between vertices that connects hole with an outer ring and and link it
+function eliminateHole(hole, outerNode) {
+    var bridge = findHoleBridge(hole, outerNode);
+    if (!bridge) {
+        return outerNode;
+    }
+
+    var bridgeReverse = splitPolygon(bridge, hole);
+
+    // filter collinear points around the cuts
+    var filteredBridge = filterPoints(bridge, bridge.next);
+    filterPoints(bridgeReverse, bridgeReverse.next);
+
+    // Check if input node was removed by the filtering
+    return outerNode === bridge ? filteredBridge : outerNode;
+}
+
+// David Eberly's algorithm for finding a bridge between hole and outer polygon
+function findHoleBridge(hole, outerNode) {
+    var p = outerNode,
+        hx = hole.x,
+        hy = hole.y,
+        qx = -Infinity,
+        m;
+
+    // find a segment intersected by a ray from the hole's leftmost point to the left;
+    // segment's endpoint with lesser x will be potential connection point
+    do {
+        if (hy <= p.y && hy >= p.next.y && p.next.y !== p.y) {
+            var x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y);
+            if (x <= hx && x > qx) {
+                qx = x;
+                if (x === hx) {
+                    if (hy === p.y) return p;
+                    if (hy === p.next.y) return p.next;
+                }
+                m = p.x < p.next.x ? p : p.next;
+            }
+        }
+        p = p.next;
+    } while (p !== outerNode);
+
+    if (!m) return null;
+
+    if (hx === qx) return m; // hole touches outer segment; pick leftmost endpoint
+
+    // look for points inside the triangle of hole point, segment intersection and endpoint;
+    // if there are no points found, we have a valid connection;
+    // otherwise choose the point of the minimum angle with the ray as connection point
+
+    var stop = m,
+        mx = m.x,
+        my = m.y,
+        tanMin = Infinity,
+        tan;
+
+    p = m;
+
+    do {
+        if (hx >= p.x && p.x >= mx && hx !== p.x &&
+                pointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.x, p.y)) {
+
+            tan = Math.abs(hy - p.y) / (hx - p.x); // tangential
+
+            if (locallyInside(p, hole) &&
+                (tan < tanMin || (tan === tanMin && (p.x > m.x || (p.x === m.x && sectorContainsSector(m, p)))))) {
+                m = p;
+                tanMin = tan;
+            }
+        }
+
+        p = p.next;
+    } while (p !== stop);
+
+    return m;
+}
+
+// whether sector in vertex m contains sector in vertex p in the same coordinates
+function sectorContainsSector(m, p) {
+    return area(m.prev, m, p.prev) < 0 && area(p.next, m, m.next) < 0;
+}
+
+// interlink polygon nodes in z-order
+function indexCurve(start, minX, minY, invSize) {
+    var p = start;
+    do {
+        if (p.z === null) p.z = zOrder(p.x, p.y, minX, minY, invSize);
+        p.prevZ = p.prev;
+        p.nextZ = p.next;
+        p = p.next;
+    } while (p !== start);
+
+    p.prevZ.nextZ = null;
+    p.prevZ = null;
+
+    sortLinked(p);
+}
+
+// Simon Tatham's linked list merge sort algorithm
+// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+function sortLinked(list) {
+    var i, p, q, e, tail, numMerges, pSize, qSize,
+        inSize = 1;
+
+    do {
+        p = list;
+        list = null;
+        tail = null;
+        numMerges = 0;
+
+        while (p) {
+            numMerges++;
+            q = p;
+            pSize = 0;
+            for (i = 0; i < inSize; i++) {
+                pSize++;
+                q = q.nextZ;
+                if (!q) break;
+            }
+            qSize = inSize;
+
+            while (pSize > 0 || (qSize > 0 && q)) {
+
+                if (pSize !== 0 && (qSize === 0 || !q || p.z <= q.z)) {
+                    e = p;
+                    p = p.nextZ;
+                    pSize--;
+                } else {
+                    e = q;
+                    q = q.nextZ;
+                    qSize--;
+                }
+
+                if (tail) tail.nextZ = e;
+                else list = e;
+
+                e.prevZ = tail;
+                tail = e;
+            }
+
+            p = q;
+        }
+
+        tail.nextZ = null;
+        inSize *= 2;
+
+    } while (numMerges > 1);
+
+    return list;
+}
+
+// z-order of a point given coords and inverse of the longer side of data bbox
+function zOrder(x, y, minX, minY, invSize) {
+    // coords are transformed into non-negative 15-bit integer range
+    x = 32767 * (x - minX) * invSize;
+    y = 32767 * (y - minY) * invSize;
+
+    x = (x | (x << 8)) & 0x00FF00FF;
+    x = (x | (x << 4)) & 0x0F0F0F0F;
+    x = (x | (x << 2)) & 0x33333333;
+    x = (x | (x << 1)) & 0x55555555;
+
+    y = (y | (y << 8)) & 0x00FF00FF;
+    y = (y | (y << 4)) & 0x0F0F0F0F;
+    y = (y | (y << 2)) & 0x33333333;
+    y = (y | (y << 1)) & 0x55555555;
+
+    return x | (y << 1);
+}
+
+// find the leftmost node of a polygon ring
+function getLeftmost(start) {
+    var p = start,
+        leftmost = start;
+    do {
+        if (p.x < leftmost.x || (p.x === leftmost.x && p.y < leftmost.y)) leftmost = p;
+        p = p.next;
+    } while (p !== start);
+
+    return leftmost;
+}
+
+// check if a point lies within a convex triangle
+function pointInTriangle(ax, ay, bx, by, cx, cy, px, py) {
+    return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 &&
+           (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0 &&
+           (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0;
+}
+
+// check if a diagonal between two polygon nodes is valid (lies in polygon interior)
+function isValidDiagonal(a, b) {
+    return a.next.i !== b.i && a.prev.i !== b.i && !intersectsPolygon(a, b) && // dones't intersect other edges
+           (locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b) && // locally visible
+            (area(a.prev, a, b.prev) || area(a, b.prev, b)) || // does not create opposite-facing sectors
+            equals(a, b) && area(a.prev, a, a.next) > 0 && area(b.prev, b, b.next) > 0); // special zero-length case
+}
+
+// signed area of a triangle
+function area(p, q, r) {
+    return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+}
+
+// check if two points are equal
+function equals(p1, p2) {
+    return p1.x === p2.x && p1.y === p2.y;
+}
+
+// check if two segments intersect
+function intersects$1(p1, q1, p2, q2) {
+    var o1 = sign(area(p1, q1, p2));
+    var o2 = sign(area(p1, q1, q2));
+    var o3 = sign(area(p2, q2, p1));
+    var o4 = sign(area(p2, q2, q1));
+
+    if (o1 !== o2 && o3 !== o4) return true; // general case
+
+    if (o1 === 0 && onSegment(p1, p2, q1)) return true; // p1, q1 and p2 are collinear and p2 lies on p1q1
+    if (o2 === 0 && onSegment(p1, q2, q1)) return true; // p1, q1 and q2 are collinear and q2 lies on p1q1
+    if (o3 === 0 && onSegment(p2, p1, q2)) return true; // p2, q2 and p1 are collinear and p1 lies on p2q2
+    if (o4 === 0 && onSegment(p2, q1, q2)) return true; // p2, q2 and q1 are collinear and q1 lies on p2q2
+
+    return false;
+}
+
+// for collinear points p, q, r, check if point q lies on segment pr
+function onSegment(p, q, r) {
+    return q.x <= Math.max(p.x, r.x) && q.x >= Math.min(p.x, r.x) && q.y <= Math.max(p.y, r.y) && q.y >= Math.min(p.y, r.y);
+}
+
+function sign(num) {
+    return num > 0 ? 1 : num < 0 ? -1 : 0;
+}
+
+// check if a polygon diagonal intersects any polygon segments
+function intersectsPolygon(a, b) {
+    var p = a;
+    do {
+        if (p.i !== a.i && p.next.i !== a.i && p.i !== b.i && p.next.i !== b.i &&
+                intersects$1(p, p.next, a, b)) return true;
+        p = p.next;
+    } while (p !== a);
+
+    return false;
+}
+
+// check if a polygon diagonal is locally inside the polygon
+function locallyInside(a, b) {
+    return area(a.prev, a, a.next) < 0 ?
+        area(a, b, a.next) >= 0 && area(a, a.prev, b) >= 0 :
+        area(a, b, a.prev) < 0 || area(a, a.next, b) < 0;
+}
+
+// check if the middle point of a polygon diagonal is inside the polygon
+function middleInside(a, b) {
+    var p = a,
+        inside = false,
+        px = (a.x + b.x) / 2,
+        py = (a.y + b.y) / 2;
+    do {
+        if (((p.y > py) !== (p.next.y > py)) && p.next.y !== p.y &&
+                (px < (p.next.x - p.x) * (py - p.y) / (p.next.y - p.y) + p.x))
+            inside = !inside;
+        p = p.next;
+    } while (p !== a);
+
+    return inside;
+}
+
+// link two polygon vertices with a bridge; if the vertices belong to the same ring, it splits polygon into two;
+// if one belongs to the outer ring and another to a hole, it merges it into a single ring
+function splitPolygon(a, b) {
+    var a2 = new Node(a.i, a.x, a.y),
+        b2 = new Node(b.i, b.x, b.y),
+        an = a.next,
+        bp = b.prev;
+
+    a.next = b;
+    b.prev = a;
+
+    a2.next = an;
+    an.prev = a2;
+
+    b2.next = a2;
+    a2.prev = b2;
+
+    bp.next = b2;
+    b2.prev = bp;
+
+    return b2;
+}
+
+// create a node and optionally link it with previous one (in a circular doubly linked list)
+function insertNode(i, x, y, last) {
+    var p = new Node(i, x, y);
+
+    if (!last) {
+        p.prev = p;
+        p.next = p;
+
+    } else {
+        p.next = last.next;
+        p.prev = last;
+        last.next.prev = p;
+        last.next = p;
+    }
+    return p;
+}
+
+function removeNode(p) {
+    p.next.prev = p.prev;
+    p.prev.next = p.next;
+
+    if (p.prevZ) p.prevZ.nextZ = p.nextZ;
+    if (p.nextZ) p.nextZ.prevZ = p.prevZ;
+}
+
+function Node(i, x, y) {
+    // vertex index in coordinates array
+    this.i = i;
+
+    // vertex coordinates
+    this.x = x;
+    this.y = y;
+
+    // previous and next vertex nodes in a polygon ring
+    this.prev = null;
+    this.next = null;
+
+    // z-order curve value
+    this.z = null;
+
+    // previous and next nodes in z-order
+    this.prevZ = null;
+    this.nextZ = null;
+
+    // indicates whether this is a steiner point
+    this.steiner = false;
+}
+
+// return a percentage difference between the polygon area and its triangulation area;
+// used to verify correctness of triangulation
+earcut.deviation = function (data, holeIndices, dim, triangles) {
+    var hasHoles = holeIndices && holeIndices.length;
+    var outerLen = hasHoles ? holeIndices[0] * dim : data.length;
+
+    var polygonArea = Math.abs(signedArea$2(data, 0, outerLen, dim));
+    if (hasHoles) {
+        for (var i = 0, len = holeIndices.length; i < len; i++) {
+            var start = holeIndices[i] * dim;
+            var end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
+            polygonArea -= Math.abs(signedArea$2(data, start, end, dim));
+        }
+    }
+
+    var trianglesArea = 0;
+    for (i = 0; i < triangles.length; i += 3) {
+        var a = triangles[i] * dim;
+        var b = triangles[i + 1] * dim;
+        var c = triangles[i + 2] * dim;
+        trianglesArea += Math.abs(
+            (data[a] - data[c]) * (data[b + 1] - data[a + 1]) -
+            (data[a] - data[b]) * (data[c + 1] - data[a + 1]));
+    }
+
+    return polygonArea === 0 && trianglesArea === 0 ? 0 :
+        Math.abs((trianglesArea - polygonArea) / polygonArea);
+};
+
+function signedArea$2(data, start, end, dim) {
+    var sum = 0;
+    for (var i = start, j = end - dim; i < end; i += dim) {
+        sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
+        j = i;
+    }
+    return sum;
+}
+
+// turn a polygon in a multi-dimensional array form (e.g. as in GeoJSON) into a form Earcut accepts
+earcut.flatten = function (data) {
+    var dim = data[0][0].length,
+        result = {vertices: [], holes: [], dimensions: dim},
+        holeIndex = 0;
+
+    for (var i = 0; i < data.length; i++) {
+        for (var j = 0; j < data[i].length; j++) {
+            for (var d = 0; d < dim; d++) result.vertices.push(data[i][j][d]);
+        }
+        if (i > 0) {
+            holeIndex += data[i - 1].length;
+            result.holes.push(holeIndex);
+        }
+    }
+    return result;
+};
+
+// Shims the `geotiff` browser bundle, so it can be loaded as an ES module via
+// importmaps.
+
+// The browser bundle must be loaded beforehand, with something like e.g.
+// <script src="https://unpkg.com/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+
+window.GeoTIFF.GeoTIFF;
+window.GeoTIFF.GeoTIFFImage;
+window.GeoTIFF.fromUrl;
+
+/**
+ * Common utilities
+ * @module glMatrix
+ */
+// Configuration Constants
+var EPSILON$1 = 0.000001;
+var ARRAY_TYPE = typeof Float32Array !== "undefined" ? Float32Array : Array;
+if (!Math.hypot) Math.hypot = function () {
+  var y = 0,
+      i = arguments.length;
+
+  while (i--) {
+    y += arguments[i] * arguments[i];
+  }
+
+  return Math.sqrt(y);
+};
+
+/**
+ * 3x3 Matrix
+ * @module mat3
+ */
+
+/**
+ * Creates a new identity mat3
+ *
+ * @returns {mat3} a new 3x3 matrix
+ */
+
+function create$4() {
+  var out = new ARRAY_TYPE(9);
+
+  if (ARRAY_TYPE != Float32Array) {
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = 0;
+    out[5] = 0;
+    out[6] = 0;
+    out[7] = 0;
+  }
+
+  out[0] = 1;
+  out[4] = 1;
+  out[8] = 1;
+  return out;
+}
+/**
+ * Transpose the values of a mat3
+ *
+ * @param {mat3} out the receiving matrix
+ * @param {ReadonlyMat3} a the source matrix
+ * @returns {mat3} out
+ */
+
+function transpose(out, a) {
+  // If we are transposing ourselves we can skip a few steps but have to cache some values
+  if (out === a) {
+    var a01 = a[1],
+        a02 = a[2],
+        a12 = a[5];
+    out[1] = a[3];
+    out[2] = a[6];
+    out[3] = a01;
+    out[5] = a[7];
+    out[6] = a02;
+    out[7] = a12;
+  } else {
+    out[0] = a[0];
+    out[1] = a[3];
+    out[2] = a[6];
+    out[3] = a[1];
+    out[4] = a[4];
+    out[5] = a[7];
+    out[6] = a[2];
+    out[7] = a[5];
+    out[8] = a[8];
+  }
+
+  return out;
+}
+/**
+ * Inverts a mat3
+ *
+ * @param {mat3} out the receiving matrix
+ * @param {ReadonlyMat3} a the source matrix
+ * @returns {mat3} out
+ */
+
+function invert(out, a) {
+  var a00 = a[0],
+      a01 = a[1],
+      a02 = a[2];
+  var a10 = a[3],
+      a11 = a[4],
+      a12 = a[5];
+  var a20 = a[6],
+      a21 = a[7],
+      a22 = a[8];
+  var b01 = a22 * a11 - a12 * a21;
+  var b11 = -a22 * a10 + a12 * a20;
+  var b21 = a21 * a10 - a11 * a20; // Calculate the determinant
+
+  var det = a00 * b01 + a01 * b11 + a02 * b21;
+
+  if (!det) {
+    return null;
+  }
+
+  det = 1.0 / det;
+  out[0] = b01 * det;
+  out[1] = (-a22 * a01 + a02 * a21) * det;
+  out[2] = (a12 * a01 - a02 * a11) * det;
+  out[3] = b11 * det;
+  out[4] = (a22 * a00 - a02 * a20) * det;
+  out[5] = (-a12 * a00 + a02 * a10) * det;
+  out[6] = b21 * det;
+  out[7] = (-a21 * a00 + a01 * a20) * det;
+  out[8] = (a11 * a00 - a01 * a10) * det;
+  return out;
+}
+/**
+ * Multiplies two mat3's
+ *
+ * @param {mat3} out the receiving matrix
+ * @param {ReadonlyMat3} a the first operand
+ * @param {ReadonlyMat3} b the second operand
+ * @returns {mat3} out
+ */
+
+function multiply(out, a, b) {
+  var a00 = a[0],
+      a01 = a[1],
+      a02 = a[2];
+  var a10 = a[3],
+      a11 = a[4],
+      a12 = a[5];
+  var a20 = a[6],
+      a21 = a[7],
+      a22 = a[8];
+  var b00 = b[0],
+      b01 = b[1],
+      b02 = b[2];
+  var b10 = b[3],
+      b11 = b[4],
+      b12 = b[5];
+  var b20 = b[6],
+      b21 = b[7],
+      b22 = b[8];
+  out[0] = b00 * a00 + b01 * a10 + b02 * a20;
+  out[1] = b00 * a01 + b01 * a11 + b02 * a21;
+  out[2] = b00 * a02 + b01 * a12 + b02 * a22;
+  out[3] = b10 * a00 + b11 * a10 + b12 * a20;
+  out[4] = b10 * a01 + b11 * a11 + b12 * a21;
+  out[5] = b10 * a02 + b11 * a12 + b12 * a22;
+  out[6] = b20 * a00 + b21 * a10 + b22 * a20;
+  out[7] = b20 * a01 + b21 * a11 + b22 * a21;
+  out[8] = b20 * a02 + b21 * a12 + b22 * a22;
+  return out;
+}
+/**
+ * Scales the mat3 by the dimensions in the given vec2
+ *
+ * @param {mat3} out the receiving matrix
+ * @param {ReadonlyMat3} a the matrix to rotate
+ * @param {ReadonlyVec2} v the vec2 to scale the matrix by
+ * @returns {mat3} out
+ **/
+
+function scale(out, a, v) {
+  var x = v[0],
+      y = v[1];
+  out[0] = x * a[0];
+  out[1] = x * a[1];
+  out[2] = x * a[2];
+  out[3] = y * a[3];
+  out[4] = y * a[4];
+  out[5] = y * a[5];
+  out[6] = a[6];
+  out[7] = a[7];
+  out[8] = a[8];
+  return out;
+}
+/**
+ * Creates a matrix from a vector translation
+ * This is equivalent to (but much faster than):
+ *
+ *     mat3.identity(dest);
+ *     mat3.translate(dest, dest, vec);
+ *
+ * @param {mat3} out mat3 receiving operation result
+ * @param {ReadonlyVec2} v Translation vector
+ * @returns {mat3} out
+ */
+
+function fromTranslation(out, v) {
+  out[0] = 1;
+  out[1] = 0;
+  out[2] = 0;
+  out[3] = 0;
+  out[4] = 1;
+  out[5] = 0;
+  out[6] = v[0];
+  out[7] = v[1];
+  out[8] = 1;
+  return out;
+}
+
+/**
+ * 3 Dimensional Vector
+ * @module vec3
+ */
+
+/**
+ * Creates a new, empty vec3
+ *
+ * @returns {vec3} a new 3D vector
+ */
+
+function create$3() {
+  var out = new ARRAY_TYPE(3);
+
+  if (ARRAY_TYPE != Float32Array) {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+  }
+
+  return out;
+}
+/**
+ * Calculates the length of a vec3
+ *
+ * @param {ReadonlyVec3} a vector to calculate length of
+ * @returns {Number} length of a
+ */
+
+function length(a) {
+  var x = a[0];
+  var y = a[1];
+  var z = a[2];
+  return Math.hypot(x, y, z);
+}
+/**
+ * Creates a new vec3 initialized with the given values
+ *
+ * @param {Number} x X component
+ * @param {Number} y Y component
+ * @param {Number} z Z component
+ * @returns {vec3} a new 3D vector
+ */
+
+function fromValues(x, y, z) {
+  var out = new ARRAY_TYPE(3);
+  out[0] = x;
+  out[1] = y;
+  out[2] = z;
+  return out;
+}
+/**
+ * Normalize a vec3
+ *
+ * @param {vec3} out the receiving vector
+ * @param {ReadonlyVec3} a vector to normalize
+ * @returns {vec3} out
+ */
+
+function normalize$2(out, a) {
+  var x = a[0];
+  var y = a[1];
+  var z = a[2];
+  var len = x * x + y * y + z * z;
+
+  if (len > 0) {
+    //TODO: evaluate use of glm_invsqrt here?
+    len = 1 / Math.sqrt(len);
+  }
+
+  out[0] = a[0] * len;
+  out[1] = a[1] * len;
+  out[2] = a[2] * len;
+  return out;
+}
+/**
+ * Calculates the dot product of two vec3's
+ *
+ * @param {ReadonlyVec3} a the first operand
+ * @param {ReadonlyVec3} b the second operand
+ * @returns {Number} dot product of a and b
+ */
+
+function dot(a, b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+/**
+ * Computes the cross product of two vec3's
+ *
+ * @param {vec3} out the receiving vector
+ * @param {ReadonlyVec3} a the first operand
+ * @param {ReadonlyVec3} b the second operand
+ * @returns {vec3} out
+ */
+
+function cross(out, a, b) {
+  var ax = a[0],
+      ay = a[1],
+      az = a[2];
+  var bx = b[0],
+      by = b[1],
+      bz = b[2];
+  out[0] = ay * bz - az * by;
+  out[1] = az * bx - ax * bz;
+  out[2] = ax * by - ay * bx;
+  return out;
+}
+/**
+ * Transforms the vec3 with a mat3.
+ *
+ * @param {vec3} out the receiving vector
+ * @param {ReadonlyVec3} a the vector to transform
+ * @param {ReadonlyMat3} m the 3x3 matrix to transform with
+ * @returns {vec3} out
+ */
+
+function transformMat3(out, a, m) {
+  var x = a[0],
+      y = a[1],
+      z = a[2];
+  out[0] = x * m[0] + y * m[3] + z * m[6];
+  out[1] = x * m[1] + y * m[4] + z * m[7];
+  out[2] = x * m[2] + y * m[5] + z * m[8];
+  return out;
+}
+/**
+ * Alias for {@link vec3.length}
+ * @function
+ */
+
+var len = length;
+/**
+ * Perform some operation over an array of vec3s.
+ *
+ * @param {Array} a the array of vectors to iterate over
+ * @param {Number} stride Number of elements between the start of each vec3. If 0 assumes tightly packed
+ * @param {Number} offset Number of elements to skip at the beginning of the array
+ * @param {Number} count Number of vec3s to iterate over. If 0 iterates over entire array
+ * @param {Function} fn Function to call for each vector in the array
+ * @param {Object} [arg] additional argument to pass to fn
+ * @returns {Array} a
+ * @function
+ */
+
+(function () {
+  var vec = create$3();
+  return function (a, stride, offset, count, fn, arg) {
+    var i, l;
+
+    if (!stride) {
+      stride = 3;
+    }
+
+    if (!offset) {
+      offset = 0;
+    }
+
+    if (count) {
+      l = Math.min(count * stride + offset, a.length);
+    } else {
+      l = a.length;
+    }
+
+    for (i = offset; i < l; i += stride) {
+      vec[0] = a[i];
+      vec[1] = a[i + 1];
+      vec[2] = a[i + 2];
+      fn(vec, vec, arg);
+      a[i] = vec[0];
+      a[i + 1] = vec[1];
+      a[i + 2] = vec[2];
+    }
+
+    return a;
+  };
+})();
+
+/**
+ * 4 Dimensional Vector
+ * @module vec4
+ */
+
+/**
+ * Creates a new, empty vec4
+ *
+ * @returns {vec4} a new 4D vector
+ */
+
+function create$2() {
+  var out = new ARRAY_TYPE(4);
+
+  if (ARRAY_TYPE != Float32Array) {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = 0;
+  }
+
+  return out;
+}
+/**
+ * Normalize a vec4
+ *
+ * @param {vec4} out the receiving vector
+ * @param {ReadonlyVec4} a vector to normalize
+ * @returns {vec4} out
+ */
+
+function normalize$1(out, a) {
+  var x = a[0];
+  var y = a[1];
+  var z = a[2];
+  var w = a[3];
+  var len = x * x + y * y + z * z + w * w;
+
+  if (len > 0) {
+    len = 1 / Math.sqrt(len);
+  }
+
+  out[0] = x * len;
+  out[1] = y * len;
+  out[2] = z * len;
+  out[3] = w * len;
+  return out;
+}
+/**
+ * Perform some operation over an array of vec4s.
+ *
+ * @param {Array} a the array of vectors to iterate over
+ * @param {Number} stride Number of elements between the start of each vec4. If 0 assumes tightly packed
+ * @param {Number} offset Number of elements to skip at the beginning of the array
+ * @param {Number} count Number of vec4s to iterate over. If 0 iterates over entire array
+ * @param {Function} fn Function to call for each vector in the array
+ * @param {Object} [arg] additional argument to pass to fn
+ * @returns {Array} a
+ * @function
+ */
+
+(function () {
+  var vec = create$2();
+  return function (a, stride, offset, count, fn, arg) {
+    var i, l;
+
+    if (!stride) {
+      stride = 4;
+    }
+
+    if (!offset) {
+      offset = 0;
+    }
+
+    if (count) {
+      l = Math.min(count * stride + offset, a.length);
+    } else {
+      l = a.length;
+    }
+
+    for (i = offset; i < l; i += stride) {
+      vec[0] = a[i];
+      vec[1] = a[i + 1];
+      vec[2] = a[i + 2];
+      vec[3] = a[i + 3];
+      fn(vec, vec, arg);
+      a[i] = vec[0];
+      a[i + 1] = vec[1];
+      a[i + 2] = vec[2];
+      a[i + 3] = vec[3];
+    }
+
+    return a;
+  };
+})();
+
+/**
+ * Quaternion in the format XYZW
+ * @module quat
+ */
+
+/**
+ * Creates a new identity quat
+ *
+ * @returns {quat} a new quaternion
+ */
+
+function create$1() {
+  var out = new ARRAY_TYPE(4);
+
+  if (ARRAY_TYPE != Float32Array) {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+  }
+
+  out[3] = 1;
+  return out;
+}
+/**
+ * Sets a quat from the given angle and rotation axis,
+ * then returns it.
+ *
+ * @param {quat} out the receiving quaternion
+ * @param {ReadonlyVec3} axis the axis around which to rotate
+ * @param {Number} rad the angle in radians
+ * @returns {quat} out
+ **/
+
+function setAxisAngle(out, axis, rad) {
+  rad = rad * 0.5;
+  var s = Math.sin(rad);
+  out[0] = s * axis[0];
+  out[1] = s * axis[1];
+  out[2] = s * axis[2];
+  out[3] = Math.cos(rad);
+  return out;
+}
+/**
+ * Performs a spherical linear interpolation between two quat
+ *
+ * @param {quat} out the receiving quaternion
+ * @param {ReadonlyQuat} a the first operand
+ * @param {ReadonlyQuat} b the second operand
+ * @param {Number} t interpolation amount, in the range [0-1], between the two inputs
+ * @returns {quat} out
+ */
+
+function slerp(out, a, b, t) {
+  // benchmarks:
+  //    http://jsperf.com/quaternion-slerp-implementations
+  var ax = a[0],
+      ay = a[1],
+      az = a[2],
+      aw = a[3];
+  var bx = b[0],
+      by = b[1],
+      bz = b[2],
+      bw = b[3];
+  var omega, cosom, sinom, scale0, scale1; // calc cosine
+
+  cosom = ax * bx + ay * by + az * bz + aw * bw; // adjust signs (if necessary)
+
+  if (cosom < 0.0) {
+    cosom = -cosom;
+    bx = -bx;
+    by = -by;
+    bz = -bz;
+    bw = -bw;
+  } // calculate coefficients
+
+
+  if (1.0 - cosom > EPSILON$1) {
+    // standard case (slerp)
+    omega = Math.acos(cosom);
+    sinom = Math.sin(omega);
+    scale0 = Math.sin((1.0 - t) * omega) / sinom;
+    scale1 = Math.sin(t * omega) / sinom;
+  } else {
+    // "from" and "to" quaternions are very close
+    //  ... so we can do a linear interpolation
+    scale0 = 1.0 - t;
+    scale1 = t;
+  } // calculate final values
+
+
+  out[0] = scale0 * ax + scale1 * bx;
+  out[1] = scale0 * ay + scale1 * by;
+  out[2] = scale0 * az + scale1 * bz;
+  out[3] = scale0 * aw + scale1 * bw;
+  return out;
+}
+/**
+ * Creates a quaternion from the given 3x3 rotation matrix.
+ *
+ * NOTE: The resultant quaternion is not normalized, so you should be sure
+ * to renormalize the quaternion yourself where necessary.
+ *
+ * @param {quat} out the receiving quaternion
+ * @param {ReadonlyMat3} m rotation matrix
+ * @returns {quat} out
+ * @function
+ */
+
+function fromMat3(out, m) {
+  // Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
+  // article "Quaternion Calculus and Fast Animation".
+  var fTrace = m[0] + m[4] + m[8];
+  var fRoot;
+
+  if (fTrace > 0.0) {
+    // |w| > 1/2, may as well choose w > 1/2
+    fRoot = Math.sqrt(fTrace + 1.0); // 2w
+
+    out[3] = 0.5 * fRoot;
+    fRoot = 0.5 / fRoot; // 1/(4w)
+
+    out[0] = (m[5] - m[7]) * fRoot;
+    out[1] = (m[6] - m[2]) * fRoot;
+    out[2] = (m[1] - m[3]) * fRoot;
+  } else {
+    // |w| <= 1/2
+    var i = 0;
+    if (m[4] > m[0]) i = 1;
+    if (m[8] > m[i * 3 + i]) i = 2;
+    var j = (i + 1) % 3;
+    var k = (i + 2) % 3;
+    fRoot = Math.sqrt(m[i * 3 + i] - m[j * 3 + j] - m[k * 3 + k] + 1.0);
+    out[i] = 0.5 * fRoot;
+    fRoot = 0.5 / fRoot;
+    out[3] = (m[j * 3 + k] - m[k * 3 + j]) * fRoot;
+    out[j] = (m[j * 3 + i] + m[i * 3 + j]) * fRoot;
+    out[k] = (m[k * 3 + i] + m[i * 3 + k]) * fRoot;
+  }
+
+  return out;
+}
+/**
+ * Normalize a quat
+ *
+ * @param {quat} out the receiving quaternion
+ * @param {ReadonlyQuat} a quaternion to normalize
+ * @returns {quat} out
+ * @function
+ */
+
+var normalize = normalize$1;
+/**
+ * Sets a quaternion to represent the shortest rotation from one
+ * vector to another.
+ *
+ * Both vectors are assumed to be unit length.
+ *
+ * @param {quat} out the receiving quaternion.
+ * @param {ReadonlyVec3} a the initial vector
+ * @param {ReadonlyVec3} b the destination vector
+ * @returns {quat} out
+ */
+
+(function () {
+  var tmpvec3 = create$3();
+  var xUnitVec3 = fromValues(1, 0, 0);
+  var yUnitVec3 = fromValues(0, 1, 0);
+  return function (out, a, b) {
+    var dot$1 = dot(a, b);
+
+    if (dot$1 < -0.999999) {
+      cross(tmpvec3, xUnitVec3, a);
+      if (len(tmpvec3) < 0.000001) cross(tmpvec3, yUnitVec3, a);
+      normalize$2(tmpvec3, tmpvec3);
+      setAxisAngle(out, tmpvec3, Math.PI);
+      return out;
+    } else if (dot$1 > 0.999999) {
+      out[0] = 0;
+      out[1] = 0;
+      out[2] = 0;
+      out[3] = 1;
+      return out;
+    } else {
+      cross(tmpvec3, a, b);
+      out[0] = tmpvec3[0];
+      out[1] = tmpvec3[1];
+      out[2] = tmpvec3[2];
+      out[3] = 1 + dot$1;
+      return normalize(out, out);
+    }
+  };
+})();
+/**
+ * Performs a spherical linear interpolation with two control points
+ *
+ * @param {quat} out the receiving quaternion
+ * @param {ReadonlyQuat} a the first operand
+ * @param {ReadonlyQuat} b the second operand
+ * @param {ReadonlyQuat} c the third operand
+ * @param {ReadonlyQuat} d the fourth operand
+ * @param {Number} t interpolation amount, in the range [0-1], between the two inputs
+ * @returns {quat} out
+ */
+
+(function () {
+  var temp1 = create$1();
+  var temp2 = create$1();
+  return function (out, a, b, c, d, t) {
+    slerp(temp1, a, d, t);
+    slerp(temp2, b, c, t);
+    slerp(out, temp1, temp2, 2 * t * (1 - t));
+    return out;
+  };
+})();
+/**
+ * Sets the specified quaternion with values corresponding to the given
+ * axes. Each axis is a vec3 and is expected to be unit length and
+ * perpendicular to all other specified axes.
+ *
+ * @param {ReadonlyVec3} view  the vector representing the viewing direction
+ * @param {ReadonlyVec3} right the vector representing the local "right" direction
+ * @param {ReadonlyVec3} up    the vector representing the local "up" direction
+ * @returns {quat} out
+ */
+
+(function () {
+  var matr = create$4();
+  return function (out, view, right, up) {
+    matr[0] = right[0];
+    matr[3] = right[1];
+    matr[6] = right[2];
+    matr[1] = up[0];
+    matr[4] = up[1];
+    matr[7] = up[2];
+    matr[2] = -view[0];
+    matr[5] = -view[1];
+    matr[8] = -view[2];
+    return normalize(out, fromMat3(out, matr));
+  };
+})();
+
+/**
+ * 2 Dimensional Vector
+ * @module vec2
+ */
+
+/**
+ * Creates a new, empty vec2
+ *
+ * @returns {vec2} a new 2D vector
+ */
+
+function create() {
+  var out = new ARRAY_TYPE(2);
+
+  if (ARRAY_TYPE != Float32Array) {
+    out[0] = 0;
+    out[1] = 0;
+  }
+
+  return out;
+}
+/**
+ * Perform some operation over an array of vec2s.
+ *
+ * @param {Array} a the array of vectors to iterate over
+ * @param {Number} stride Number of elements between the start of each vec2. If 0 assumes tightly packed
+ * @param {Number} offset Number of elements to skip at the beginning of the array
+ * @param {Number} count Number of vec2s to iterate over. If 0 iterates over entire array
+ * @param {Function} fn Function to call for each vector in the array
+ * @param {Object} [arg] additional argument to pass to fn
+ * @returns {Array} a
+ * @function
+ */
+
+(function () {
+  var vec = create();
+  return function (a, stride, offset, count, fn, arg) {
+    var i, l;
+
+    if (!stride) {
+      stride = 2;
+    }
+
+    if (!offset) {
+      offset = 0;
+    }
+
+    if (count) {
+      l = Math.min(count * stride + offset, a.length);
+    } else {
+      l = a.length;
+    }
+
+    for (i = offset; i < l; i += stride) {
+      vec[0] = a[i];
+      vec[1] = a[i + 1];
+      fn(vec, vec, arg);
+      a[i] = vec[0];
+      a[i + 1] = vec[1];
+    }
+
+    return a;
+  };
+})();
+
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+function read(buffer, offset, isLE, mLen, nBytes) {
+  let e, m;
+  const eLen = (nBytes * 8) - mLen - 1;
+  const eMax = (1 << eLen) - 1;
+  const eBias = eMax >> 1;
+  let nBits = -7;
+  let i = (nBytes - 1) ;
+  const d = -1 ;
+  let s = buffer[offset + i];
+
+  i += d;
+
+  e = s & ((1 << (-nBits)) - 1);
+  s >>= (-nBits);
+  nBits += eLen;
+  while (nBits > 0) {
+    e = (e * 256) + buffer[offset + i];
+    i += d;
+    nBits -= 8;
+  }
+
+  m = e & ((1 << (-nBits)) - 1);
+  e >>= (-nBits);
+  nBits += mLen;
+  while (nBits > 0) {
+    m = (m * 256) + buffer[offset + i];
+    i += d;
+    nBits -= 8;
+  }
+
+  if (e === 0) {
+    e = 1 - eBias;
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen);
+    e = e - eBias;
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+function write(buffer, value, offset, isLE, mLen, nBytes) {
+  let e, m, c;
+  let eLen = (nBytes * 8) - mLen - 1;
+  const eMax = (1 << eLen) - 1;
+  const eBias = eMax >> 1;
+  const rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0);
+  let i = 0 ;
+  const d = 1 ;
+  const s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
+
+  value = Math.abs(value);
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0;
+    e = eMax;
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2);
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--;
+      c *= 2;
+    }
+    if (e + eBias >= 1) {
+      value += rt / c;
+    } else {
+      value += rt * Math.pow(2, 1 - eBias);
+    }
+    if (value * c >= 2) {
+      e++;
+      c /= 2;
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0;
+      e = eMax;
+    } else if (e + eBias >= 1) {
+      m = ((value * c) - 1) * Math.pow(2, mLen);
+      e = e + eBias;
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+      e = 0;
+    }
+  }
+
+  while (mLen >= 8) {
+    buffer[offset + i] = m & 0xff;
+    i += d;
+    m /= 256;
+    mLen -= 8;
+  }
+
+  e = (e << mLen) | m;
+  eLen += mLen;
+  while (eLen > 0) {
+    buffer[offset + i] = e & 0xff;
+    i += d;
+    e /= 256;
+    eLen -= 8;
+  }
+
+  buffer[offset + i - d] |= s * 128;
+}
+
+/**
+ * ISC License.
+ *
+ * Copyright (c) 2016, Vladimir Agafonkin
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ */
+
+function quickselect(arr, k, left, right, compare) {
+    quickselectStep(arr, k, left || 0, right || (arr.length - 1), compare || defaultCompare$2);
+}
+
+function quickselectStep(arr, k, left, right, compare) {
+
+    while (right > left) {
+        if (right - left > 600) {
+            var n = right - left + 1;
+            var m = k - left + 1;
+            var z = Math.log(n);
+            var s = 0.5 * Math.exp(2 * z / 3);
+            var sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+            var newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+            var newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+            quickselectStep(arr, k, newLeft, newRight, compare);
+        }
+
+        var t = arr[k];
+        var i = left;
+        var j = right;
+
+        swap$1(arr, left, k);
+        if (compare(arr[right], t) > 0) swap$1(arr, left, right);
+
+        while (i < j) {
+            swap$1(arr, i, j);
+            i++;
+            j--;
+            while (compare(arr[i], t) < 0) i++;
+            while (compare(arr[j], t) > 0) j--;
+        }
+
+        if (compare(arr[left], t) === 0) swap$1(arr, left, j);
+        else {
+            j++;
+            swap$1(arr, j, right);
+        }
+
+        if (j <= k) left = j + 1;
+        if (k <= j) right = j - 1;
+    }
+}
+
+function swap$1(arr, i, j) {
+    var tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+}
+
+function defaultCompare$2(a, b) {
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * ISC License.
+ *
+ * Copyright (c) 2017, Vladimir Agafonkin
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ */
+
+let TinyQueue$1 = class TinyQueue {
+    constructor(data = [], compare = defaultCompare$1) {
+        this.data = data;
+        this.length = this.data.length;
+        this.compare = compare;
+
+        if (this.length > 0) {
+            for (let i = (this.length >> 1) - 1; i >= 0; i--) this._down(i);
+        }
+    }
+
+    push(item) {
+        this.data.push(item);
+        this._up(this.length++);
+    }
+
+    pop() {
+        if (this.length === 0) return undefined;
+
+        const top = this.data[0];
+        const bottom = this.data.pop();
+
+        if (--this.length > 0) {
+            this.data[0] = bottom;
+            this._down(0);
+        }
+
+        return top;
+    }
+
+    peek() {
+        return this.data[0];
+    }
+
+    _up(pos) {
+        const {data, compare} = this;
+        const item = data[pos];
+
+        while (pos > 0) {
+            const parent = (pos - 1) >> 1;
+            const current = data[parent];
+            if (compare(item, current) >= 0) break;
+            data[pos] = current;
+            pos = parent;
+        }
+
+        data[pos] = item;
+    }
+
+    _down(pos) {
+        const {data, compare} = this;
+        const halfLength = this.length >> 1;
+        const item = data[pos];
+
+        while (pos < halfLength) {
+            let bestChild = (pos << 1) + 1; // initially it is the left child
+            const right = bestChild + 1;
+
+            if (right < this.length && compare(data[right], data[bestChild]) < 0) {
+                bestChild = right;
+            }
+            if (compare(data[bestChild], item) >= 0) break;
+
+            data[pos] = data[bestChild];
+            pos = bestChild;
+        }
+
+        data[pos] = item;
+    }
+};
+
+function defaultCompare$1(a, b) {
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * ISC License.
+ *
+ * Copyright (c) 2016, Vladimir Agafonkin
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ */
+
+
+function knn(tree, x, y, n, predicate, maxDistance) {
+    var node = tree.data,
+        result = [],
+        toBBox = tree.toBBox,
+        i, child, dist, candidate;
+
+    var queue = new TinyQueue$1(undefined, compareDist);
+
+    while (node) {
+        for (i = 0; i < node.children.length; i++) {
+            child = node.children[i];
+            dist = boxDist(x, y, node.leaf ? toBBox(child) : child);
+            if (!maxDistance || dist <= maxDistance * maxDistance) {
+                queue.push({
+                    node: child,
+                    isItem: node.leaf,
+                    dist: dist
+                });
+            }
+        }
+
+        while (queue.length && queue.peek().isItem) {
+            candidate = queue.pop().node;
+            result.push(candidate);
+            if (result.length === n) return result;
+        }
+
+        node = queue.pop();
+        if (node) node = node.node;
+    }
+
+    return result;
+}
+
+function compareDist(a, b) {
+    return a.dist - b.dist;
+}
+
+function boxDist(x, y, box) {
+    var dx = axisDist(x, box.minX, box.maxX),
+        dy = axisDist(y, box.minY, box.maxY);
+    return dx * dx + dy * dy;
+}
+
+function axisDist(k, min, max) {
+    return k < min ? min - k : k <= max ? 0 : k - max;
+}
+
 /**
  * @class AbstractAttributeSet
  *
@@ -5076,7 +7211,7 @@ const curieRegexp = /^\[(\S+):(\S+)\]$/;
  * Returns the known `BaseCRS` with the given internal name (e.g. "EPSG:4326",
  * "cartesian"). Throws an error if not found.
  */
-function getCRS(ogcUri) {
+function getCRS$1(ogcUri) {
 	const match = curieRegexp.exec(ogcUri);
 	let uri = ogcUri;
 	if (match) {
@@ -5141,9 +7276,9 @@ function registerCRS(crs, overrideUri) {
 
 function gleoProject(sCRS, dCRS, xy) {
 	if (sCRS === "EPSG:4326" && dCRS === "EPSG:3857") {
-		return lnglat2webmercator(xy);
+		return lnglat2webmercator$1(xy);
 	} else if (sCRS === "EPSG:3857" && dCRS === "EPSG:4326") {
-		return webmercator2lnglat(xy);
+		return webmercator2lnglat$1(xy);
 	} else {
 		throw new Error(`Unsupported coordinate reprojection ${sCRS}→${dCRS}`);
 	}
@@ -5158,18 +7293,38 @@ gleoProject.defs = function noop() {};
  */
 let project = gleoProject;
 
-const R$1 = 6378137; // Earth's radius as per spherical mercator
-const D = Math.PI / 180; // One degree, in radians
-const rad$1 = 180 / Math.PI; // One radian, in degrees
-const halfPi = Math.PI / 2;
-
-function lnglat2webmercator([lng, lat]) {
-	const sin = Math.sin(lat * D);
-	return [R$1 * D * lng, (R$1 * Math.log((1 + sin) / (1 - sin))) / 2];
+/**
+ * @function registerProjectionFunction(sCRS: String, dCRS: String, fn: Function): undefined
+ * Registers the given projection function, so it will be used whenever Gleo
+ * needs to project coordinates from `sCRS` into `dCRS`.
+ *
+ */
+function registerProjectionFunction(sCRS, dCRS, fn) {
+	const prev = gleoProject;
+	gleoProject = function gleoProject(s, d, xy) {
+		if (s === sCRS && d === dCRS) {
+			return fn(xy);
+		} else {
+			return prev(s, d, xy);
+		}
+	};
+	if (project === prev) {
+		project = gleoProject;
+	}
 }
 
-function webmercator2lnglat([x, y]) {
-	return [(x * rad$1) / R$1, (2 * Math.atan(Math.exp(y / R$1)) - halfPi) * rad$1];
+const R$2 = 6378137; // Earth's radius as per spherical mercator
+const D$2 = Math.PI / 180; // One degree, in radians
+const rad$3 = 180 / Math.PI; // One radian, in degrees
+const halfPi$1 = Math.PI / 2;
+
+function lnglat2webmercator$1([lng, lat]) {
+	const sin = Math.sin(lat * D$2);
+	return [R$2 * D$2 * lng, (R$2 * Math.log((1 + sin) / (1 - sin))) / 2];
+}
+
+function webmercator2lnglat$1([x, y]) {
+	return [(x * rad$3) / R$2, (2 * Math.atan(Math.exp(y / R$2)) - halfPi$1) * rad$3];
 }
 
 /**
@@ -5429,7 +7584,7 @@ class BaseCRS {
 	 */
 	static async guessFromCode(code) {
 		try {
-			return getCRS(code);
+			return getCRS$1(code);
 		} catch (ex) {
 			const [_, org, number] = /(\w+):(\d+)/.exec(code);
 
@@ -5453,7 +7608,7 @@ class BaseCRS {
 			// formula.
 			const distance =
 				org === "EPSG"
-					? (await Promise.resolve().then(function () { return epsg4326$1; })).default.distance
+					? (await Promise.resolve().then(function () { return epsg4326$2; })).default.distance
 					: undefined;
 
 			return new BaseCRS(code, { distance });
@@ -5815,7 +7970,7 @@ class RawGeometry {
 		if (newCRS === this.crs) {
 			return this;
 		} else if (typeof newCRS === "string") {
-			return this.toCRS(getCRS(newCRS));
+			return this.toCRS(getCRS$1(newCRS));
 		} else if (newCRS.name === this.crs.name) {
 			// Return a new Geometry mapping an offset to all xy pairs.
 			return new RawGeometry(
@@ -6141,7 +8296,7 @@ class Geometry extends RawGeometry {
 		}
 
 		if (!(crs instanceof BaseCRS)) {
-			crs = getCRS(crs);
+			crs = getCRS$1(crs);
 		}
 
 		super(crs, coords.flat(depth), rings, hulls, { wrap, dimension });
@@ -6313,247 +8468,6 @@ class Loader extends Evented {
 		this.#target ||= platina;
 	}
 }
-
-/**
- * Common utilities
- * @module glMatrix
- */
-// Configuration Constants
-var ARRAY_TYPE = typeof Float32Array !== "undefined" ? Float32Array : Array;
-if (!Math.hypot) Math.hypot = function () {
-  var y = 0,
-      i = arguments.length;
-
-  while (i--) {
-    y += arguments[i] * arguments[i];
-  }
-
-  return Math.sqrt(y);
-};
-
-/**
- * Transpose the values of a mat3
- *
- * @param {mat3} out the receiving matrix
- * @param {ReadonlyMat3} a the source matrix
- * @returns {mat3} out
- */
-
-function transpose(out, a) {
-  // If we are transposing ourselves we can skip a few steps but have to cache some values
-  if (out === a) {
-    var a01 = a[1],
-        a02 = a[2],
-        a12 = a[5];
-    out[1] = a[3];
-    out[2] = a[6];
-    out[3] = a01;
-    out[5] = a[7];
-    out[6] = a02;
-    out[7] = a12;
-  } else {
-    out[0] = a[0];
-    out[1] = a[3];
-    out[2] = a[6];
-    out[3] = a[1];
-    out[4] = a[4];
-    out[5] = a[7];
-    out[6] = a[2];
-    out[7] = a[5];
-    out[8] = a[8];
-  }
-
-  return out;
-}
-/**
- * Inverts a mat3
- *
- * @param {mat3} out the receiving matrix
- * @param {ReadonlyMat3} a the source matrix
- * @returns {mat3} out
- */
-
-function invert(out, a) {
-  var a00 = a[0],
-      a01 = a[1],
-      a02 = a[2];
-  var a10 = a[3],
-      a11 = a[4],
-      a12 = a[5];
-  var a20 = a[6],
-      a21 = a[7],
-      a22 = a[8];
-  var b01 = a22 * a11 - a12 * a21;
-  var b11 = -a22 * a10 + a12 * a20;
-  var b21 = a21 * a10 - a11 * a20; // Calculate the determinant
-
-  var det = a00 * b01 + a01 * b11 + a02 * b21;
-
-  if (!det) {
-    return null;
-  }
-
-  det = 1.0 / det;
-  out[0] = b01 * det;
-  out[1] = (-a22 * a01 + a02 * a21) * det;
-  out[2] = (a12 * a01 - a02 * a11) * det;
-  out[3] = b11 * det;
-  out[4] = (a22 * a00 - a02 * a20) * det;
-  out[5] = (-a12 * a00 + a02 * a10) * det;
-  out[6] = b21 * det;
-  out[7] = (-a21 * a00 + a01 * a20) * det;
-  out[8] = (a11 * a00 - a01 * a10) * det;
-  return out;
-}
-/**
- * Multiplies two mat3's
- *
- * @param {mat3} out the receiving matrix
- * @param {ReadonlyMat3} a the first operand
- * @param {ReadonlyMat3} b the second operand
- * @returns {mat3} out
- */
-
-function multiply(out, a, b) {
-  var a00 = a[0],
-      a01 = a[1],
-      a02 = a[2];
-  var a10 = a[3],
-      a11 = a[4],
-      a12 = a[5];
-  var a20 = a[6],
-      a21 = a[7],
-      a22 = a[8];
-  var b00 = b[0],
-      b01 = b[1],
-      b02 = b[2];
-  var b10 = b[3],
-      b11 = b[4],
-      b12 = b[5];
-  var b20 = b[6],
-      b21 = b[7],
-      b22 = b[8];
-  out[0] = b00 * a00 + b01 * a10 + b02 * a20;
-  out[1] = b00 * a01 + b01 * a11 + b02 * a21;
-  out[2] = b00 * a02 + b01 * a12 + b02 * a22;
-  out[3] = b10 * a00 + b11 * a10 + b12 * a20;
-  out[4] = b10 * a01 + b11 * a11 + b12 * a21;
-  out[5] = b10 * a02 + b11 * a12 + b12 * a22;
-  out[6] = b20 * a00 + b21 * a10 + b22 * a20;
-  out[7] = b20 * a01 + b21 * a11 + b22 * a21;
-  out[8] = b20 * a02 + b21 * a12 + b22 * a22;
-  return out;
-}
-/**
- * Creates a matrix from a vector translation
- * This is equivalent to (but much faster than):
- *
- *     mat3.identity(dest);
- *     mat3.translate(dest, dest, vec);
- *
- * @param {mat3} out mat3 receiving operation result
- * @param {ReadonlyVec2} v Translation vector
- * @returns {mat3} out
- */
-
-function fromTranslation(out, v) {
-  out[0] = 1;
-  out[1] = 0;
-  out[2] = 0;
-  out[3] = 0;
-  out[4] = 1;
-  out[5] = 0;
-  out[6] = v[0];
-  out[7] = v[1];
-  out[8] = 1;
-  return out;
-}
-
-/**
- * 3 Dimensional Vector
- * @module vec3
- */
-
-/**
- * Creates a new, empty vec3
- *
- * @returns {vec3} a new 3D vector
- */
-
-function create() {
-  var out = new ARRAY_TYPE(3);
-
-  if (ARRAY_TYPE != Float32Array) {
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-  }
-
-  return out;
-}
-/**
- * Transforms the vec3 with a mat3.
- *
- * @param {vec3} out the receiving vector
- * @param {ReadonlyVec3} a the vector to transform
- * @param {ReadonlyMat3} m the 3x3 matrix to transform with
- * @returns {vec3} out
- */
-
-function transformMat3(out, a, m) {
-  var x = a[0],
-      y = a[1],
-      z = a[2];
-  out[0] = x * m[0] + y * m[3] + z * m[6];
-  out[1] = x * m[1] + y * m[4] + z * m[7];
-  out[2] = x * m[2] + y * m[5] + z * m[8];
-  return out;
-}
-/**
- * Perform some operation over an array of vec3s.
- *
- * @param {Array} a the array of vectors to iterate over
- * @param {Number} stride Number of elements between the start of each vec3. If 0 assumes tightly packed
- * @param {Number} offset Number of elements to skip at the beginning of the array
- * @param {Number} count Number of vec3s to iterate over. If 0 iterates over entire array
- * @param {Function} fn Function to call for each vector in the array
- * @param {Object} [arg] additional argument to pass to fn
- * @returns {Array} a
- * @function
- */
-
-(function () {
-  var vec = create();
-  return function (a, stride, offset, count, fn, arg) {
-    var i, l;
-
-    if (!stride) {
-      stride = 3;
-    }
-
-    if (!offset) {
-      offset = 0;
-    }
-
-    if (count) {
-      l = Math.min(count * stride + offset, a.length);
-    } else {
-      l = a.length;
-    }
-
-    for (i = offset; i < l; i += stride) {
-      vec[0] = a[i];
-      vec[1] = a[i + 1];
-      vec[2] = a[i + 2];
-      fn(vec, vec, arg);
-      a[i] = vec[0];
-      a[i + 1] = vec[1];
-      a[i + 2] = vec[2];
-    }
-
-    return a;
-  };
-})();
 
 // @namespace dom
 
@@ -6773,7 +8687,7 @@ function setFactory(fn) {
  * @function factory(geom: undefined): RawGeometry
  * A "null" geometry, containing zero vertices, will be returned.
  */
-function factory(coords, opts) {
+function factory$1(coords, opts) {
 	if (coords instanceof RawGeometry) {
 		return coords;
 	}
@@ -6781,325 +8695,6 @@ function factory(coords, opts) {
 		return nullGeometry;
 	}
 	return currentFactory(coords, opts);
-}
-
-// © Dean McNamee <dean@gmail.com>, 2012.
-// © Iván Sánchez Ortega <ivan@sanchezortega, 2017.
-//
-// See:
-//  https://github.com/deanm/css-color-parser-js
-//  https://github.com/IvanSanchez/css-color-parser-js
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
-
-// http://www.w3.org/TR/css3-color/
-var kCSSColorTable = {
-	transparent: [0, 0, 0, 0],
-	aliceblue: [240, 248, 255, 255],
-	antiquewhite: [250, 235, 215, 255],
-	aqua: [0, 255, 255, 255],
-	aquamarine: [127, 255, 212, 255],
-	azure: [240, 255, 255, 255],
-	beige: [245, 245, 220, 255],
-	bisque: [255, 228, 196, 255],
-	black: [0, 0, 0, 255],
-	blanchedalmond: [255, 235, 205, 255],
-	blue: [0, 0, 255, 255],
-	blueviolet: [138, 43, 226, 255],
-	brown: [165, 42, 42, 255],
-	burlywood: [222, 184, 135, 255],
-	cadetblue: [95, 158, 160, 255],
-	chartreuse: [127, 255, 0, 255],
-	chocolate: [210, 105, 30, 255],
-	coral: [255, 127, 80, 255],
-	cornflowerblue: [100, 149, 237, 255],
-	cornsilk: [255, 248, 220, 255],
-	crimson: [220, 20, 60, 255],
-	cyan: [0, 255, 255, 255],
-	darkblue: [0, 0, 139, 255],
-	darkcyan: [0, 139, 139, 255],
-	darkgoldenrod: [184, 134, 11, 255],
-	darkgray: [169, 169, 169, 255],
-	darkgreen: [0, 100, 0, 255],
-	darkgrey: [169, 169, 169, 255],
-	darkkhaki: [189, 183, 107, 255],
-	darkmagenta: [139, 0, 139, 255],
-	darkolivegreen: [85, 107, 47, 255],
-	darkorange: [255, 140, 0, 255],
-	darkorchid: [153, 50, 204, 255],
-	darkred: [139, 0, 0, 255],
-	darksalmon: [233, 150, 122, 255],
-	darkseagreen: [143, 188, 143, 255],
-	darkslateblue: [72, 61, 139, 255],
-	darkslategray: [47, 79, 79, 255],
-	darkslategrey: [47, 79, 79, 255],
-	darkturquoise: [0, 206, 209, 255],
-	darkviolet: [148, 0, 211, 255],
-	deeppink: [255, 20, 147, 255],
-	deepskyblue: [0, 191, 255, 255],
-	dimgray: [105, 105, 105, 255],
-	dimgrey: [105, 105, 105, 255],
-	dodgerblue: [30, 144, 255, 255],
-	firebrick: [178, 34, 34, 255],
-	floralwhite: [255, 250, 240, 255],
-	forestgreen: [34, 139, 34, 255],
-	fuchsia: [255, 0, 255, 255],
-	gainsboro: [220, 220, 220, 255],
-	ghostwhite: [248, 248, 255, 255],
-	gold: [255, 215, 0, 255],
-	goldenrod: [218, 165, 32, 255],
-	gray: [128, 128, 128, 255],
-	green: [0, 128, 0, 255],
-	greenyellow: [173, 255, 47, 255],
-	grey: [128, 128, 128, 255],
-	honeydew: [240, 255, 240, 255],
-	hotpink: [255, 105, 180, 255],
-	indianred: [205, 92, 92, 255],
-	indigo: [75, 0, 130, 255],
-	ivory: [255, 255, 240, 255],
-	khaki: [240, 230, 140, 255],
-	lavender: [230, 230, 250, 255],
-	lavenderblush: [255, 240, 245, 255],
-	lawngreen: [124, 252, 0, 255],
-	lemonchiffon: [255, 250, 205, 255],
-	lightblue: [173, 216, 230, 255],
-	lightcoral: [240, 128, 128, 255],
-	lightcyan: [224, 255, 255, 255],
-	lightgoldenrodyellow: [250, 250, 210, 255],
-	lightgray: [211, 211, 211, 255],
-	lightgreen: [144, 238, 144, 255],
-	lightgrey: [211, 211, 211, 255],
-	lightpink: [255, 182, 193, 255],
-	lightsalmon: [255, 160, 122, 255],
-	lightseagreen: [32, 178, 170, 255],
-	lightskyblue: [135, 206, 250, 255],
-	lightslategray: [119, 136, 153, 255],
-	lightslategrey: [119, 136, 153, 255],
-	lightsteelblue: [176, 196, 222, 255],
-	lightyellow: [255, 255, 224, 255],
-	lime: [0, 255, 0, 255],
-	limegreen: [50, 205, 50, 255],
-	linen: [250, 240, 230, 255],
-	magenta: [255, 0, 255, 255],
-	maroon: [128, 0, 0, 255],
-	mediumaquamarine: [102, 205, 170, 255],
-	mediumblue: [0, 0, 205, 255],
-	mediumorchid: [186, 85, 211, 255],
-	mediumpurple: [147, 112, 219, 255],
-	mediumseagreen: [60, 179, 113, 255],
-	mediumslateblue: [123, 104, 238, 255],
-	mediumspringgreen: [0, 250, 154, 255],
-	mediumturquoise: [72, 209, 204, 255],
-	mediumvioletred: [199, 21, 133, 255],
-	midnightblue: [25, 25, 112, 255],
-	mintcream: [245, 255, 250, 255],
-	mistyrose: [255, 228, 225, 255],
-	moccasin: [255, 228, 181, 255],
-	navajowhite: [255, 222, 173, 255],
-	navy: [0, 0, 128, 255],
-	oldlace: [253, 245, 230, 255],
-	olive: [128, 128, 0, 255],
-	olivedrab: [107, 142, 35, 255],
-	orange: [255, 165, 0, 255],
-	orangered: [255, 69, 0, 255],
-	orchid: [218, 112, 214, 255],
-	palegoldenrod: [238, 232, 170, 255],
-	palegreen: [152, 251, 152, 255],
-	paleturquoise: [175, 238, 238, 255],
-	palevioletred: [219, 112, 147, 255],
-	papayawhip: [255, 239, 213, 255],
-	peachpuff: [255, 218, 185, 255],
-	peru: [205, 133, 63, 255],
-	pink: [255, 192, 203, 255],
-	plum: [221, 160, 221, 255],
-	powderblue: [176, 224, 230, 255],
-	purple: [128, 0, 128, 255],
-	rebeccapurple: [102, 51, 153, 255],
-	red: [255, 0, 0, 255],
-	rosybrown: [188, 143, 143, 255],
-	royalblue: [65, 105, 225, 255],
-	saddlebrown: [139, 69, 19, 255],
-	salmon: [250, 128, 114, 255],
-	sandybrown: [244, 164, 96, 255],
-	seagreen: [46, 139, 87, 255],
-	seashell: [255, 245, 238, 255],
-	sienna: [160, 82, 45, 255],
-	silver: [192, 192, 192, 255],
-	skyblue: [135, 206, 235, 255],
-	slateblue: [106, 90, 205, 255],
-	slategray: [112, 128, 144, 255],
-	slategrey: [112, 128, 144, 255],
-	snow: [255, 250, 250, 255],
-	springgreen: [0, 255, 127, 255],
-	steelblue: [70, 130, 180, 255],
-	tan: [210, 180, 140, 255],
-	teal: [0, 128, 128, 255],
-	thistle: [216, 191, 216, 255],
-	tomato: [255, 99, 71, 255],
-	turquoise: [64, 224, 208, 255],
-	violet: [238, 130, 238, 255],
-	wheat: [245, 222, 179, 255],
-	white: [255, 255, 255, 255],
-	whitesmoke: [245, 245, 245, 255],
-	yellow: [255, 255, 0, 255],
-	yellowgreen: [154, 205, 50, 255],
-};
-
-function clamp_css_byte(i) {
-	// Clamp to integer 0 .. 255.
-	i = Math.round(i); // Seems to be what Chrome does (vs truncation).
-	return i < 0 ? 0 : i > 255 ? 255 : i;
-}
-
-function clamp_css_float(f) {
-	// Clamp to float 0.0 .. 1.0.
-	return f < 0 ? 0 : f > 1 ? 1 : f;
-}
-
-function parse_css_int(str) {
-	// int or percentage.
-	if (str[str.length - 1] === "%") return clamp_css_byte((parseFloat(str) / 100) * 255);
-	return clamp_css_byte(parseInt(str));
-}
-
-function parse_css_float(str) {
-	// float or percentage.
-	if (str[str.length - 1] === "%") return clamp_css_float(parseFloat(str) / 100);
-	return clamp_css_float(parseFloat(str));
-}
-
-function css_hue_to_rgb(m1, m2, h) {
-	if (h < 0) h += 1;
-	else if (h > 1) h -= 1;
-
-	if (h * 6 < 1) return m1 + (m2 - m1) * h * 6;
-	if (h * 2 < 1) return m2;
-	if (h * 3 < 2) return m1 + (m2 - m1) * (2 / 3 - h) * 6;
-	return m1;
-}
-
-function parseCSSColor(css_str) {
-	if (
-		css_str instanceof Array ||
-		css_str instanceof Uint8Array ||
-		css_str instanceof Uint8ClampedArray
-	) {
-		if (typeof css_str[0] === "number") {
-			if (css_str.length === 4) {
-				return css_str;
-			} else if (css_str.length === 3) {
-				return [...css_str, 255];
-			}
-		} else {
-			return null;
-		}
-	}
-
-	// Remove all whitespace, not compliant, but should just be more accepting.
-	var str = css_str.replace(/ /g, "").toLowerCase();
-
-	// Color keywords (and transparent) lookup.
-	if (str in kCSSColorTable) return kCSSColorTable[str].slice(); // dup.
-
-	// #abc and #abc123 syntax.
-	if (str[0] === "#") {
-		var iv = parseInt(str.substr(1), 16); // TODO(deanm): Stricter parsing.
-		if (str.length === 4) {
-			// #rgb
-			if (!(iv >= 0 && iv <= 0xfff)) return null; // Covers NaN.
-			return [
-				((iv & 0xf00) >> 4) | ((iv & 0xf00) >> 8),
-				(iv & 0x0f0) | ((iv & 0x0f0) >> 4),
-				((iv & 0x00f) << 4) | (iv & 0x00f),
-				255,
-			];
-		} else if (str.length === 7) {
-			// #rrggbb
-			if (!(iv >= 0 && iv <= 0xffffff)) return null; // Covers NaN.
-			return [(iv & 0xff0000) >> 16, (iv & 0x00ff00) >> 8, iv & 0x0000ff, 255];
-		} else if (str.length === 5) {
-			// #rgba
-			if (!(iv >= 0 && iv <= 0xffff)) return null; // Covers NaN.
-			return [
-				((iv & 0xf000) >> 8) | ((iv & 0xf000) >> 12),
-				((iv & 0x0f00) >> 4) | ((iv & 0x0f00) >> 8),
-				(iv & 0x00f0) | ((iv & 0x00f0) >> 4),
-				((iv & 0x000f) << 4) | (iv & 0x000f),
-			];
-		} else if (str.length === 9) {
-			// #rrggbbaa
-			if (!(iv >= 0 && iv <= 0xffffffff)) return null; // Covers NaN.
-			return [
-				((iv & 0xff000000) >> 24) & 0xff,
-				(iv & 0x00ff0000) >> 16,
-				(iv & 0x0000ff00) >> 8,
-				iv & 0x000000ff,
-			];
-		}
-
-		return null;
-	}
-
-	var op = str.indexOf("("),
-		ep = str.indexOf(")");
-	if (op !== -1 && ep + 1 === str.length) {
-		var fname = str.substr(0, op);
-		var params = str.substr(op + 1, ep - (op + 1)).split(",");
-		var alpha = 255; // To allow case fallthrough.
-		switch (fname) {
-			case "rgba":
-				if (params.length !== 4) return null;
-				alpha = parse_css_int(params.pop());
-			// Fall through.
-			case "rgb":
-				if (params.length !== 3) return null;
-				return [
-					parse_css_int(params[0]),
-					parse_css_int(params[1]),
-					parse_css_int(params[2]),
-					alpha,
-				];
-			case "hsla":
-				if (params.length !== 4) return null;
-				alpha = Math.round(parse_css_float(params.pop()) * 255);
-			// Fall through.
-			case "hsl":
-				if (params.length !== 3) return null;
-				var h = (((parseFloat(params[0]) % 360) + 360) % 360) / 360; // 0 .. 1
-				// NOTE(deanm): According to the CSS spec s/l should only be
-				// percentages, but we don't bother and let float or percentage.
-				var s = parse_css_float(params[1]);
-				var l = parse_css_float(params[2]);
-				var m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
-				var m1 = l * 2 - m2;
-				return [
-					clamp_css_byte(css_hue_to_rgb(m1, m2, h + 1 / 3) * 255),
-					clamp_css_byte(css_hue_to_rgb(m1, m2, h) * 255),
-					clamp_css_byte(css_hue_to_rgb(m1, m2, h - 1 / 3) * 255),
-					alpha,
-				];
-			default:
-				return null;
-		}
-	}
-
-	return null;
 }
 
 /**
@@ -7459,7 +9054,7 @@ class GleoSymbol extends Evented {
 		return this.#geometry;
 	}
 	set geometry(geom) {
-		this.#geometry = factory(geom);
+		this.#geometry = factory$1(geom);
 	}
 
 	// Compatibility alias
@@ -9339,7 +10934,7 @@ class Platina extends Evented {
 
 		//const prevCRS = this.#crs;
 		this.#crs = crs || this.#crs;
-		this.#center = center ? factory(center) : this.#center;
+		this.#center = center ? factory$1(center) : this.#center;
 		this.#scale = scale || this.#scale;
 
 		// If platina is not fully initialized (crs + center + zoom),
@@ -9567,7 +11162,7 @@ class Platina extends Evented {
 	 * zooming into clusters from a `Clusterer`. Akin to Leaflet's `zoomAround`.
 	 */
 	zoomInto(geometry, scale, opts = {}) {
-		const [canvasX, canvasY] = this.geomToPx(factory(geometry));
+		const [canvasX, canvasY] = this.geomToPx(factory$1(geometry));
 		const [w, h] = this.pxSize;
 		let clipX = (canvasX * 2) / w - 1;
 		let clipY = (canvasY * -2) / h + 1;
@@ -10675,7 +12270,7 @@ class GleoMap extends Evented {
 	 */
 	setView(opts) {
 		if (opts.center) {
-			opts.center = factory(opts.center);
+			opts.center = factory$1(opts.center);
 		}
 		opts = this._setViewFilters.reduce((ops, fn) => fn(ops), opts);
 		if (opts) {
@@ -10735,7 +12330,7 @@ class GleoMap extends Evented {
 	 * zooming into clusters from a `Clusterer`. Akin to Leaflet's `zoomAround`.
 	 */
 	zoomInto(geometry, scale, opts = {}) {
-		const [canvasX, canvasY] = this.platina.geomToPx(factory(geometry));
+		const [canvasX, canvasY] = this.platina.geomToPx(factory$1(geometry));
 		const [w, h] = this.#platina.pxSize;
 		let clipX = (canvasX * 2) / w - 1;
 		let clipY = (canvasY * -2) / h + 1;
@@ -10892,88 +12487,115 @@ class GleoMap extends Evented {
 }
 
 /**
- * @namespace epsg4326
- * @inherits BaseCRS
+ * @class BoundsClampActuator
+ * @inherits Actuator
  *
- * A EPSG:4326 CRS - aka "latitude-longitude".
- *
- * Note that `epsg4326` works as a Singleton pattern - it's already an instance, so
- * do **not** call `new epsg4326()`.
- *
- * @example
- *
- * ```
- * import epsg4326 from 'gleo/src/crs/epsg4326.mjs';
- * import Geometry from 'gleo/src/geometry/Geometry.mjs';
- *
- * let myPoint = new Geometry(epsg4326, [5, 9]);
- * ```
- *
+ * Bounds clamping actuator. Forces the values of the center so that the it's
+ * always within a bounding box - either ehe CRS's `viewableBounds` or a set
+ * of user-defined `maxBounds`.
  */
 
-const rad = Math.PI / 180;
-const R = 6371000;
+class BoundsClampActuator {
+	/**
+	 * @constructor BoundsClampActuator(map: GleoMap)
+	 */
+	constructor(map) {
+		this.map = map;
+		this.#boundFilter = this.boundsClampFilterSetView.bind(this);
 
-const epsg4326 = new BaseCRS("EPSG:4326", {
-	wrapPeriodX: 360,
-	distance: function haversineDistance(p1, p2) {
-		// Haversine formula for great-circle distance. Based on an implementation by
-		// Jussi Mattas (https://github.com/jussimattas / https://github.com/gitjuba)
-		// See https://github.com/Leaflet/Leaflet/pull/5935
-		const lat1 = p1.coords[1] * rad,
-			lat2 = p2.coords[1] * rad,
-			sinDLat = Math.sin(((p2.coords[1] - p1.coords[1]) * rad) / 2),
-			sinDLon = Math.sin(((p2.coords[0] - p1.coords[0]) * rad) / 2),
-			a = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon,
-			c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		return R * c;
-	},
-	ogcUri: "http://www.opengis.net/def/crs/EPSG/0/4326",
-	flipAxes: true,
-	minSpan: 1e-6, // circa 0.1m at equator
-	maxSpan: 720,
-	viewableBounds: [-Infinity, -90, Infinity, 90],
-});
+		/**
+		 * @class GleoMap
+		 * @section Interaction behaviour options
+		 * @option maxBounds: Array of Number
+		 * An array of the form `[minX, minY, maxX, maxY]` defining a bounding
+		 * box, **in CRS units**. User interactions will be constrained to this
+		 * bounding box.
+		 *
+		 * This option depends on `BoundsClampActuator` being loaded.
+		 * @alternative
+		 * @option maxBounds: undefined = undefined
+		 * Setting `maxBounds` to `undefined` (or any falsy value) will make
+		 * the `BoundsClampActuator` use the CRS's `viewableBounds` default
+		 * instead.
+		 *
+		 * This is the default.
+		 * @section Interaction behaviour properties
+		 * @property maxBounds
+		 * Runtime value of the `maxBounds` initialization option.
+		 *
+		 * Updating its value will affect future map panning operations.
+		 */
+		this.map.maxBounds ??= this.map.options.maxBounds;
+	}
 
-// OGC URI Alias
-/// TODO: axis order???!!!
-registerCRS(epsg4326, "http://www.opengis.net/def/crs/OGC/1.3/CRS84");
+	#boundFilter;
 
-var epsg4326$1 = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	default: epsg4326
-});
+	enable() {
+		this.map.registerSetViewFilter(this.#boundFilter);
+	}
 
-/**
- * @namespace epsg3857
- * @inherits BaseCRS
- *
- * A EPSG:3857 CRS - aka "spherical web mercator".
- *
- * Note that `epsg3857` works as a Singleton pattern - it's already an instance, so
- * do **not** call `new epsg3857()`.
- *
- * @example
- *
- * ```
- * import epsg3857 from 'gleo/src/crs/epsg3857.mjs';
- * import Geometry from 'gleo/src/geometry/Geometry.mjs';
- *
- * let myPoint = new Geometry(epsg3857, [5, 9]);
- * ```
- *
- */
+	disable() {
+		this.map.unregisterSetViewFilter(this.#boundFilter);
+	}
 
-const limit$1 = 20037508.34;
+	boundsClampFilterSetView({ center, ...opts }) {
+		if (center === undefined) {
+			return opts;
+		}
 
-const epsg3857 = new BaseCRS("EPSG:3857", {
-	wrapPeriodX: 2 * limit$1,
-	distance: epsg4326,
-	ogcUri: "http://www.opengis.net/def/crs/EPSG/0/3857",
-	minSpan: 1,
-	maxSpan: 4 * limit$1,
-	viewableBounds: [-Infinity, -limit$1, Infinity, limit$1],
-});
+		return {
+			...opts,
+			center: this.clampView(
+				center,
+				opts.scale ?? this.map.scale,
+				this.map.platina.pxSize
+			),
+		};
+	}
+
+	clampView(center, scale, pxSize) {
+		const [x1, y1, x2, y2] = this.map.maxBounds ?? center.crs.viewableBounds;
+		let [x, y] = center.crs.offsetToBase(center.coords);
+		const [w, h] = pxSize;
+
+		const left = x - (scale * w) / 2;
+		const right = x + (scale * w) / 2;
+		const top = y + (scale * h) / 2;
+		const bottom = y - (scale * h) / 2;
+
+		if (isFinite(y2 - y1) && top - bottom > y2 - y1) {
+			y = (y2 + y1) / 2;
+		} else {
+			const overTop = Math.max(0, top - y2);
+			const overBottom = Math.min(0, bottom - y1);
+			if (isFinite(overTop)) {
+				y -= overTop;
+			}
+			if (isFinite(overBottom)) {
+				y -= overBottom;
+			}
+		}
+
+		if (isFinite(x2 - x1) && right - left > x2 - x1) {
+			x = (x2 + x1) / 2;
+		} else {
+			const overRight = Math.max(0, right - x2);
+			const overLeft = Math.min(0, left - x1);
+			if (isFinite(overRight)) {
+				x -= overRight;
+			}
+			if (isFinite(overLeft)) {
+				x -= overLeft;
+			}
+		}
+
+		return new Geometry(center.crs, center.crs.offsetFromBase([x, y]), {
+			wrap: center.wrap,
+		});
+	}
+}
+
+registerActuator("boundsclamp", BoundsClampActuator, true);
 
 css(`
 .gleo > canvas.nodrag {
@@ -11191,6 +12813,335 @@ class DragActuator {
 }
 
 registerActuator("drag", DragActuator, true);
+
+/**
+ *
+ * Support stuff for creating an "Inertial easing".
+ *
+ * The core idea is that any change to the plane's center is "tweened" (short
+ * for "in-betweened", from flash animators' jargon) with an ease-in-out function.
+ *
+ * Ease-in-out functions are not hard - the problem is aborting an easing animation
+ * and starting a new one right after. This use case is very common - starting a
+ * movement to a different part of the plane while a movement is already on its way,
+ * or wheel-zoom interactions in very fast succesion.
+ *
+ * The approach to this is to have some way of calculating the inertia of the aborted
+ * easing, and start a new easing with that inertia.
+ *
+ * The easing function **for the interpolated position** (and scale) is the one from
+ * https://math.stackexchange.com/questions/121720/ease-in-out-function#121755 :
+ * f(x) = x^a / ( x^a + (1-x)^a )
+ * , with values of a between 0 and... 4? 5?. Typically 2 for a quadratic-like easing, or
+ * 3 for a cubic-like easing.
+ *
+ * Assuming x and a are positive, that's equal to:
+ * f(x) = 1/((1/x - 1)^a + 1)
+ *
+ * The **speed of change** for the interpolated position/scale is the derivative on x, namely
+ *
+ * f'(x) = (a (-(x - 1) x)^(a - 1))/(x^a + (1 - x)^a)^2
+ *
+ * The previous functions assume ranges from 0 to 1 - these have to be multiplied by the
+ * delta vector (end position minus start position) to get the position at a given time.
+ *
+ * What if the easing started with inertia (with an initial speed)? Then, the starting speed
+ * s0 will decrease polinomically - the speed at any given time will be s(x) = s0 * (1-x)^a.
+ *
+ * Therefore, the inertial component of the position will be the integral of that function
+ * from zero to a given point in time - namely,
+ * i(x,a) = s0 * (1 - (1 - x)^(1 + a))/(1 + a)
+ *
+ * The total amount of delta due to inertia will be:
+ * s0 * (a+1)
+ *
+ * So the amount of easing delta needed will be the desired delta minus the inertia delta.
+ *
+ *
+ * Special thanks to Juan Arias de Reyna <https://personal.us.es/arias/>
+ * for pointers on how to approach this problem.
+ */
+
+class InertialEasing {
+	constructor(start, end, speed, exponent = 2) {
+		// `start`, `end` and `speed` are n-element arrays.
+		// Typically 3-element arrays, for x-y-scale.
+
+		/// TODO: Sanity check: `start`, `end` and `speed` should have the same number
+		/// of elements
+
+		const e = (this.exp = exponent);
+		this.start = start;
+		this.end = end;
+		this.inertia = speed;
+
+		const inertialDelta = speed.map((s) => s / (e + 1));
+		const totalDelta = end.map((e, i) => e - start[i]);
+		this.easingDelta = totalDelta.map((t, i) => t - inertialDelta[i]);
+		// console.log("start, inertial, total, easing:", start, inertialDelta, totalDelta, this.easingDelta);
+
+		// Sanity checks
+		if (
+			start.some(Number.isNaN) ||
+			end.some(Number.isNaN) ||
+			speed.some(Number.isNaN)
+		) {
+			throw new Error("A parameter for InertialEasing is Not A Number.");
+		}
+	}
+
+	// Returns the eased values for the percentage (between 0 and 1) given
+	getValues(percentage) {
+		if (percentage < 0) {
+			return this.start;
+		}
+		if (percentage > 1) {
+			return this.end;
+		}
+
+		const x = percentage;
+		const exp = this.exp;
+		const inertiaComponent = (1 - Math.pow(1 - x, 1 + exp)) / (1 + exp);
+		const easingComponent = 1 / (Math.pow(1 / x - 1, exp) + 1);
+
+		return this.start.map(
+			(s, i) =>
+				s +
+				this.inertia[i] * inertiaComponent +
+				this.easingDelta[i] * easingComponent
+		);
+	}
+
+	// Returns the speed of values change for the percentage (between 0 and 1) given
+	getSpeed(percentage) {
+		if (percentage < 0) {
+			return;
+		}
+		if (percentage > 1) {
+			return;
+		}
+
+		const x = percentage;
+		const exp = this.exp;
+		const inertiaComponent = Math.pow(1 - x, exp);
+		const easingComponent =
+			(exp * Math.pow(-(x - 1) * x, exp - 1)) /
+			Math.pow(Math.pow(x, exp) + Math.pow(1 - x, exp), 2);
+
+		return this.inertia.map(
+			(iner, i) => iner * inertiaComponent + this.easingDelta[i] * easingComponent
+		);
+	}
+}
+
+/**
+ * @class InertiaActuator
+ * @inherits Actuator
+ * @relationship associated InertialEasing
+ *
+ * The "Inertia Actuator" intercepts calls to the `GleoMap`'s `setView` method,
+ * and turns them into timed, eased, animations.
+ */
+
+class InertiaActuator {
+	#boundPreRender;
+
+	/**
+	 * @constructor InertiaActuator(map: GleoMap)
+	 */
+	constructor(map) {
+		this.map = map;
+
+		this.origSetView = map.setView;
+
+		this.easing = undefined; // Instance of InertialEasing
+		this.easingStartTime = undefined; // Output of performance.now()
+		this.easingEndTime = undefined; // Output of performance.now() plus duration
+		this.easingDuration = undefined;
+		this.setViewOpts = {};
+
+		this.#boundPreRender = this.#onPreRender.bind(this);
+	}
+
+	/**
+	 * @method enable(): this
+	 * Enables this actuator. This will overload the map's `setView` in order to
+	 * intercept all of its calls.
+	 */
+	enable() {
+		this.map.setView = (...args) => this.inertialSetView(...args);
+	}
+
+	/**
+	 * @method disable(): this
+	 * Disables this actuator. All calls to `setView` will not trigger an easing animation.
+	 */
+	disable() {
+		this.map.setView = this.origSetView;
+	}
+
+	/**
+	 * @method inertialSetView(opts?: Setview Options): this
+	 *
+	 * Starts an easing animation to (re-)set the map's center and scale to the given one.
+	 * This implementation overrides the `GleoMap`'s default `setView` implementation.
+	 */
+	inertialSetView(opts = {}) {
+		if (opts.crs && opts.crs !== this.map.platina.crs) {
+			// Explicit CRS changes are applied directly, foregoing
+			// the inertia animation.
+			return this.map.platina.setView(opts);
+		}
+
+		const [w, h] = this.map.platina.pxSize;
+
+		if (opts.span && !opts.scale) {
+			opts.scale = opts.span / Math.sqrt(w * w + h * h);
+		}
+
+		// Reduce the view through the setViewFilters, just as the parent functionality does.
+		if (opts.center) {
+			opts.center = factory$1(opts.center);
+			opts.center = opts.center.toCRS(this.map.crs);
+		}
+		opts = this.map._setViewFilters.reduce((ops, fn) => fn(ops), opts);
+		if (!opts) {
+			return this;
+		}
+
+		const startCenter = this.map.center;
+		const startScale = this.map.scale;
+		const startYaw = this.map.yawRadians;
+
+		/**
+		 * @miniclass SetView Options (Platina)
+		 * @section
+		 * @option duration: Number = 200
+		 * If the map has a `InertiaActuator`, this defines the duration of the
+		 * easing animation, in milliseconds. A value of `0` effectively disables
+		 * the animation.
+		 *
+		 * Works only for `GleoMap`, and only when an `InertiaActuator` has been
+		 * loaded; has no effect on `setView` calls made to a `Platina`.
+		 */
+		const duration = opts.duration || 200;
+
+		if (
+			startCenter === undefined ||
+			startScale === undefined ||
+			opts.duration === 0 ||
+			opts.redraw === false
+		) {
+			this.easing = undefined;
+			return this.map.platina.setView(opts);
+		}
+
+		const center = opts.center !== undefined ? opts.center : startCenter;
+		const scale = opts.scale !== undefined ? Number(opts.scale) : startScale;
+		const yaw =
+			opts.yawRadians !== undefined
+				? Number(opts.yawRadians)
+				: opts.yawDegrees !== undefined
+				? Number(-opts.yawDegrees * (Math.PI / 180))
+				: startYaw;
+		const crsCenter = center.toCRS(startCenter.crs);
+
+		/// Get the speed from the previously running easing if needed.
+
+		let speed = [0, 0, 0, 0];
+		if (
+			this.easing &&
+			this.easingEndTime !== undefined &&
+			performance.now() < this.easingEndTime
+		) {
+			const now = performance.now();
+			const percentage = (now - this.easingStartTime) / this.easingDuration;
+			// console.warn("Another easing operation is ongoing");
+			speed = this.easing.getSpeed(percentage);
+			const speedFactor = duration / this.easingDuration;
+			speed = speed.map((s) => s * speedFactor);
+			// 			console.log(scale, speed);
+
+			// 			// Hacky workaround against reaching negative scale due to zoom inertia
+			// 			if (speed[2] / (this.easing.exp+1) < startScale) {
+			// 				console.log("Capping scale change speed");
+			// 				speed[2] = - startScale * (this.easing.exp+1);
+			// 			}
+		} else {
+			/**
+			 * @class GleoMap
+			 * @section Inertia animation events
+			 * @event inertiastart: Event
+			 * Fired at the beginning of an inertia animation.
+			 */
+			this.map.fire("inertiastart");
+		}
+
+		// console.log([crsCenter.coords[0], crsCenter.coords[1], Math.log2(scale)]);
+
+		this.easing = new InertialEasing(
+			[
+				startCenter.coords[0],
+				startCenter.coords[1],
+				/*Math.log2*/ startScale,
+				startYaw,
+			],
+			[crsCenter.coords[0], crsCenter.coords[1], /*Math.log2*/ scale, yaw],
+			speed,
+			2.5
+		);
+
+		this.crs = startCenter.crs;
+		this.easingStartTime = performance.now();
+		this.easingDuration = opts.duration || 200;
+		this.easingEndTime = this.easingStartTime + this.easingDuration;
+		this.setViewOpts = opts;
+
+		this.map.platina.addEventListener("prerender", this.#boundPreRender);
+
+		return this;
+	}
+
+	#onPreRender() {
+		// Sanity check: it's possible to destroy a map mid-inertia.
+		if (!this.map.platina) {
+			return;
+		}
+
+		if (!this.easing) {
+			return this.map.platina.removeEventListener(
+				"prerender",
+				this.#boundPreRender
+			);
+		}
+		const now = performance.now();
+		const percentage = (now - this.easingStartTime) / this.easingDuration;
+		const vals = this.easing.getValues(percentage);
+
+		// this.origSetView.call(
+		this.map.platina.setView({
+			...this.setViewOpts,
+			center: new Geometry(this.crs, [vals[0], vals[1]]),
+			scale: /*Math.pow(2, */ vals[2],
+			yawRadians: vals[3],
+			redraw: false,
+		});
+
+		if (percentage >= 1) {
+			this.map.platina.removeEventListener("prerender", this._boundPreRender);
+			this.easing = undefined;
+			/**
+			 * @class GleoMap
+			 * @section Inertia animation events
+			 * @event inertiaend: Event
+			 * Fired at the end of an inertia animation.
+			 */
+			this.map.fire("inertiaend");
+		}
+	}
+}
+
+registerActuator("inertia", InertiaActuator, true);
 
 css(`
 .gleo > canvas.nopinch {
@@ -11416,6 +13367,119 @@ class PinchActuator {
 registerActuator("pinch", PinchActuator, true);
 
 /**
+ * @class SpanClampActuator
+ * @inherits Actuator
+ *
+ * Span clamping actuator. Forces the values of the scale so that the span
+ * is within the CRS's `minSpan`/`maxSpan` limits.
+ *
+ * Akin to an enforcer of `minZoom`/`maxZoom` (albeit Gleo doesn't have the
+ * concept of min/max zoom).
+ */
+
+class SpanClampActuator {
+	/**
+	 * @constructor SpanClampActuator(map: GleoMap)
+	 */
+	constructor(map) {
+		this.map = map;
+		this.#boundFilter = this.spanClampFilterSetView.bind(this);
+
+		/**
+		 * @class GleoMap
+		 * @section Interaction behaviour options
+		 * @option minSpan: Number
+		 * The minimum length, **in CRS units**, of the map "span". The user won't
+		 * be able to zoom in so that the lenght of the diagonal is less than
+		 * this value.
+		 *
+		 * This option depends on `SpanClampActuator` being loaded.
+		 * @alternative
+		 * @option minSpan: undefined = undefined
+		 * Setting `minSpan` to `undefined` (or any falsy value) will make the
+		 * `SpanClampActuator` use the CRS's `minSpan` default instead.
+		 *
+		 * This is the default.
+		 * @option maxSpan: Number
+		 * Akin to `minSpan`: prevents the user from zooming out so that the length
+		 * of the diagonal is larger than this number.
+		 * @alternative
+		 * @option minSpan: undefined = undefined
+		 * Akin to `minSpan`: then falsy, uses the CRS's `maxSpan` instead.
+		 *
+		 * This is the default.
+		 * @section Interaction behaviour properties
+		 * @property minSpan
+		 * Runtime value for the `minSpan` initialization option.
+		 *
+		 * Updating its value will affect future zoom operations.
+		 * @property maxSpan
+		 * Akin to the `minSpan` property.
+		 */
+
+		map.minSpan ??= map.options.minSpan;
+		map.maxSpan ??= map.options.maxSpan;
+	}
+
+	#boundFilter;
+
+	enable() {
+		this.map.registerSetViewFilter(this.#boundFilter);
+	}
+
+	disable() {
+		this.map.unregisterSetViewFilter(this.#boundFilter);
+	}
+
+	spanClampFilterSetView({ scale, span, ...opts }) {
+		if (scale === undefined && span === undefined) {
+			return opts;
+		}
+
+		if (span === undefined) {
+			// Using scale only
+			return {
+				...opts,
+				scale: this.clampScale(scale),
+			};
+		} else {
+			// Using span only
+			return {
+				...opts,
+				span: this.clampSpan(span),
+			};
+		}
+	}
+
+	clampSpan(span) {
+		const crs = this.map.platina.crs;
+		const minSpan = this.map.minSpan ?? crs.minSpan;
+		const maxSpan = this.map.maxSpan ?? crs.maxSpan;
+		return Math.max(minSpan, Math.min(maxSpan, span));
+	}
+
+	clampScale(scale) {
+		const crs = this.map.platina.crs;
+		const minSpan = this.map.minSpan ?? crs.minSpan;
+		const maxSpan = this.map.maxSpan ?? crs.maxSpan;
+
+		const [w, h] = this.map.platina.pxSize;
+		const diag = Math.sqrt(w * w + h * h);
+
+		const span = scale * diag;
+		if (span > maxSpan) {
+			return maxSpan / diag;
+		}
+		if (span < minSpan) {
+			return minSpan / diag;
+		}
+		return scale;
+	}
+}
+
+registerActuator("spanclamp", SpanClampActuator, true);
+
+/**
  * @class WheelActuator
  * @inherits Actuator
  *
@@ -11623,448 +13687,6 @@ function getWheelDelta(ev) {
 registerActuator("wheel", WheelActuator, true);
 
 /**
- *
- * Support stuff for creating an "Inertial easing".
- *
- * The core idea is that any change to the plane's center is "tweened" (short
- * for "in-betweened", from flash animators' jargon) with an ease-in-out function.
- *
- * Ease-in-out functions are not hard - the problem is aborting an easing animation
- * and starting a new one right after. This use case is very common - starting a
- * movement to a different part of the plane while a movement is already on its way,
- * or wheel-zoom interactions in very fast succesion.
- *
- * The approach to this is to have some way of calculating the inertia of the aborted
- * easing, and start a new easing with that inertia.
- *
- * The easing function **for the interpolated position** (and scale) is the one from
- * https://math.stackexchange.com/questions/121720/ease-in-out-function#121755 :
- * f(x) = x^a / ( x^a + (1-x)^a )
- * , with values of a between 0 and... 4? 5?. Typically 2 for a quadratic-like easing, or
- * 3 for a cubic-like easing.
- *
- * Assuming x and a are positive, that's equal to:
- * f(x) = 1/((1/x - 1)^a + 1)
- *
- * The **speed of change** for the interpolated position/scale is the derivative on x, namely
- *
- * f'(x) = (a (-(x - 1) x)^(a - 1))/(x^a + (1 - x)^a)^2
- *
- * The previous functions assume ranges from 0 to 1 - these have to be multiplied by the
- * delta vector (end position minus start position) to get the position at a given time.
- *
- * What if the easing started with inertia (with an initial speed)? Then, the starting speed
- * s0 will decrease polinomically - the speed at any given time will be s(x) = s0 * (1-x)^a.
- *
- * Therefore, the inertial component of the position will be the integral of that function
- * from zero to a given point in time - namely,
- * i(x,a) = s0 * (1 - (1 - x)^(1 + a))/(1 + a)
- *
- * The total amount of delta due to inertia will be:
- * s0 * (a+1)
- *
- * So the amount of easing delta needed will be the desired delta minus the inertia delta.
- *
- *
- * Special thanks to Juan Arias de Reyna <https://personal.us.es/arias/>
- * for pointers on how to approach this problem.
- */
-
-class InertialEasing {
-	constructor(start, end, speed, exponent = 2) {
-		// `start`, `end` and `speed` are n-element arrays.
-		// Typically 3-element arrays, for x-y-scale.
-
-		/// TODO: Sanity check: `start`, `end` and `speed` should have the same number
-		/// of elements
-
-		const e = (this.exp = exponent);
-		this.start = start;
-		this.end = end;
-		this.inertia = speed;
-
-		const inertialDelta = speed.map((s) => s / (e + 1));
-		const totalDelta = end.map((e, i) => e - start[i]);
-		this.easingDelta = totalDelta.map((t, i) => t - inertialDelta[i]);
-		// console.log("start, inertial, total, easing:", start, inertialDelta, totalDelta, this.easingDelta);
-
-		// Sanity checks
-		if (
-			start.some(Number.isNaN) ||
-			end.some(Number.isNaN) ||
-			speed.some(Number.isNaN)
-		) {
-			throw new Error("A parameter for InertialEasing is Not A Number.");
-		}
-	}
-
-	// Returns the eased values for the percentage (between 0 and 1) given
-	getValues(percentage) {
-		if (percentage < 0) {
-			return this.start;
-		}
-		if (percentage > 1) {
-			return this.end;
-		}
-
-		const x = percentage;
-		const exp = this.exp;
-		const inertiaComponent = (1 - Math.pow(1 - x, 1 + exp)) / (1 + exp);
-		const easingComponent = 1 / (Math.pow(1 / x - 1, exp) + 1);
-
-		return this.start.map(
-			(s, i) =>
-				s +
-				this.inertia[i] * inertiaComponent +
-				this.easingDelta[i] * easingComponent
-		);
-	}
-
-	// Returns the speed of values change for the percentage (between 0 and 1) given
-	getSpeed(percentage) {
-		if (percentage < 0) {
-			return;
-		}
-		if (percentage > 1) {
-			return;
-		}
-
-		const x = percentage;
-		const exp = this.exp;
-		const inertiaComponent = Math.pow(1 - x, exp);
-		const easingComponent =
-			(exp * Math.pow(-(x - 1) * x, exp - 1)) /
-			Math.pow(Math.pow(x, exp) + Math.pow(1 - x, exp), 2);
-
-		return this.inertia.map(
-			(iner, i) => iner * inertiaComponent + this.easingDelta[i] * easingComponent
-		);
-	}
-}
-
-/**
- * @class InertiaActuator
- * @inherits Actuator
- * @relationship associated InertialEasing
- *
- * The "Inertia Actuator" intercepts calls to the `GleoMap`'s `setView` method,
- * and turns them into timed, eased, animations.
- */
-
-class InertiaActuator {
-	#boundPreRender;
-
-	/**
-	 * @constructor InertiaActuator(map: GleoMap)
-	 */
-	constructor(map) {
-		this.map = map;
-
-		this.origSetView = map.setView;
-
-		this.easing = undefined; // Instance of InertialEasing
-		this.easingStartTime = undefined; // Output of performance.now()
-		this.easingEndTime = undefined; // Output of performance.now() plus duration
-		this.easingDuration = undefined;
-		this.setViewOpts = {};
-
-		this.#boundPreRender = this.#onPreRender.bind(this);
-	}
-
-	/**
-	 * @method enable(): this
-	 * Enables this actuator. This will overload the map's `setView` in order to
-	 * intercept all of its calls.
-	 */
-	enable() {
-		this.map.setView = (...args) => this.inertialSetView(...args);
-	}
-
-	/**
-	 * @method disable(): this
-	 * Disables this actuator. All calls to `setView` will not trigger an easing animation.
-	 */
-	disable() {
-		this.map.setView = this.origSetView;
-	}
-
-	/**
-	 * @method inertialSetView(opts?: Setview Options): this
-	 *
-	 * Starts an easing animation to (re-)set the map's center and scale to the given one.
-	 * This implementation overrides the `GleoMap`'s default `setView` implementation.
-	 */
-	inertialSetView(opts = {}) {
-		if (opts.crs && opts.crs !== this.map.platina.crs) {
-			// Explicit CRS changes are applied directly, foregoing
-			// the inertia animation.
-			return this.map.platina.setView(opts);
-		}
-
-		const [w, h] = this.map.platina.pxSize;
-
-		if (opts.span && !opts.scale) {
-			opts.scale = opts.span / Math.sqrt(w * w + h * h);
-		}
-
-		// Reduce the view through the setViewFilters, just as the parent functionality does.
-		if (opts.center) {
-			opts.center = factory(opts.center);
-			opts.center = opts.center.toCRS(this.map.crs);
-		}
-		opts = this.map._setViewFilters.reduce((ops, fn) => fn(ops), opts);
-		if (!opts) {
-			return this;
-		}
-
-		const startCenter = this.map.center;
-		const startScale = this.map.scale;
-		const startYaw = this.map.yawRadians;
-
-		/**
-		 * @miniclass SetView Options (Platina)
-		 * @section
-		 * @option duration: Number = 200
-		 * If the map has a `InertiaActuator`, this defines the duration of the
-		 * easing animation, in milliseconds. A value of `0` effectively disables
-		 * the animation.
-		 *
-		 * Works only for `GleoMap`, and only when an `InertiaActuator` has been
-		 * loaded; has no effect on `setView` calls made to a `Platina`.
-		 */
-		const duration = opts.duration || 200;
-
-		if (
-			startCenter === undefined ||
-			startScale === undefined ||
-			opts.duration === 0 ||
-			opts.redraw === false
-		) {
-			this.easing = undefined;
-			return this.map.platina.setView(opts);
-		}
-
-		const center = opts.center !== undefined ? opts.center : startCenter;
-		const scale = opts.scale !== undefined ? Number(opts.scale) : startScale;
-		const yaw =
-			opts.yawRadians !== undefined
-				? Number(opts.yawRadians)
-				: opts.yawDegrees !== undefined
-				? Number(-opts.yawDegrees * (Math.PI / 180))
-				: startYaw;
-		const crsCenter = center.toCRS(startCenter.crs);
-
-		/// Get the speed from the previously running easing if needed.
-
-		let speed = [0, 0, 0, 0];
-		if (
-			this.easing &&
-			this.easingEndTime !== undefined &&
-			performance.now() < this.easingEndTime
-		) {
-			const now = performance.now();
-			const percentage = (now - this.easingStartTime) / this.easingDuration;
-			// console.warn("Another easing operation is ongoing");
-			speed = this.easing.getSpeed(percentage);
-			const speedFactor = duration / this.easingDuration;
-			speed = speed.map((s) => s * speedFactor);
-			// 			console.log(scale, speed);
-
-			// 			// Hacky workaround against reaching negative scale due to zoom inertia
-			// 			if (speed[2] / (this.easing.exp+1) < startScale) {
-			// 				console.log("Capping scale change speed");
-			// 				speed[2] = - startScale * (this.easing.exp+1);
-			// 			}
-		} else {
-			/**
-			 * @class GleoMap
-			 * @section Inertia animation events
-			 * @event inertiastart: Event
-			 * Fired at the beginning of an inertia animation.
-			 */
-			this.map.fire("inertiastart");
-		}
-
-		// console.log([crsCenter.coords[0], crsCenter.coords[1], Math.log2(scale)]);
-
-		this.easing = new InertialEasing(
-			[
-				startCenter.coords[0],
-				startCenter.coords[1],
-				/*Math.log2*/ startScale,
-				startYaw,
-			],
-			[crsCenter.coords[0], crsCenter.coords[1], /*Math.log2*/ scale, yaw],
-			speed,
-			2.5
-		);
-
-		this.crs = startCenter.crs;
-		this.easingStartTime = performance.now();
-		this.easingDuration = opts.duration || 200;
-		this.easingEndTime = this.easingStartTime + this.easingDuration;
-		this.setViewOpts = opts;
-
-		this.map.platina.addEventListener("prerender", this.#boundPreRender);
-
-		return this;
-	}
-
-	#onPreRender() {
-		// Sanity check: it's possible to destroy a map mid-inertia.
-		if (!this.map.platina) {
-			return;
-		}
-
-		if (!this.easing) {
-			return this.map.platina.removeEventListener(
-				"prerender",
-				this.#boundPreRender
-			);
-		}
-		const now = performance.now();
-		const percentage = (now - this.easingStartTime) / this.easingDuration;
-		const vals = this.easing.getValues(percentage);
-
-		// this.origSetView.call(
-		this.map.platina.setView({
-			...this.setViewOpts,
-			center: new Geometry(this.crs, [vals[0], vals[1]]),
-			scale: /*Math.pow(2, */ vals[2],
-			yawRadians: vals[3],
-			redraw: false,
-		});
-
-		if (percentage >= 1) {
-			this.map.platina.removeEventListener("prerender", this._boundPreRender);
-			this.easing = undefined;
-			/**
-			 * @class GleoMap
-			 * @section Inertia animation events
-			 * @event inertiaend: Event
-			 * Fired at the end of an inertia animation.
-			 */
-			this.map.fire("inertiaend");
-		}
-	}
-}
-
-registerActuator("inertia", InertiaActuator, true);
-
-/**
- * @class SpanClampActuator
- * @inherits Actuator
- *
- * Span clamping actuator. Forces the values of the scale so that the span
- * is within the CRS's `minSpan`/`maxSpan` limits.
- *
- * Akin to an enforcer of `minZoom`/`maxZoom` (albeit Gleo doesn't have the
- * concept of min/max zoom).
- */
-
-class SpanClampActuator {
-	/**
-	 * @constructor SpanClampActuator(map: GleoMap)
-	 */
-	constructor(map) {
-		this.map = map;
-		this.#boundFilter = this.spanClampFilterSetView.bind(this);
-
-		/**
-		 * @class GleoMap
-		 * @section Interaction behaviour options
-		 * @option minSpan: Number
-		 * The minimum length, **in CRS units**, of the map "span". The user won't
-		 * be able to zoom in so that the lenght of the diagonal is less than
-		 * this value.
-		 *
-		 * This option depends on `SpanClampActuator` being loaded.
-		 * @alternative
-		 * @option minSpan: undefined = undefined
-		 * Setting `minSpan` to `undefined` (or any falsy value) will make the
-		 * `SpanClampActuator` use the CRS's `minSpan` default instead.
-		 *
-		 * This is the default.
-		 * @option maxSpan: Number
-		 * Akin to `minSpan`: prevents the user from zooming out so that the length
-		 * of the diagonal is larger than this number.
-		 * @alternative
-		 * @option minSpan: undefined = undefined
-		 * Akin to `minSpan`: then falsy, uses the CRS's `maxSpan` instead.
-		 *
-		 * This is the default.
-		 * @section Interaction behaviour properties
-		 * @property minSpan
-		 * Runtime value for the `minSpan` initialization option.
-		 *
-		 * Updating its value will affect future zoom operations.
-		 * @property maxSpan
-		 * Akin to the `minSpan` property.
-		 */
-
-		map.minSpan ??= map.options.minSpan;
-		map.maxSpan ??= map.options.maxSpan;
-	}
-
-	#boundFilter;
-
-	enable() {
-		this.map.registerSetViewFilter(this.#boundFilter);
-	}
-
-	disable() {
-		this.map.unregisterSetViewFilter(this.#boundFilter);
-	}
-
-	spanClampFilterSetView({ scale, span, ...opts }) {
-		if (scale === undefined && span === undefined) {
-			return opts;
-		}
-
-		if (span === undefined) {
-			// Using scale only
-			return {
-				...opts,
-				scale: this.clampScale(scale),
-			};
-		} else {
-			// Using span only
-			return {
-				...opts,
-				span: this.clampSpan(span),
-			};
-		}
-	}
-
-	clampSpan(span) {
-		const crs = this.map.platina.crs;
-		const minSpan = this.map.minSpan ?? crs.minSpan;
-		const maxSpan = this.map.maxSpan ?? crs.maxSpan;
-		return Math.max(minSpan, Math.min(maxSpan, span));
-	}
-
-	clampScale(scale) {
-		const crs = this.map.platina.crs;
-		const minSpan = this.map.minSpan ?? crs.minSpan;
-		const maxSpan = this.map.maxSpan ?? crs.maxSpan;
-
-		const [w, h] = this.map.platina.pxSize;
-		const diag = Math.sqrt(w * w + h * h);
-
-		const span = scale * diag;
-		if (span > maxSpan) {
-			return maxSpan / diag;
-		}
-		if (span < minSpan) {
-			return minSpan / diag;
-		}
-		return scale;
-	}
-}
-
-registerActuator("spanclamp", SpanClampActuator, true);
-
-/**
  * @class ZoomYawSnapActuator
  * @inherits Actuator
  *
@@ -12264,2495 +13886,759 @@ class ZoomYawSnapActuator {
 registerActuator("zoomsnap", ZoomYawSnapActuator, true);
 
 /**
- * @class BoundsClampActuator
- * @inherits Actuator
+ * @namespace cartesian
+ * @inherits BaseCRS
  *
- * Bounds clamping actuator. Forces the values of the center so that the it's
- * always within a bounding box - either ehe CRS's `viewableBounds` or a set
- * of user-defined `maxBounds`.
- */
-
-class BoundsClampActuator {
-	/**
-	 * @constructor BoundsClampActuator(map: GleoMap)
-	 */
-	constructor(map) {
-		this.map = map;
-		this.#boundFilter = this.boundsClampFilterSetView.bind(this);
-
-		/**
-		 * @class GleoMap
-		 * @section Interaction behaviour options
-		 * @option maxBounds: Array of Number
-		 * An array of the form `[minX, minY, maxX, maxY]` defining a bounding
-		 * box, **in CRS units**. User interactions will be constrained to this
-		 * bounding box.
-		 *
-		 * This option depends on `BoundsClampActuator` being loaded.
-		 * @alternative
-		 * @option maxBounds: undefined = undefined
-		 * Setting `maxBounds` to `undefined` (or any falsy value) will make
-		 * the `BoundsClampActuator` use the CRS's `viewableBounds` default
-		 * instead.
-		 *
-		 * This is the default.
-		 * @section Interaction behaviour properties
-		 * @property maxBounds
-		 * Runtime value of the `maxBounds` initialization option.
-		 *
-		 * Updating its value will affect future map panning operations.
-		 */
-		this.map.maxBounds ??= this.map.options.maxBounds;
-	}
-
-	#boundFilter;
-
-	enable() {
-		this.map.registerSetViewFilter(this.#boundFilter);
-	}
-
-	disable() {
-		this.map.unregisterSetViewFilter(this.#boundFilter);
-	}
-
-	boundsClampFilterSetView({ center, ...opts }) {
-		if (center === undefined) {
-			return opts;
-		}
-
-		return {
-			...opts,
-			center: this.clampView(
-				center,
-				opts.scale ?? this.map.scale,
-				this.map.platina.pxSize
-			),
-		};
-	}
-
-	clampView(center, scale, pxSize) {
-		const [x1, y1, x2, y2] = this.map.maxBounds ?? center.crs.viewableBounds;
-		let [x, y] = center.crs.offsetToBase(center.coords);
-		const [w, h] = pxSize;
-
-		const left = x - (scale * w) / 2;
-		const right = x + (scale * w) / 2;
-		const top = y + (scale * h) / 2;
-		const bottom = y - (scale * h) / 2;
-
-		if (isFinite(y2 - y1) && top - bottom > y2 - y1) {
-			y = (y2 + y1) / 2;
-		} else {
-			const overTop = Math.max(0, top - y2);
-			const overBottom = Math.min(0, bottom - y1);
-			if (isFinite(overTop)) {
-				y -= overTop;
-			}
-			if (isFinite(overBottom)) {
-				y -= overBottom;
-			}
-		}
-
-		if (isFinite(x2 - x1) && right - left > x2 - x1) {
-			x = (x2 + x1) / 2;
-		} else {
-			const overRight = Math.max(0, right - x2);
-			const overLeft = Math.min(0, left - x1);
-			if (isFinite(overRight)) {
-				x -= overRight;
-			}
-			if (isFinite(overLeft)) {
-				x -= overLeft;
-			}
-		}
-
-		return new Geometry(center.crs, center.crs.offsetFromBase([x, y]), {
-			wrap: center.wrap,
-		});
-	}
-}
-
-registerActuator("boundsclamp", BoundsClampActuator, true);
-
-css(`
-.gleo-control {
-	display: block;
-}
-`);
-
-/**
- * @class Control
- * @inherits Evented
+ * A cartesian CRS - with infinite bounds, no wrapping, X going right, and Y going up.
  *
- * Abstract UI control.
- */
-
-class Control extends Evented {
-	/**
-	 * @constructor Control(opts: Control options)
-	 */
-	constructor({ position = "tl" } = {}) {
-		/**
-		 * @option position: String
-		 * One of `tl`, `tr`, `bl`, `br`. Indicates which corner of the map the
-		 * control should be added to.
-		 * @alternative
-		 * @option position: HTMLElement
-		 * Indicates that the `Control` should be added to the given HTML element.
-		 * This allows for controls outside of the map interface itself.
-		 */
-		super();
-		this.position = position;
-
-		this.spawnElement();
-	}
-
-	/**
-	 * @section Internal methods
-	 * @method spawnElement(): HTMLElement
-	 * Sets `this.element` to the appropriate value. Should be overriden by
-	 * subclasses.
-	 */
-	spawnElement() {
-		/**
-		 * @section GleoMap interface
-		 * @property element: HTMLElement
-		 * The `HTMLElement` for the whole control. Should be treated as read-only.
-		 */
-		this.element = document.createElement("div");
-		this.element.className = "gleo-control";
-	}
-
-	/**
-	 * @section
-	 * @method addTo(map: GleoMap): this
-	 * Attaches the `Control` to the map, and appends the control's HTML element
-	 * to the appropriate container.
-	 */
-	addTo(map) {
-		if (this.position instanceof HTMLElement) {
-			this.parent = this.position;
-		} else {
-			this.parent = map.controlPositions.get(this.position);
-			if (!this.parent) {
-				throw new Error("The gleo map control has no valid position/container");
-			}
-		}
-		this.parent.appendChild(this.element);
-		this._map = map;
-		return this;
-	}
-
-	/**
-	 * @method remove(): this
-	 * Detaches the control from the map, and removes the HTML element from the DOM.
-	 */
-	remove() {
-		this.parent.removeChild(this.element);
-		this.parent = undefined;
-		this._map = undefined;
-	}
-}
-
-css(`
-.gleo-buttongroup {
-	display: flex;
-	min-width: 3em;
-	min-height: 3em;
-}
-.gleo-buttongroup.vertical { flex-direction: column }
-.gleo-buttongroup.horizontal { flex-direction: row }
-.gleo-controlcorner > .gleo-buttongroup {
-	margin: 0.5em;
-}
-.gleo-buttongroup.vertical > button.gleo-control,
-.gleo-buttongroup.vertical > div.gleo-control > button.gleo-control
-{
-	border-bottom-width: 0.1875em;
-	border-top-width: 0.1875em;
-	border-radius: 0;
-}
-.gleo-buttongroup.vertical > button.gleo-control:first-child,
-.gleo-buttongroup.vertical > div.gleo-control:first-child > button
-{
-	border-top-right-radius: 0.75em;
-	border-top-left-radius: 0.75em;
-	border-top-width: 0.375em;
-}
-.gleo-buttongroup.vertical > button.gleo-control:last-child,
-.gleo-buttongroup.vertical > div.gleo-control:last-child > button {
-	border-bottom-right-radius: 0.75em;
-	border-bottom-left-radius: 0.75em;
-	border-bottom-width: 0.375em;
-}
-.gleo-buttongroup.horizontal > button.gleo-control {
-	border-left-width: 0.1875em;
-	border-right-width: 0.1875em;
-	border-radius: 0;
-}
-.gleo-buttongroup.horizontal > button.gleo-control:first-child {
-	border-top-left-radius: 0.75em;
-	border-bottom-left-radius: 0.75em;
-	border-left-width: 0.375em;
-}
-.gleo-buttongroup.horizontal > button.gleo-control:last-child {
-	border-top-right-radius: 0.75em;
-	border-bottom-right-radius: 0.75em;
-	border-right-width: 0.375em;
-}
-`);
-
-/**
- * @class ButtonGroup
- * @inherits Control
- * @relationship compositionOf Button, 0..1, 0..n
- *
- * A control for nesting `Button` controls inside.
- */
-class ButtonGroup extends Control {
-	constructor({
-		// @option direction: String = 'vertical'
-		// Whether the nested buttons align horizontally or vertically. Valid
-		// values are `"horizontal"` and `"vertical"`.
-		direction = "vertical",
-		// @option buttons: Array of Button = []
-		// The initial set of `Button` controls to be in this group.
-		buttons = [],
-		...opts
-	}) {
-		super(opts);
-
-		this.buttons = buttons;
-		this.element.classList.add("gleo-buttongroup");
-		if (direction === "vertical") {
-			this.element.classList.add("vertical");
-		} else {
-			this.element.classList.add("horizontal");
-		}
-	}
-
-	addTo(map) {
-		this.buttons.forEach((button) => {
-			button.position = this.element;
-			button.addTo(map);
-		});
-		super.addTo(map);
-	}
-
-	remove() {
-		this.buttons.forEach((button) => button.remove());
-	}
-}
-
-css(`
-button.gleo-control {
-	display: block;
-	width: 3em;
-	height: 3em;
-	border-radius: 0.75em;
-	border: #888 solid 0.375em;
-	padding: 0;
-}
-.gleo-controlcorner > button.gleo-control {
-	margin: 0.5em;
-}
-
-button.gleo-control > svg {
-	vertical-align: middle;
-}
-
-button.gleo-control:active {
-	inset 0 0px 7px 3px #1b74ff;
-}
-`);
-
-/**
- * @class Button
- * @inherits Control
- * A single UI button.
- */
-class Button extends Control {
-	constructor({
-		/**
-		 * @option string: String
-		 * The (text) label to be shown inside the button.
-		 */
-		string,
-
-		/**
-		 * @option svgString: String
-		 * The icon for the button, as a string containing a SVG document.
-		 * Mutually exclusive with `string`.
-		 */
-		svgString,
-
-		/**
-		 * @option title: String
-		 * The text for the [`title` HTML attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/title)
-		 * of the button.
-		 */
-		title,
-		...opts
-	} = {}) {
-		super(opts);
-		if (string) {
-			this.button.innerText = string;
-		}
-
-		if (svgString) {
-			this.button.innerHTML = svgString;
-		}
-
-		if (title) {
-			this.button.title = title;
-		}
-	}
-	spawnElement() {
-		this.element = this.button = document.createElement("button");
-		this.button.className = "gleo-control";
-
-		// TODO: ARIA stuff.
-	}
-
-	/**
-	 * @section Button event handlers
-	 * @method on(eventName: String, handler: Function): this
-	 * Alias to `addEventListener`.
-	 * @method off(eventName: String, handler: Function): this
-	 * Alias to `removeEventListener`.
-	 */
-	on() {
-		return this.addEventListener.apply(this, arguments);
-	}
-	off() {
-		return this.removeEventListener.apply(this, arguments);
-	}
-
-	/**
-	 * @method addEventListener(eventName: String, handler: Function): this
-	 * Attaches an event handler to a DOM event of the `HTMLButtonElement` for
-	 * the control.
-	 */
-	addEventListener(eventName, handler) {
-		this.button.addEventListener(eventName, handler);
-		return this;
-	}
-
-	/**
-	 * @method addEventListener(eventName: String, handler: Function): this
-	 * Detaches an event handler to a DOM event from the `HTMLButtonElement` for
-	 * the control.
-	 */
-	removeEventListener(eventName, handler) {
-		this.button.removeEventListener(eventName, handler);
-		return this;
-	}
-
-	// TODO: disable, enable.
-	// TODO: focus, blur
-	// TODO: keyboard accesibility (keydown/up for space & enter)
-	// TODO: Wrap keyboard & pointer events (i.e. fire "pressstart", "pressend")
-}
-
-/**
- * @class ZoomButton
- * @inherits Button
- * Common "Zoom In"/"Zoom Out" button functionality.
- */
-
-class ZoomButton extends Button {
-	constructor(opts) {
-		super(opts);
-
-		this._boundOnPointerDown = this._onPointerDown.bind(this);
-		this._boundOnPointerUp = this._onPointerUp.bind(this);
-		this._boundOnFrame = this._onFrame.bind(this);
-		this.animFrame = undefined;
-		this.lastTimestamp = undefined;
-		this.initialScale = undefined;
-	}
-
-	addTo(map) {
-		super.addTo(map);
-		this.on("pointerdown", this._boundOnPointerDown);
-		this.on("pointerup", this._boundOnPointerUp);
-		this.on("pointercancel", this._boundOnPointerUp);
-		// 		this.on('pointerleave', this._boundOnPointerUp);
-	}
-
-	remove() {
-		this.off("pointerdown", this._boundOnPointerDown);
-		this.off("pointerup", this._boundOnPointerUp);
-		this.off("pointercancel", this._boundOnPointerUp);
-		// 		this.off('pointerleave', this._boundOnPointerUp);
-	}
-
-	_onPointerDown(ev) {
-		this.lastTimestamp = performance.now();
-		this.initialScale = this._map.scale;
-		this.animFrame = window.requestAnimationFrame(this._boundOnFrame);
-		this.element.setPointerCapture(ev.pointerId);
-	}
-	_onPointerUp(ev) {
-		const millisecs = Math.max(performance.now() - this.lastTimestamp, 500);
-		const factor = Math.pow(this.scaleFactorPerSecond, millisecs / 1000);
-		this._map.setView({
-			scale: this.initialScale * factor,
-			duration: Math.max(1000 - millisecs, 100),
-			center: this._map.center,
-		});
-		window.cancelAnimationFrame(this.animFrame);
-		this.element.releasePointerCapture(ev.pointerId);
-	}
-	_onFrame() {
-		const now = performance.now();
-		const secs = (now - this.lastTimestamp) / 1000;
-
-		const factor = Math.pow(this.scaleFactorPerSecond, secs);
-
-		this._map.setView({
-			scale: this.initialScale * factor,
-			duration: 100,
-			zoomSnap: false,
-		});
-		this.animFrame = window.requestAnimationFrame(this._boundOnFrame);
-	}
-}
-
-/**
- * @class ZoomIn
- * @inherits ZoomButton
- * A "Zoom In" button.
- */
-
-class ZoomIn extends ZoomButton {
-	constructor(opts) {
-		super({
-			svgString: `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path style="fill:#464646;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1" d="M11 2h2v9h9v2h-9v9h-2v-9H2v-2h9z"/></svg>`,
-			title: "Zoom in",
-			...opts,
-		});
-
-		this.scaleFactorPerSecond = 1 / 4;
-	}
-}
-
-/**
- * @class ZoomOut
- * @inherits ZoomButton
- * A "Zoom Out" button.
- */
-
-class ZoomOut extends ZoomButton {
-	constructor(opts) {
-		super({
-			svgString: `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path style="fill:none;stroke:#464646;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:none" d="M2 12h20"/></svg>`,
-			title: "Zoom out",
-			...opts,
-		});
-
-		this.scaleFactorPerSecond = 4;
-	}
-}
-
-/**
- * @class ZoomInOut
- * @inherits ButtonGroup
- * @relationship compositionOf ZoomIn, 0..1, 1..1
- * @relationship compositionOf ZoomOut, 0..1, 1..1
- *
- * A group of two `Button`s: one for zooming in, one for zooming out.
- */
-class ZoomInOut extends ButtonGroup {
-	constructor({ direction = "vertical", ...opts } = {}) {
-		super({
-			direction,
-			buttons: [new ZoomIn(), new ZoomOut()],
-			...opts,
-		});
-	}
-}
-
-const invSqrt2 = 0.5 / Math.sqrt(2);
-
-css(`
-.gleo-control-scalebar {
-	background: #ccc;
-	padding: 0.25em;
-}
-
-.gleo-control-scalebar .gleo-scale {
-	border-bottom: 0.2em solid black;
-	border-left: 0.2em solid black;
-	border-right: 0.2em solid black;
-	text-align: center;
-	box-sizing: border-box;
-}
-`);
-
-/**
- * @class ScaleBar
- * @inherits Control
- * An informative scale bar control.
- */
-class ScaleBar extends Control {
-	/**
-	 * @constructor ScaleBar(opts: Scalebar Options)
-	 */
-	constructor({
-		/**
-		 * @section Scalebar Options
-		 * @option maxSize: Number = 100
-		 * Maximum size, in CSS pixels, of the scalebar line.
-		 */
-		maxSize = 200,
-		position = "bl",
-		...opts
-	} = {}) {
-		super({ position, ...opts });
-
-		/// TODO: init options:
-		/// - units of measurement (meters, nautical, unitless, etc)
-
-		this._boundOnViewChange = this.onViewChange.bind(this);
-		this._maxSize = maxSize;
-	}
-
-	spawnElement() {
-		this.element = document.createElement("div");
-		this.element.className = "gleo-control gleo-control-scalebar";
-
-		this._scaleElement = document.createElement("div");
-		this._scaleElement.className = "gleo-scale";
-		this.element.appendChild(this._scaleElement);
-	}
-
-	addTo(map) {
-		super.addTo(map);
-		map.on("viewchanged", this._boundOnViewChange);
-	}
-
-	remove() {
-		super.remove();
-		this._map.off("viewchanged", this._boundOnViewChange);
-	}
-
-	onViewChange(ev) {
-		const p = this._map.platina;
-		const [w, h] = p.pxSize;
-		const w2 = w / 2,
-			h2 = h / 2;
-
-		// The idea is to measure not the distance from a pixel to the next,
-		// but rather the length of a line as long as the maximum scalebar size,
-		// around the platina's center.
-		// This is a best-effort approach to providing a reliable measure at
-		// low scales. There'll be artifacts with specific projections at yaw 45°,
-		// but hopefully won't be much of a problem.
-		const offset = this._maxSize * invSqrt2;
-		const geom1 = p.pxToGeom([w2 - offset, h2 - offset]);
-		const geom2 = p.pxToGeom([w2 + offset, h2 + offset]);
-
-		let pxDistance = p.crs.distance(geom1, geom2);
-
-		let unit = "m";
-		if (pxDistance >= 1e3) {
-			unit = "km";
-			pxDistance /= 1e3;
-		}
-
-		let clampedDistance = Math.pow(10, Math.floor(Math.log10(pxDistance)));
-		if (clampedDistance * 5 < pxDistance) {
-			clampedDistance *= 5;
-		} else if (clampedDistance * 2 < pxDistance) {
-			clampedDistance *= 2;
-		}
-
-		if (Number.isFinite(clampedDistance)) {
-			this._scaleElement.innerText = `${clampedDistance}${unit}`;
-			this._scaleElement.style.width =
-				(this._maxSize * clampedDistance) / pxDistance + "px";
-		} else {
-			this._scaleElement.innerText = `N/A`;
-			this._scaleElement.style.width = this._maxSize + "px";
-		}
-	}
-}
-
-css(`
-.gleo-control-attribution {
-	background: #ccc;
-	padding: 0.25em;
-}
-`);
-
-/**
- * @class Attribution
- * @inherits Control
- * An informative attribution control. It shall display HTML text (with links)
- * based on the `attribution` option of `GleoSymbol`s added to the map.
- */
-class Attribution extends Control {
-	/**
-	 * @constructor Attribution(opts: Attribution Options)
-	 */
-	constructor({
-		/**
-		 * @section Attribution Options
-		 * @option separator: String = ' | '
-		 * A string to separate different attributions
-		 */
-		separator = " | ",
-		/**
-		 * @option prefix: String = 'Gleo'
-		 * A prefixed attribution that shall always be present irrespective of
-		 * symbols in the map.
-		 */
-		prefix = "<a href='https://gitlab.com/IvanSanchez/gleo/' target=_blank>Gleo</a>",
-		position = "br",
-		...opts
-	} = {}) {
-		super({ position, ...opts });
-
-		this._separator = separator;
-		this._prefix = prefix;
-
-		this._boundOnAcetateAdd = this._onAcetateAdd.bind(this);
-		this._boundOnSymbolAdd = this._onSymbolAdd.bind(this);
-		this._boundOnSymbolRemove = this._onSymbolRemove.bind(this);
-		this._boundOnLoaderAdd = this._onLoaderAdd.bind(this);
-		this._boundOnLoaderRemove = this._onLoaderRemove.bind(this);
-
-		this.counter = new Map();
-	}
-
-	spawnElement() {
-		this.element = document.createElement("div");
-		this.element.className = "gleo-control gleo-control-attribution";
-	}
-
-	addTo(map) {
-		super.addTo(map);
-		map.on("acetateadded", this._boundOnAcetateAdd);
-		map.on("symbolsadded", this._boundOnSymbolAdd);
-		map.on("symbolsremoved", this._boundOnSymbolRemove);
-		map.on("loaderadded", this._boundOnLoaderAdd);
-		map.on("loaderremoved", this._boundOnLoaderRemove);
-
-		/// TODO: Should fetch all of the map's loaders and symbols
-		/// and calculate the initial attribution
-	}
-
-	remove() {
-		super.remove();
-		this._map.off("acetateadded", this._boundOnAcetateAdd);
-		this._map.off("symbolsadded", this._boundOnSymbolAdd);
-		this._map.off("symbolsremoved", this._boundOnSymbolRemoved);
-		this._map.off("loaderadded", this._boundOnLoaderAdd);
-		this._map.off("loaderremoved", this._boundOnLoaderRemove);
-	}
-
-	_onAcetateAdd(ev) {
-		// this._onAdd(ev.detail.symbols.map((s) => s.attribution));
-		// console.log("Attribution acetateadded", ev.detail.constructor.name, ev.detail.attribution);
-		ev.detail.attribution && this._onAdd([ev.detail.attribution]);
-	}
-	_onSymbolAdd(ev) {
-		this._onAdd(ev.detail.symbols.map((s) => s.attribution));
-	}
-	_onSymbolRemove(ev) {
-		this._onRemove(ev.detail.symbols.map((s) => s.attribution));
-	}
-	_onLoaderAdd(ev) {
-		this._onAdd([ev.detail.loader.attribution]);
-	}
-	_onLoaderRemove(ev) {
-		this._onRemove([ev.detail.loader.attribution]);
-	}
-
-	_onAdd(attributions) {
-		let mustUpdate = false;
-
-		attributions
-			.filter((a) => !!a)
-			.forEach((a) => {
-				const c = this.counter.get(a) || 0;
-				if (!c) {
-					mustUpdate = true;
-				}
-				this.counter.set(a, c + 1);
-			});
-
-		if (mustUpdate) {
-			this._update();
-		}
-	}
-
-	_onRemove(attributions) {
-		let mustUpdate = false;
-
-		attributions
-			.filter((a) => !!a)
-			.forEach((a) => {
-				const c = this.counter.get(a);
-				// Might fail if a symbol/loader updates its attribution without notifying it
-				if (!c) {
-					// throw new Error("Removed an unknown attribution");
-					console.warn("Removed an unknown attribution", a);
-				}
-				if (c === 1) {
-					this.counter.delete(a);
-					mustUpdate = true;
-				} else {
-					this.counter.set(a, c - 1);
-				}
-			});
-
-		if (mustUpdate) {
-			this._update();
-		}
-	}
-
-	_update() {
-		this.element.innerHTML = [this._prefix]
-			.concat(Array.from(this.counter.keys()))
-			.join(this._separator);
-	}
-}
-
-/**
- * @class LngLat
- * @inherits Geometry
- * @relationship dependsOn epsg4326, 0..n, 1..1
- *
- * A `Geometry` of longitude-latitude coordinates, assuming EPSG:4326.
- *
- * Note that the order of the axis is longitude-latitude, or x-y: `new LngLat([180, 90])`
- * is equivalent to `new Coord(epsg4326, [180, 90])`.
- *
- * The issue of the order of the axis might be confusing. See also `LatLng` and
- * https://macwright.com/lonlat/ .
- */
-
-class LngLat extends Geometry {
-	/**
-	 * @constructor LngLat(xy: Array of Number)
-	 */
-	constructor(xy, opts) {
-		super(epsg4326, xy, opts);
-	}
-}
-
-/**
- * @class LatLng
- * @inherits LngLat
- *
- * A `Geometry` of latitude-longitude coordinates, assuming EPSG:4326.
- *
- * Note that the order of the axis is inverted: `new LatLng([90, 180])`
- * is equivalent to `new Geometry(epsg4326, [180, 90])`.
- *
- * The issue of the order of the axis might be confusing. See also `LatLng` and
- * https://macwright.com/lonlat/ .
- */
-
-class LatLng extends LngLat {
-	/**
-	 * @constructor LatLng(xy: Array of Number, opts?: Geometry Options)
-	 */
-	constructor(yx, opts) {
-		const xy = flip(yx);
-		super(xy, opts);
-	}
-}
-
-function flip(arr) {
-	if (typeof arr[0] === "number") {
-		return [arr[1], arr[0]];
-	} else {
-		return arr.map(flip);
-	}
-}
-
-/**
- * @class MercatorMap
- * @inherits GleoMap
- *
- * A `GleoMap` with some useful defaults:
- * - Defaults to Web Mercator CRS (`epsg3857`)
- * - Sets a `maxSpan` of 45 million (mainly to prevent users zooming out far
- *   enough to see horizontal bands above 85° / below -85° when zooming), can
- *   be overridden
- * - Enables some actuators by default:
- *   - `DragActuator` to move the map with a drag-and-drop interaction.
- *   - `PinchActuator` to zoom/rotate the map with two-finger gestures.
- *   - `InertiaActuator` to perform animations on view change.
- *   - `WheelActuator` to zoom in/out with a mouse wheel.
- *   - `ZoomYawSnapActuator` to lock onto the "zoom levels" of the map tiles.
- *   - `SpanClampActuator` to prevent the user from zooming too far in or too far out.
- *   - `BoundsClampActuator` to prevent the user from moving too far north or too far south.
- * - Adds some controls to the map:
- *   - `ZoomInOut` buttons
- *   - `ScaleBar`
- *   - `Attribution`
- * - All methods that take `Geometry`s as input can take arrays of the form
- *   `[lat, lng]` instead, as per `LatLng` (via `DefaultGeometry`).
- *
- * In order to have a map without these defaults, use `GleoMap` instead, add
- * CRS, actuators, and controls as desired; and use `DefaultGeometry` functionality
- * to define how to handle geometry inputs.
+ * Note that `cartesian` works as a Singleton pattern - it's already an instance, so
+ * do **not** call `new cartesian()`.
  *
  * @example
  *
  * ```
- * <div id='gleomap' style='height:500px; width:500px;'></div>
- * <script type='module'>
- * // Import the Gleo files - the paths depend on your importmaps and/or installation
- * import MercatorMap from 'gleo/src/MercatorMap.mjs';
- * import MercatorTiles from 'gleo/src/loaders/MercatorTiles.mjs';
+ * import cartesian from 'gleo/src/crs/cartesian.mjs';
+ * import Geometry from 'gleo/src/crs/coord.mjs';
  *
- * // Instantiate the MercatorMap instance, given the ID of the <div>
- * const myGleoMap = new MercatorMap('gleomap');
- *
- * // Load some default OpenStreetMap tiles in the map
- * new MercatorTiles("https://tile.osm.org/{z}/{y}/{x}.png", {maxZoom: 10}).addTo(myGleoMap);
- *
- * // The map center can be specified as a plain array in [latitude, longitude] form
- * myGleoMap.center = [40, -3];
- *
- * // The map span is the length of the map's diagonal in "meters"
- * myGleoMap.span = 1000000;
- * </script>
+ * let myPoint = new Geometry(cartesian, [5, 9]);
  * ```
+ *
  */
 
-class MercatorMap extends GleoMap {
-	/**
-	 * @constructor MercatorMap(div: HTMLDivElement, options: GleoMap Options)
-	 * @alternative
-	 * @constructor MercatorMap(divID: string, options: GleoMap Options)
-	 */
-	constructor(container, { ...options } = {}) {
-		super(container, { crs: epsg3857, ...options });
-
-		new ZoomInOut().addTo(this);
-		new ScaleBar().addTo(this);
-		new Attribution().addTo(this);
-	}
-}
-
-setFactory(function latLngize(coords, opts) {
-	return new LatLng(coords, opts);
+const cartesian = new BaseCRS("cartesian", {
+	distance: function euclideanDistance(a, b) {
+		return Math.sqrt(
+			Math.pow(a.coords[0] - b.coords[0], 2) +
+				Math.pow(a.coords[1] - b.coords[1], 2)
+		);
+	},
+	ogcUri: "OGC:engineering-2d",
 });
 
 /**
+ * @namespace epsg4326
+ * @inherits BaseCRS
  *
- * @class TileEvent
- * @inherits Event
+ * A EPSG:4326 CRS - aka "latitude-longitude".
  *
- * A `TileLoader`'s events are of this type, and include information about the tile
- * in question.
- *
+ * Note that `epsg4326` works as a Singleton pattern - it's already an instance, so
+ * do **not** call `new epsg4326()`.
  *
  * @example
  *
- * ```js
- * loader.on('tileload', function(ev) {
- * 	console.log(ev.tileLevel);
- * });
+ * ```
+ * import epsg4326 from 'gleo/src/crs/epsg4326.mjs';
+ * import Geometry from 'gleo/src/geometry/Geometry.mjs';
  *
+ * let myPoint = new Geometry(epsg4326, [5, 9]);
  * ```
  *
- * @property tileLevel: String
- * The level of the tile pyramid the tile is in.
+ */
+
+const rad$2 = Math.PI / 180;
+const R$1 = 6371000;
+
+const epsg4326$1 = new BaseCRS("EPSG:4326", {
+	wrapPeriodX: 360,
+	distance: function haversineDistance(p1, p2) {
+		// Haversine formula for great-circle distance. Based on an implementation by
+		// Jussi Mattas (https://github.com/jussimattas / https://github.com/gitjuba)
+		// See https://github.com/Leaflet/Leaflet/pull/5935
+		const lat1 = p1.coords[1] * rad$2,
+			lat2 = p2.coords[1] * rad$2,
+			sinDLat = Math.sin(((p2.coords[1] - p1.coords[1]) * rad$2) / 2),
+			sinDLon = Math.sin(((p2.coords[0] - p1.coords[0]) * rad$2) / 2),
+			a = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon,
+			c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		return R$1 * c;
+	},
+	ogcUri: "http://www.opengis.net/def/crs/EPSG/0/4326",
+	flipAxes: true,
+	minSpan: 1e-6, // circa 0.1m at equator
+	maxSpan: 720,
+	viewableBounds: [-Infinity, -90, Infinity, 90],
+});
+
+// OGC URI Alias
+/// TODO: axis order???!!!
+registerCRS(epsg4326$1, "http://www.opengis.net/def/crs/OGC/1.3/CRS84");
+
+var epsg4326$2 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	default: epsg4326$1
+});
+
+/**
+ * @namespace epsg3857
+ * @inherits BaseCRS
  *
- * @property tileX: Number
- * The X coordinate of the tile, relative to its level.
+ * A EPSG:3857 CRS - aka "spherical web mercator".
  *
- * @property tileY: Number
- * The Y coordinate of the tile, relative to its level.
+ * Note that `epsg3857` works as a Singleton pattern - it's already an instance, so
+ * do **not** call `new epsg3857()`.
  *
- * @property tile: HTMLImageElement
- * The image for the tile.
+ * @example
  *
- * @property error: String
- * The cause of a `tileerror` event.
+ * ```
+ * import epsg3857 from 'gleo/src/crs/epsg3857.mjs';
+ * import Geometry from 'gleo/src/geometry/Geometry.mjs';
+ *
+ * let myPoint = new Geometry(epsg3857, [5, 9]);
+ * ```
  *
  */
 
-class TileEvent extends Event {
-	constructor(type, init) {
-		super(type, init);
-		this.tileLevel = init.tileLevel;
-		this.tileX = init.tileX;
-		this.tileY = init.tileY;
-		this.tile = init.tile;
-		this.error = init.error;
-	}
-}
+const limit$2 = 20037508.34;
+
+const epsg3857 = new BaseCRS("EPSG:3857", {
+	wrapPeriodX: 2 * limit$2,
+	distance: epsg4326$1,
+	ogcUri: "http://www.opengis.net/def/crs/EPSG/0/3857",
+	minSpan: 1,
+	maxSpan: 4 * limit$2,
+	viewableBounds: [-Infinity, -limit$2, Infinity, limit$2],
+});
+
+const halfπ = Math.PI / 2;
 
 /**
- * @class AbstractTileLoader
- * @inherits Loader
+ * @namespace epsg8857
+ * @inherits BaseCRS
  *
- * @relationship association TileEvent, 1..1, 0..n
+ * A EPSG:8857 CRS - aka "Equal Earth" (over WGS84).
  *
- * Functionality common to `RasterTileLoader` and `AbstractVectorTileLoader`.
- *
- * A `AbstractTileLoader` watches for changes in the map's viewport and
- * loads/unloads/overwrites raster/vector tiles.
  */
-class AbstractTileLoader extends Loader {
-	#pyramid;
-	// #boundOnViewChange;
-	//#tileFn;
 
-	// Pyramid level that was the best fit for the platina's scale during the
-	// last viewchange event
-	#lastLevel;
+new BaseCRS("EPSG:8857", {
+	distance: epsg4326$1,
+	ogcUri: "http://www.opengis.net/def/crs/EPSG/0/8857",
+	minSpan: 0.1,
+	maxSpan: 8,
+	viewableBounds: [-Math.PI, -halfπ, Math.PI, halfπ],
+});
 
-	// Tile range fitting the last viewchange event
-	#lastRange = [NaN, NaN, NaN, NaN];
+registerProjectionFunction("EPSG:4326", "EPSG:8857", lnglat2equalearth);
+registerProjectionFunction("EPSG:8857", "EPSG:4326", equalearth2lnglat);
 
-	/**
-	 * @constructor GenericVectorTileLoader(pyramid: TilePyramid, opts: GenericVectorTileLoader Options, tileWrapX: Number, tileWrapY: Number)
-	 */
-	constructor(pyramid, { ...opts } = {}) {
-		super(opts);
-		this.#pyramid = pyramid;
-		this._boundOnViewChange = this.#onViewChange.bind(this);
+// The following implementation of equal earth projection is ripped off d3-geo,
+// specifically https://github.com/d3/d3-geo/blob/main/src/projection/equalEarth.js
+// by φlippe Rivière (under MIT license) based on Bojan Šavrič _et al._
+
+const A1 = 1.340264,
+	A2 = -0.081106,
+	A3 = 0.000893,
+	A4 = 0.003796,
+	M = Math.sqrt(3) / 2,
+	iterations = 12,
+	ε = 1e-12,
+	rad$1 = 180 / Math.PI, // Degrees in a radian (i.e. ~57)
+	deg = Math.PI / 180;
+
+function asin(x) {
+	return x > 1 ? halfπ : x < -1 ? -halfπ : Math.asin(x);
+}
+
+function lnglat2equalearth([λ, φ]) {
+	var l = asin(M * Math.sin(φ * deg)),
+		l2 = l * l,
+		l6 = l2 * l2 * l2;
+	return [
+		(λ * deg * Math.cos(l)) / (M * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))),
+		l * (A1 + A2 * l2 + l6 * (A3 + A4 * l2)),
+	];
+}
+
+function equalearth2lnglat([x, y]) {
+	var l = y,
+		l2 = l * l,
+		l6 = l2 * l2 * l2;
+	for (var i = 0, Δ, fy, fpy; i < iterations; ++i) {
+		fy = l * (A1 + A2 * l2 + l6 * (A3 + A4 * l2)) - y;
+		fpy = A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2);
+		(l -= Δ = fy / fpy), (l2 = l * l), (l6 = l2 * l2 * l2);
+		if (Math.abs(Δ) < ε) break;
 	}
-
-	/**
-	 * @property pyramid: TilePyramid
-	 * The tile pyramid used. Read-only.
-	 */
-	get pyramid() {
-		return this.#pyramid;
-	}
-
-	/**
-	 * @property currentLevel: String
-	 * The name of the level of the pyramid currently active (the one best
-	 * fitting the map/platina's scale). Read-only.
-	 */
-	get currentLevel() {
-		return this.#lastLevel;
-	}
-
-	/**
-	 * @property currentRange: Array of Number
-	 * An array of the form `[minX, minY, maxX, maxY]` containing the range
-	 * of tile XY coordinates which cover the current map/platina viewport.
-	 * Read-only.
-	 */
-	get currentRange() {
-		return this.#lastRange;
-	}
-
-	addTo(target) {
-		super.addTo(target);
-		this.platina.on("viewchanged", this._boundOnViewChange);
-	}
-
-	remove() {
-		this.platina.off("viewchanged", this._boundOnViewChange);
-
-		super.remove();
-		this.#lastRange = [NaN, NaN, NaN, NaN];
-
-		/// TODO: remove all symbols. Subclasses are best equipped to deal with that.
-		return this;
-	}
-
-	_getVisibleRange(level) {
-		/// TODO: PROJECT THE BBOX TO THE PYRAMID CRS!!!!!!!
-		const mapBBox = this.platina.bbox;
-		const crs = this.platina.crs;
-		const bbox = crs
-			.offsetToBase([mapBBox.minX, mapBBox.minY])
-			.concat(crs.offsetToBase([mapBBox.maxX, mapBBox.maxY]));
-		const range = this.#pyramid.bboxToTileRange(level, bbox);
-		return range;
-	}
-
-	/**
-	 * @section Extension methods
-	 * @uninheritable
-	 * @method _isTileWithinRange(x: Number, y: Number, minX: Number, minY: Number, maxX: Number, maxY: Number, spanX: Number, spanY: Number): Boolean
-	 * Can (and should) be used by implementations to check whether a set
-	 * of `x`, `y` tile coordinates are within the given tile range with
-	 * the given tile span.
-	 * Tile ranges are assumed to be minimum-inclusive but maximum exclusive,
-	 * i.e. `[min, max)`
-	 */
-	_isTileWithinRange(x, y, minX, minY, maxX, maxY, spanX, spanY) {
-		return (
-			(maxX > spanX ? x >= minX || x < maxX % spanX : x >= minX && x < maxX) &&
-			(maxY > spanY ? y >= minY || y < maxY % spanY : y >= minY && y < maxY)
-		);
-	}
-
-	#onViewChange(ev) {
-		const level = this.#pyramid.nearestLevel(this.platina.scale);
-		if (level === undefined) {
-			// Happens when the platina doesn't have a scale set (yet)
-			return;
-		}
-		const range = this._getVisibleRange(level);
-
-		if (level !== this.#lastLevel && this.#lastLevel !== undefined) {
-			/// If there has been a level change, (try to) abort all
-			/// tiles from the outgoing level
-
-			/**
-			 * @section Extension methods
-			 * @uninheritable
-			 * @method _abortLevel(level:String): undefined
-			 * Must be provided by raster and vector implementations. Should
-			 * (try to) abort all pending `Promise`s for the given level.
-			 */
-			this._abortLevel(this.#lastLevel);
-
-			this.#lastRange = [NaN, NaN, NaN, NaN];
-		}
-
-		if (this.#lastRange.every((v, i) => v === range[i])) {
-			return;
-		}
-
-		const [minX, minY, maxX, maxY] = range;
-
-		/**
-		 * @section
-		 * @event rangechange: Event
-		 * Fired whenever the visible tiles (the "tile range") have changed.
-		 * Not every change in the viewport triggers a range change.
-		 */
-		this.fire("rangechange", {
-			level,
-			minX,
-			minY,
-			maxX,
-			maxY,
-		});
-
-		/**
-		 * @section Extension methods
-		 * @uninheritable
-		 * @method _onRangeChange(level:String, minX: Number, minY: Number, maxX: Number, maxY: Number, levelChange: Boolean): undefined
-		 * Must be provided by raster and vector implementations.
-		 * Called whenever a `rangechange` event occurs. Implementations should
-		 * (a) abort tiles outside the range and (b) load tiles inside the range,
-		 * all according to their caching algorithm.
-		 */
-		this._onRangeChange(level, minX, minY, maxX, maxY, level !== this.#lastLevel);
-
-		this.#lastLevel = level;
-		this.#lastRange = range;
-	}
-
-	/**
-	 * @section Extension methods
-	 * @uninheritable
-	 * @method _onTileLoad(level: String, x: Number, y: Number, tile: *): undefined
-	 * Should be called when a tile loads. The abstract implementation will
-	 * only fire a `tileload` event and trigger a redraw.
-	 */
-	_onTileLoad(level, x, y, tile) {
-		/**
-		 * @section
-		 * @event tileload: TileEvent
-		 * Dispatched when a tile loads.
-		 */
-		this.dispatchEvent(
-			new TileEvent("tileload", {
-				tileLevel: level,
-				tileX: x,
-				tileY: y,
-				tile: tile,
-			})
-		);
-	}
-
-	/**
-	 * @section Extension methods
-	 * @uninheritable
-	 * @method _onTileError(level: String, x: Number, y: Number, tile: *): undefined
-	 * Should be called when a tile fails to load. The abstract implementation will
-	 * only fire a `tileerror` event.
-	 */
-	_onTileError(level, x, y, err) {
-		/**
-		 * @section
-		 * @event tileerror: TileEvent
-		 * Dispatched when a tile failed to load.
-		 */
-		this.dispatchEvent(
-			new TileEvent("tileerror", {
-				tileLevel: level,
-				tileX: x,
-				tileY: y,
-				error: err,
-			})
-		);
-	}
+	return [
+		(rad$1 * M * x * (A1 + 3 * A2 * l2 + l6 * (7 * A3 + 9 * A4 * l2))) / Math.cos(l),
+		rad$1 * asin(Math.sin(l) / M),
+	];
 }
 
 /**
- * @class AcetateVertices
+ * @namespace maplibreMercator
+ * @inherits BaseCRS
+ *
+ * An adaptation of the EPSG:3857 CRS (aka "spherical web mercator") to the
+ * way that Maplibre-gl-js handles coordinates.
+ *
+ * The upper-left (north-west) corner in EPSG:3857 is at [-20037508.34, +20037508.34],
+ * but for maplibre it has to be at [0,0]. The lower-right (south-east) corner is
+ * at [+20037508.34, -20037508.34] in EPSG:3857 but maplibre expects it to be at
+ * [1,1]. Likewise, Null Island (latitude zero, longitude zero) is at [0.5, 0.5].
+ *
+ * This is intended to be use in conjunction with [maplibre-gleo](https://gitlab.com/IvanSanchez/maplibre-gleo).
+ *
+ */
+
+new BaseCRS("maplibremercator", {
+	wrapPeriodX: 1,
+	distance: epsg4326$1,
+	// ogcUri: "http://www.opengis.net/def/crs/EPSG/0/3857",
+	ogcUri: "-",
+	minSpan: 1e-9,
+	maxSpan: 2,
+	viewableBounds: [-Infinity, 0, Infinity, 1],
+});
+
+const limit$1 = 20037508.34;
+const span = 2 * limit$1;
+
+// Converts +/-20037508 → 0/1
+function normalizeMercator([x, y]) {
+	return [(x + limit$1) / span, 1 - (limit$1 - y) / span];
+}
+
+// Converts 0/1 → +/-20037508
+function denormalizeMercator([x, y]) {
+	return [span * (x - 0.5), span * (0.5 - y)];
+}
+
+// Copied from epsg3857.mjs
+const R = 6378137; // Earth's radius as per spherical mercator
+const D$1 = Math.PI / 180; // One degree, in radians
+const rad = 180 / Math.PI; // One radian, in degrees
+const halfPi = Math.PI / 2;
+
+function lnglat2webmercator([lng, lat]) {
+	const sin = Math.sin(lat * D$1);
+	return [R * D$1 * lng, (R * Math.log((1 + sin) / (1 - sin))) / 2];
+}
+
+function webmercator2lnglat([x, y]) {
+	return [(x * rad) / R, (2 * Math.atan(Math.exp(y / R)) - halfPi) * rad];
+}
+
+registerProjectionFunction("EPSG:4326", "maplibremercator", ([x, y]) => {
+	return normalizeMercator(lnglat2webmercator([x, y]));
+});
+
+registerProjectionFunction("maplibremercator", "EPSG:4326", ([x, y]) => {
+	return webmercator2lnglat(denormalizeMercator([x, y]));
+});
+
+registerProjectionFunction("maplibremercator", "EPSG:3857", denormalizeMercator);
+registerProjectionFunction("EPSG:3857", "maplibremercator", normalizeMercator);
+
+/**
+ * @class Field
  * @inherits Acetate
+ * @relationship compositionOf Acetate, 1..1, 0..n
  *
- * An abstract `Acetate` that implements multiple vertices per symbol.
+ * Abstract acetate, basis for `ScalarField` (one 32-bit float per pixel)
+ * and `VectorField` (two 32-bit floats per pixel).
  *
- * Most `Acetate`s draw symbols that must be represented by more than one vertex
- * (and typically forming triangles), and should inherit this functionality.
- *
- * The only exception is acetates that do not need vertex indices at all because
- * they do not rely on primitives (i.e. triangles) - the `AcetateDot` being the only
- * instance of such.
  */
 
-class AcetateVertices extends Acetate {
-	constructor(glii, opts) {
-		super(glii, opts);
+class Field extends Acetate {
+	#subAcetateAttrs;
+	#fieldFramebuffer;
+	#fieldTexture;
+	#fieldClear;
+	#clearValue;
 
-		// The SparseIndices allocates *vertex slots* on primitives, e.g.:
-		// * 3 slots per triangle, or
-		// * 2 slots per line segment
-		this._indices = new this.glii.SparseIndices({
-			// Glii defaults to UNSIGNED_SHORT, meaning a max of 2^16=65536
-			// primitive vertex slots (~32k lines ~21k triangles). It's
-			// reasonable to expect more, so this asks for 32-bit
-			// pointers, meaning a max of 2^32 primitive slots.
-			type: this.glii.UNSIGNED_INT,
-		});
+	#subAcetates = [];
 
-		// The attribute allocator allocates *attribute slots*,
-		// one per needed vertex (even if that vertex is used several times in several
-		// slots to be shared between several triangles/segments/primitives)
-		this._attribAllocator = new Allocator();
-	}
-
-	glProgramDefinition() {
-		const opts = super.glProgramDefinition();
-		return {
-			...opts,
-			indexBuffer: this._indices,
-			blend: {
-				equationRGB: this.glii.FUNC_ADD,
-				equationAlpha: this.glii.FUNC_ADD,
-
-				srcRGB: this.glii.SRC_ALPHA,
-				dstRGB: this.glii.ONE_MINUS_SRC_ALPHA,
-				srcAlpha: this.glii.ONE,
-				dstAlpha: this.glii.ONE_MINUS_SRC_ALPHA,
-			},
-		};
-	}
-
-	/**
-	 * @section Internal Methods
-	 * @uninheritable
-	 * @method reproject(): this
-	 * Runs `toCRS` on the coordinates of all known symbols, and (re)sets the values in
-	 * the coordinates attribute buffer.
-	 */
-	reprojectAll() {
-		this._attribAllocator.forEachBlock((start, length) => {
-			this.reproject(start, length);
-		});
-		return this;
-	}
-
-	_getStridedArrays(_, maxIdx) {
-		return [
-			// Vertex indices
-			this._indices.asTypedArray(maxIdx),
-		];
-	}
-
-	_getPerPointStridedArrays(maxVtx, maxIdx) {
-		return [];
-	}
-
-	_commitStridedArrays(_, __, baseIdx, idxCount) {
-		this._indices.commit(baseIdx, idxCount);
-	}
-
-	_commitPerPointStridedArrays(vtx, vtxCount) {
-		// noop
-	}
-
-	/**
-	 * @method deallocate(symbol: GleoSymbol): this
-	 * Deallocate the symbol from this acetate (so it's not drawn on the next refresh)
-	 */
-	deallocate(symbol) {
-		return this.multiDeallocate([symbol]);
-	}
-
-	multiAllocate(symbols) {
-		// Skip:
-		// - Already added symbols
-		// - Symbols with zero vertices
-		// - Symbols with zero indices/triangles (e.g. one-point strokes)
-		symbols = symbols.filter(
-			(s) => isNaN(s.attrBase) && s.idxLength > 0 && s.attrLength > 0
-		);
-		if (symbols.length === 0) {
-			return;
-		}
-
-		const totalVertices = symbols.reduce((acc, ext) => acc + ext.attrLength, 0);
-		const baseVtx = this._attribAllocator.allocateBlock(totalVertices);
-		let vtxAcc = baseVtx;
-
-		const totalIndices = symbols.reduce((acc, ext) => acc + ext.idxLength, 0);
-		const baseIdx = this._indices.allocateSlots(totalIndices);
-		let idxAcc = baseIdx;
-
-		let stridedArrays = this._getStridedArrays(
-			baseVtx + totalVertices,
-			baseIdx + totalIndices
-		);
-
-		symbols.forEach((sym) => {
-			sym._inAcetate = this;
-			sym.attrBase = vtxAcc;
-			sym.idxBase = idxAcc;
-			this._knownSymbols[vtxAcc] = sym;
-
-			sym._setGlobalStrides(...stridedArrays);
-
-			vtxAcc += sym.attrLength;
-			idxAcc += sym.idxLength;
-		});
-
-		this._commitStridedArrays(baseVtx, totalVertices, baseIdx, totalIndices);
-
-		if (this._crs) {
-			this.reproject(baseVtx, totalVertices, symbols);
-		}
-
-		// The AcetateInteractive functionality will assign IDs to symbol vertices.
-		this.multiAddIds?.(symbols, baseVtx, baseVtx + totalVertices);
-
-		this.dirty = true;
-		return this;
-	}
-
-	multiDeallocate(symbols) {
-		symbols = symbols.filter((s) => !!s);
-		symbols.sort((a, b) => a.idxBase - b.idxBase);
-
-		if (symbols.length === 0) {
-			return this;
-		}
-
-		// let attribBlocks = [];
-		let blockStart = symbols[0].idxBase,
-			blockLength = 0;
-		symbols.forEach((symbol) => {
-			if (blockStart + blockLength === symbol.idxBase) {
-				blockLength += symbol.idxLength;
-			} else {
-				// attribBlocks.push([ blockStart, blockLength ]);
-				this._indices.deallocateSlots(blockStart, blockLength);
-				blockStart = symbol.idxBase;
-				blockLength = symbol.idxLength;
-			}
-		});
-		this._indices.deallocateSlots(blockStart, blockLength);
-
-		symbols.sort((a, b) => a.attrBase - b.attrBase);
-
-		blockStart = symbols[0].attrBase;
-		blockLength = 0;
-
-		symbols.forEach((symbol) => {
-			if (blockStart + blockLength === symbol.attrBase) {
-				blockLength += symbol.attrLength;
-			} else {
-				// attribBlocks.push([ blockStart, blockLength ]);
-				this._attribAllocator.deallocateBlock(blockStart, blockLength);
-				blockStart = symbol.attrBase;
-				blockLength = symbol.attrLength;
-			}
-			delete this._knownSymbols[symbol.attrBase];
-			symbol.updateRefs(undefined, undefined, undefined);
-		});
-		this._attribAllocator.deallocateBlock(blockStart, blockLength);
-
-		// Edge case for the last symbol. See comments on Acetate.multiDeallocate().
-		if (!this._knownSymbols.some(() => true)) {
-			this._knownSymbols = [];
-		}
-
-		return this;
-	}
-
-	/**
-	 * @method reproject(start: Number, length: Number, symbols?: Array of GleoSymbol): Array of Number
-	 * Dumps a new set of values to the `this._coords` attribute buffer, based
-	 * on the known set of symbols added to the acetate (only those which have
-	 * their attribute offsets between `start` and `start+length`.
-	 *
-	 * If the list of symbols is already known, they can be passed as a third
-	 * argument for a performance improvement.
-	 *
-	 * This default implementation **assumes** that the `attrLength` of a
-	 * `GleoSymbol` is equal to the length of its `Geometry` (i.e. there's
-	 * `one vertex per point in the geometry).
-	 *
-	 * Returns the data set into the attribute buffer: a ' Float32Array`
-	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
-	 */
-	reproject(start, length, symbols) {
-		const end = start + length;
-		let maxIdx = -Infinity;
-		let minIdx = Infinity;
-
-		// In most cases, it's safe to assume that relevant symbols in the same
-		// attribute allocation block have their vertex attributes in a
-		// compacted manner.
-		// The exception is tiles: tile vertex attributes are allocated in bulk
-		// (enough to fill a whole texture atlas), before actually instantiating
-		// tile symbols. Tile acetates shall overload this method.
-
-		const stridedCoords = this._coords.asStridedArray(end);
-		const geomStrides = this._getGeometryStridedArrays(end);
-
-		const relevantSymbols =
-			symbols ??
-			this._knownSymbols.filter((symbol, attrIdx) => {
-				return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
-			});
-
-		relevantSymbols.forEach((s) => {
-			const geom = s.geometry.toCRS(this._crs);
-			stridedCoords.set(geom.coords, s.attrBase);
-			s._setGeometryStrides(geom, ...geomStrides);
-			maxIdx = Math.max(maxIdx, s.idxBase + s.idxLength);
-			minIdx = Math.min(maxIdx, s.idxBase);
-		});
-
-		this._coords.commit(start, length);
-		this._commitGeometryStridedArrays(start, length, minIdx, maxIdx - minIdx);
-
-		const coordData = new Float32Array(stridedCoords.buffer, start * 8, length * 2);
-		super.expandBBox(coordData);
-		return coordData;
-	}
-}
-
-// import { registerDefaultAcetate } from "../Platina.mjs";
-// import Allocator from "../glii/src/Allocator.mjs";
-
-/**
- * @class AcetateStitchedTiles
- * @inherits AcetateVertices
- *
- * @relationship compositionOf TilePyramid, 0..n, 1..1
- *
- * An `Acetate` that draws rectangular conformal (i.e. matching the display CRS)
- * RGB(A) raster images, all of which fit together inside a Glii texture (and
- * so they share it). Users should not use this acetate directly; look at
- * `MercatorTiles` and `RasterTileLoader` and instead.
- *
- * This acetate will **not** hold an indefinite number of tiles; rather,
- * a tile might overwrite an existing tile. The (maximum) number of tiles at
- * any given moment depends on the size of the WebGL texture used.
- */
-
-class AcetateStitchedTiles extends AcetateVertices {
-	#MRULevels; // Most Recently Used levels
-	#texFilter; // Either glii.NEAREST or glii.LINEAR
-
-	/**
-	 * Info about tile pyramid levels. Looks like:
-	 * "8": {
-	 * 	scale: 9.26,
-	 * 	resX: 256,	// size of tiles in raster px
-	 * 	resY: 256,	// size of tiles in raster px
-	 * 	wrapX: 16,	// amount of tiles fitting in the texture
-	 * 	wrapY: 16,	// amount of tiles fitting in the texture
-	 * 	texSizeX: 4096,	// (desired) Size of texture
-	 * 	texSizeY: 4096,	// (desired) Size of texture
-	 * 	baseVtx: 348	// Index of the first vertex attribute for the level
-	 * 	valid: true,	// Whether should be drawn or not
-	 * }
-	 */
-	#levels = {};
-	#levelNames = [];
-
-	#uvAttr;
-	#timestampAttr;
-	#fadeInDuration;
+	#glFormat;
+	#glInternalFormat;
 
 	constructor(
-		glii,
+		target,
 		{
 			/**
-			 * @section AcetateStitchedTiles Options
-			 * @option pyramid: TilePyramid
-			 * The tile pyramid to use
-			 * @option tileResX: Number = 256; Horizontal size, in pixels, of each tile.
-			 * @option tileResY: Number = 256; Vertical size, in pixels, of each tile.
-			 * @option minTextureSize: Number = 2048
-			 * Minimum size of the textures used to cache tile data. This should
-			 * be set to the maximum expected size of the map (`RasterTileLoader`
-			 * does so).
-			 *
-			 * Lower values might save some GPU memory, but will cause tiles to
-			 * be culled prematurely.
-			 *
-			 * Higher values will keep more tiles cached in GPU textures, but
-			 * will use more GPU memory and can cause browsers (notably
-			 * chrome/chromium) to spend more time allocating the textures. Texture
-			 * size is ultimately bound by the WebGL capabilities of the
-			 * browser/OS/GPU, which usually can support textures 8192 or 16384
-			 * pixels wide/high.
-			 * @option interpolate: Boolean = false
-			 * Whether to use bilinear pixel interpolation or not.
-			 *
-			 * In other words: `false` means pixellated, `true` means smoother.
-			 * @option fadeInDuration: Number = 250
-			 * Duration, in milliseconds, of the tile fade-in animation.
-			 * @option maxLoadedLevels: Number = 3
-			 * Number of maximum tile levels to keep loaded in their textures.
-			 * Higher values can provide a slightly better experience when
-			 * zooming in and out, but will use more GPU RAM.
-			 * @option resizablePlatina: Boolean = true
-			 * Whether the platina can be expected to be resized up to the size
-			 * of the screen. When `false`, less GPU RAM is used for the textures.
+			 * @option clearValue: Array of Number = [0,0,0,0]
+			 * The value of the scalar field prior to render data on it. It should
+			 * be zero for most cases (where scalar symbols are using the `ADD` blend
+			 * equation), but should be a different number when using the `MIN`
+			 * blend equation.
 			 */
-			pyramid,
-			tileResX = 256,
-			tileResY = 256,
-			minTextureSize = 2048,
-			// minTextureSize = 1024,
-			interpolate = false,
-			fadeInDuration = 250,
-			maxLoadedLevels = 4,
+			clearValue = [0, 0, 0, 0],
+
+			// For subclassing only - the GL Format to be used when creating the
+			// field texture/framebuffer
+			glFormat,
+
+			// For subclassing only - the GL "internal format" to be used when
+			// creating the field texture/framebuffer
+			glInternalFormat,
+
 			...opts
 		} = {}
 	) {
-		super(glii, opts);
-
-		// this._texture = new glii.Texture();
-		this._pyramid = pyramid;
-		this.#levelNames = pyramid.mapLevels((name) => name);
-
-		this.#MRULevels = new Array(maxLoadedLevels);
-
-		this.#fadeInDuration = fadeInDuration;
-
-		// Timestamp when the fade-in animation must stop.
-		this._fadeTimeout = undefined;
-
-		this._textures = {};
-
-		this._crs = pyramid.crs;
-
-		this._indices = new glii.LoDIndices({
-			type: glii.UNSIGNED_INT,
-			size: 0,
-			growFactor: 1,
-		});
-
-		this.#texFilter = !!interpolate ? this.glii.LINEAR : this.glii.NEAREST;
-		// const attrs = new Float32Array(levelCount * this._tilesPerLevel * 3);
-		const uvs = [];
-		const idxs = [];
-		let vtx = 0;
-
-		this._scales = {};
-
-		const maxTexSize = glii.Texture.getMaxSize();
-
-		this.#levelNames.forEach((levelName) => {
-			const level = this._pyramid.getLevelDef(levelName);
-
-			const resX = isFinite(tileResX) ? tileResX : tileResX[levelName];
-			const resY = isFinite(tileResY) ? tileResY : tileResY[levelName];
-
-			if (resX > maxTexSize || resY > maxTexSize) {
-				throw new Error(
-					`Resolution of tiles (${resX}, ${resY}) cannot be greater than the maximum size of textures (${maxTexSize})`
-				);
-			}
-			if (resX < 0 || resY < 0) {
-				throw new Error(
-					`Resolution of tiles (${resX}, ${resY}) cannot be negative`
-				);
-			}
-
-			// Scale is used as an sttribute to prevent z-fighting, so their
-			// log2s work just as well and prevent float precision issues
-			const scale = Math.log2(this._pyramid.getLevelDef(levelName).scale);
-			this._scales[levelName] = scale;
-
-			/// FIXME: What happens with maps with a yaw rotation of 45°??? Might need
-			/// to multiply by sqrt(2).
-
-			// Ideally, the size of a StitchedTiles texture would be the
-			// maximum that the GPU allows - that's easily 8k x 8k pixels or
-			// 16k x 16k.
-			// Unfortunately, big framebuffers hog GPU RAM and cause browsers
-			// (chromium/chrome in particular) to hang up during framebuffer
-			// initialization.
-
-			// The final size of the textures used will be:
-			// - A power of 2 (hardcoded, in order to wrap textures across the
-			//   antimeridian)
-			// - Enough to fit tiles worth `minTextureSize` pixels, plus one
-			//   extra tile.
-
-			// Furthermore, since AcetateStitchedTiles allocates several textures
-			// (one per pyramid level), big texture sizes can mean *a lot* of memory.
-			// This is a problem for some old-ish or mobile GPUs, where allocating
-			// more than ~128MiB of GPU RAM is a problem.
-			/// FIXME: The X/Y tile span of each level must be a multiple of
-			/// _tileWrapX/Y. Otherwise, loading tiles around the antimeridian will
-			/// glitch (tiles ask to be stored in an offset modulo _tileWrapX/Y,
-			/// and the last tile doesn't map to _tileWrapX/Y - 1, leading to
-			/// tiles overwritting visible tiles). This might mean upping the textures
-			/// to 4k :-/
-
-			let tilesFitX = Math.min(level.spanX, Math.ceil(minTextureSize / resX));
-			let tilesFitY = Math.min(level.spanY, Math.ceil(minTextureSize / resY));
-			let texSizeX = tilesFitX * resX;
-			let texSizeY = tilesFitY * resY;
-
-			/// TODO: Fix non-power-of-two textures. Somehow disabling the p-o-2
-			/// logic scrambles tiles around.
-
-			// const forcePowerOfTwo = (this.interpolate || !this.glii instanceof WebGL2RenderingContext);
-			// if (forcePowerOfTwo || isFinite(pyramid.crs.wrapPeriodX)) {
-			texSizeX = 1 << Math.ceil(Math.log2(texSizeX));
-			tilesFitX = Math.floor(texSizeX / resX);
-			// }
-			// if (forcePowerOfTwo || isFinite(pyramid.crs.wrapPeriodY)) {
-			texSizeY = 1 << Math.ceil(Math.log2(texSizeY));
-			tilesFitY = Math.floor(texSizeY / resY);
-			// }
-
-			texSizeX = Math.min(texSizeX, resX * level.spanX);
-			texSizeY = Math.min(texSizeY, resY * level.spanY);
-
-			// console.log(levelName, tilesFitX, tilesFitY );
-
-			this.#levels[levelName] = {
-				scale: scale,
-				resX: resX,
-				resY: resY,
-				wrapX: tilesFitX,
-				wrapY: tilesFitY,
-				texSizeX: texSizeX,
-				texSizeY: texSizeY,
-				baseVtx: vtx,
-				valid: false,
-			};
-
-			// console.log("level", levelName, this.#levels[levelName]);
-
-			for (let y = 0; y < tilesFitY; y++) {
-				for (let x = 0; x < tilesFitX; x++) {
-					// Fill up the **static** values for the UV attribute, and the triangle indices
-					// TODO: Consider using strided arrays??
-
-					//prettier-ignore
-					uvs.push(...[
-						// UV map
-						x/tilesFitX      , y/tilesFitY,
-						(x + 1)/tilesFitX, y/tilesFitY,
-						(x + 1)/tilesFitX, (y + 1)/tilesFitY,
-						x/tilesFitX      , (y + 1)/tilesFitY,
-					]/*, i * 3*/);
-
-					// prettier-ignore
-					idxs.push(
-						vtx, vtx+1, vtx+2,
-						vtx, vtx+2, vtx+3
-					);
-
-					vtx += 4;
-				}
-			}
-
-			this._indices.allocateSet(levelName, idxs);
-
-			idxs.splice(0); // Truncate idxs.
-		});
-
-		// UV attribute
-		this.#uvAttr = new glii.SingleAttribute({
-			usage: glii.STATIC_DRAW,
-			size: vtx,
-			growFactor: false,
-
-			// UV map
-			glslType: "vec2",
-			type: Float32Array,
-			// normalized: false,
-		});
-		this.#uvAttr.setBytes(0, 0, Float32Array.from(uvs));
-
-		// Attribute to hold timestamps for the fade-in animation
-		this.#timestampAttr = new this.glii.SingleAttribute({
-			usage: glii.DYNAMIC_DRAW,
-			size: vtx,
-			growFactor: false,
-
-			glslType: "float",
-			type: Float32Array,
-		});
-
-		// Setting the coordinates for the last vertex will allocate and
-		// fill in with zeroes all previous ones
-		this._coords.setArray(vtx - 1, [0, 0]);
-	}
-
-	// Similar to AcetateConformalRaster
-	glProgramDefinition() {
-		const opts = super.glProgramDefinition();
-		return {
-			...opts,
-			attributes: {
-				...opts.attributes,
-				aUV: this.#uvAttr,
-				aTimestamp: this.#timestampAttr,
-			},
-			uniforms: {
-				uNow: "float", // Current timestamp
-				...opts.uniforms,
-			},
-			textures: {
-				uRasterTexture: undefined,
-			},
-			vertexShaderMain: `
-				vUV = aUV;
-				vAlpha = min(1., ((uNow - aTimestamp) / ${this.#fadeInDuration}.));
-				gl_Position = vec4(vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
-			`,
-			varyings: { vUV: "vec2", vAlpha: "float" },
-			fragmentShaderMain: `
-				gl_FragColor = texture2D(uRasterTexture, vUV);
-				gl_FragColor.a *= vAlpha;
-			`,
-			blend: {
-				equationRGB: this.glii.FUNC_ADD,
-				equationAlpha: this.glii.FUNC_ADD,
-
-				srcRGB: this.glii.SRC_ALPHA,
-				dstRGB: this.glii.ONE_MINUS_SRC_ALPHA,
-				srcAlpha: this.glii.ONE,
-				dstAlpha: this.glii.ONE_MINUS_SRC_ALPHA,
-			},
-		};
-	}
-
-	/**
-	 * @section
-	 * @method multiAdd(tiles: Array of Tile): this
-	 * Adds the tiles to this acetate (so they're drawn on the next refresh).
-	 *
-	 * The images for the tiles are dumped into the acetate's texture.
-	 *
-	 * Unlike most other acetates, tiles are added on an individual basis and
-	 * their data might not be stored adjacently in the attribute/primitive
-	 * buffers.
-	 */
-	multiAdd(tiles) {
-		/// TODO: Keep track of loaded tiles, in order to fire the `symbolsremoved`
-		/// event whenever tiles are overwritten.
-
-		// tiles.forEach(this.allocate.bind(this));
-		tiles.forEach((t) => {
-			this.allocate(t);
-		});
-
-		return super.multiAdd(tiles);
-	}
-
-	/**
-	 * @method add(tile: Tile): this
-	 *
-	 * Adds a single tile. The tile will be slotted in a specific portion
-	 * of the available space, depending on its X and Y coordinates within its pyramid level.
-	 */
-	allocate(tile) {
-		const levelInfo = this.#levels[tile.level];
-		const x = tile.tileX % levelInfo.wrapX;
-		const y = tile.tileY % levelInfo.wrapY;
-
-		// console.log("allocate tile:", tile.level, x, y);
-
-		const baseVtx = levelInfo.baseVtx + (y * levelInfo.wrapY + x) * 4;
-		const baseIdx = baseVtx * 1.5; // ratio is 4 vertices to 6 primitive slots
-
-		tile.updateRefs(this, baseVtx, baseIdx);
-
-		this._knownSymbols[baseVtx] = tile;
-
-		this.reproject(baseVtx, 4);
-
-		/// Perform MRU/LRU logic
-		this.#loadLevelTexture(tile.level);
-
-		this._textures[tile.level].texSubImage2D(
-			tile.image,
-			x * levelInfo.resX,
-			y * levelInfo.resY
-		);
-
-		this._fadeTimeout = performance.now() + this.#fadeInDuration;
-		// this._fadeTime.multiSet(baseVtx, new Array(4).fill(this._fadeTimeout));
-		this.#timestampAttr.multiSet(baseVtx, new Array(4).fill(performance.now()));
-
-		// console.log("Allocated", tile.level, tile.tileX, tile.tileY, performance.now());
-
-		this.#levels[tile.level].valid = true;
-		this.dirty = true;
-		return this;
-	}
-
-	/**
-	 * Redefinition of the default. Render must happen once per level, in order
-	 * to load the appropriate textures. This leverages Glii's LoDIndices, by
-	 * using a LoD per level of the pyramid.
-	 */
-	runProgram() {
-		//this._clear();
-		const now = performance.now();
-		const platinaScale = Math.log2(this._platina.scale);
-		this._programs.setUniform("uNow", now);
-
-		// console.log("drawing levels", 		this.#levelNames .filter((name) => this.isLevelAvailable(name)).join (" , "))
-
-		this.#levelNames
-			.filter((name) => this.isLevelAvailable(name))
-			.sort(
-				(a, b) =>
-					Math.abs(this._scales[b] - platinaScale) -
-					Math.abs(this._scales[a] - platinaScale)
-			)
-			.forEach((name) => {
-				this._programs.setTexture("uRasterTexture", this._textures[name]);
-				this._programs.run(name);
-			});
-
-		if (now < this._fadeTimeout) {
-			this.dirty = true;
-		}
-	}
-
-	/**
-	 * @method reproject(start: Number, length: Number): Array of Number
-	 * Dumps a new set of values to the `this._coords` attribute buffer, based on the known
-	 * set of symbols added to the acetate (only those which have their attribute offsets
-	 * between `start` and `start+length`.
-	 *
-	 * Returns the data set into the attribute buffer: a plain array of coordinates
-	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
-	 *
-	 * This implementation does not assume that the attribute allocation block
-	 * contains a compact set of symbols (since tiles are statically allocated at
-	 * instantiation time, then overwritten at runtime).
-	 */
-	reproject(start, length) {
-		/// FIXME: Filtering needs optimization. Bisect search?
-		/// Optimization only applies to chrome/chromium.
-		let relevantSymbols = this._knownSymbols.filter((symbol, attrIdx) => {
-			return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
-		});
-
-		let idx = start;
-
-		const coordData = relevantSymbols
-			.map((symbol) => {
-				const gapLength = (symbol.attrBase - idx) * 2;
-				const gap = new Array(gapLength).fill(0);
-				idx = symbol.attrBase + symbol.attrLength;
-				return gap.concat(symbol.geometry.toCRS(this._crs).coords);
-			})
-			.flat();
-
-		//console.log("Symbol reprojected:", coordData);
-		this.multiSetCoords(start, coordData);
-
-		return coordData;
-	}
-
-	/**
-	 * @section Acetate interface
-	 * @method getLevelsInfo(): Object of Object
-	 * Returns a data structure containing information about tile levels:
-	 * tile resolution, expected texture size, number of tiles fitting in the
-	 * texture, etc.
-	 *
-	 * Meant for debugging and communication with a `RasterTileLoader` only.
-	 */
-	getLevelsInfo() {
-		return this.#levels;
-	}
-
-	// Ensures that the texture for given level is available.
-	// If not, expels the LRU level from the MRU list, and reuses that texture;
-	// or initializes a texture if the level expelled was `undefined`.
-	#loadLevelTexture(levelName) {
-		if (!this._textures[levelName]) {
-			// console.log("load texture at level", levelName);
-			const expel = this.#MRULevels.shift();
-			this.#MRULevels.push(levelName);
-
-			const sizeX = this.#levels[levelName].texSizeX;
-			const sizeY = this.#levels[levelName].texSizeY;
-
-			let currentX, currentY;
-
-			if (expel !== undefined) {
-				/**
-				 * @section Acetate interface
-				 * @event levelexpelled: Event
-				 * Fired whenever a texture for a level of tiles is expelled, and
-				 * thus all tiles from that level should be marked as unusable.
-				 * The event's `detail` contains the name of the expelled level.
-				 */
-				this.fire("levelexpelled", { levelName: expel });
-				currentX = this._textures[expel]?.width;
-				currentY = this._textures[expel]?.height;
-			}
-
-			if (currentX == sizeX && currentY == sizeY) {
-				// Texture from expelled level can be reused.
-				this._textures[levelName] = this._textures[expel];
-			} else {
-				// Texture must be allocated.
-				this._textures[levelName] = new this.glii.Texture({
-					minFilter: this.#texFilter,
-					magFilter: this.#texFilter,
-					wrapS: this.glii.REPEAT,
-					wrapT: this.glii.REPEAT,
-				});
-				if (expel !== undefined) {
-					this._textures[expel]?.destroy();
-				}
-			}
-
-			if (expel !== undefined) {
-				delete this._textures[expel];
-			}
-
-			// No matter if the texture is reused or newly allocated,
-			// it has to be zeroed out.
-			this._textures[levelName].texArray(
-				sizeX,
-				sizeY,
-				new Uint8Array(sizeX * sizeY * 4)
+		super(target, opts);
+
+		if (this.constructor.name === "Field") {
+			throw new Error(
+				"Cannot instantiate Field. Use a subclass, like GreyscaleField or HeatMap"
 			);
 		}
 
-		return this._textures[levelName];
+		// This acetate shall spawn a floating-point texture, which is
+		// not available in a default WebGL1 environment. Therefore,
+		// this checks for availability of float point textures.
+		try {
+			if (!(this.glii.gl instanceof WebGL2RenderingContext)) {
+				// This enables the *creation* of floating point textures
+				this.glii.loadExtension("OES_texture_float");
+			}
+			// This enables *rendering* to a floating point texture
+			this.glii.loadExtension("EXT_color_buffer_float");
+
+			// This enables *overlapping* triangles on the floating point texture
+			this.glii.loadExtension("EXT_float_blend");
+		} catch (ex) {
+			throw new Error(
+				"Scalar fields require floating-point textures, but this browser/GPU does not support WebGL2, and does not support the OES_texture_float EXT_color_buffer_float and EXT_float_blend extensions."
+			);
+		}
+
+		// The post-processing step will need a static set of four vertices.
+		this.#subAcetateAttrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 4,
+				growFactor: false,
+			},
+			[
+				{
+					// Vertex position
+					glslType: "vec2",
+					type: Int8Array,
+					normalized: false,
+				},
+				{
+					// Texel coords
+					glslType: "vec2",
+					type: Int8Array,
+					normalized: false,
+				},
+			]
+		);
+
+		// prettier-ignore
+		this.#subAcetateAttrs.multiSet(0, [
+			[ [-1, -1], [0, 0], ],
+			[ [-1, 1], [0, 1], ],
+			[ [1, -1], [1, 0], ],
+			[ [1, 1], [1, 1], ],
+		]);
+
+		this.#clearValue = clearValue;
+		this.#glFormat = glFormat;
+		this.#glInternalFormat = glInternalFormat;
+	}
+
+	// INCOMPLETE program definition, lacking fragment shader.
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			attributes: {
+				aPos: this.#subAcetateAttrs.getBindableAttribute(0),
+				aUV: this.#subAcetateAttrs.getBindableAttribute(1),
+			},
+			vertexShaderMain: `
+				gl_Position = vec4(aPos, 0., 1.);
+				vUV = aUV;
+			`,
+			varyings: { vUV: "vec2" },
+			textures: {
+				uField: this.#fieldTexture,
+			},
+			indexBuffer: new this.glii.SequentialIndices({
+				size: 4,
+				drawMode: this.glii.TRIANGLE_STRIP,
+			}),
+			target: opts.target,
+			blend: false,
+		};
+	}
+
+	// Should not be explicitly called. Instantiating an `Acetate` will add it
+	// to the specified target.
+	addAcetate(ac) {
+		if (
+			!ac.constructor.PostAcetate ||
+			!(this instanceof ac.constructor.PostAcetate)
+		) {
+			throw new Error(
+				"Bad acetate subclass when adding sub-acetate to a scalar field"
+			);
+		}
+
+		this.platina.fire("acetateadded", ac);
+
+		this.#subAcetates.push(ac);
+		ac._inAcetate = this;
+		if (this.#fieldFramebuffer) {
+			// Wait until the acetate to be added has been fully initialized
+			requestAnimationFrame(() =>
+				ac.resize(this.#fieldFramebuffer.width, this.#fieldFramebuffer.height)
+			);
+		}
+		this.dirty = true;
+		return this;
+	}
+
+	/**
+	 * @property subAcetates: Array of Acetate
+	 * List of acetates currently drawing into this scalar field. Read-only.
+	 */
+	get subAcetates() {
+		return this.#subAcetates;
+	}
+
+	/**
+	 * As `Platina`'s `multiAdd`: classifies the symbols and sends them to the
+	 * appropriate sub-acetate.
+	 */
+	multiAdd(symbols) {
+		const bins = new Map();
+
+		// Just for MultiSymbol class
+		// symbols.forEach((s) => {
+		// 	if (s.symbols) {
+		// 		symbols = symbols.concat(s.symbols);
+		// 	}
+		// });
+
+		symbols.forEach((s) => {
+			const ac = s.constructor.Acetate;
+			if (ac) {
+				const bin = bins.get(ac);
+				if (bin) {
+					bin.push(s);
+				} else {
+					bins.set(ac, [s]);
+				}
+			}
+		});
+
+		for (let [ac, syms] of bins.entries()) {
+			this.getAcetateOfClass(ac).multiAdd(syms);
+		}
+		this.dirty = true;
+		return this;
+	}
+
+	/**
+	 * Remove symbols from the sub-acetates
+	 */
+	multiRemove(syms) {
+		this.#subAcetates.forEach((ac) => {
+			ac.multiRemove(syms.filter((s) => s._inAcetate === ac));
+		});
+		this.dirty = true;
+		return this;
+	}
+
+	getAcetateOfClass(acetateClass) {
+		let ac = this.#subAcetates.find(
+			(a) => Object.getPrototypeOf(a).constructor === acetateClass
+		);
+		if (ac) {
+			return ac;
+		}
+
+		ac = new acetateClass(this.glii);
+		this.addAcetate(ac);
+		return ac;
+	}
+
+	// Resizing a scalar field will resize both the output texture/framebuffer
+	// and the input texture/framebuffer.
+	resize(x, y) {
+		const glii = this.glii;
+
+		if (!this.#fieldFramebuffer) {
+			//this.#outTexture && this.#outTexture.destroy();
+			//this.#framebuffer && this.#framebuffer.destroy();
+			this.#fieldTexture = new glii.Texture({
+				format: this.#glFormat,
+				internalFormat: this.#glInternalFormat,
+				// format: glii.gl.RED,
+				// internalFormat: glii.gl.R32F,
+				type: glii.FLOAT,
+			});
+			this.#fieldFramebuffer = new glii.FrameBuffer({
+				color: [this.#fieldTexture],
+				// depth: new glii.RenderBuffer({
+				// 	width: x,
+				// 	height: y,
+				// 	internalFormat: glii.DEPTH_COMPONENT16,
+				// }),
+				// stencil: renderbuffer,
+				width: x,
+				height: y,
+			});
+		} else {
+			this.#fieldFramebuffer.resize(x, y);
+		}
+		super.resize(x, y);
+
+		this.#fieldClear = new this.glii.WebGL1Clear({
+			color: this.#clearValue,
+			target: this.#fieldFramebuffer,
+			//depth: 1,
+		});
+
+		this._program.setTexture("uField", this.#fieldTexture);
+		// this._program.setUniform("uPixelSize", [2 / x, 2 / y]);
+
+		this.#subAcetates.forEach((ac) => ac.resize(x, y));
+
+		return this;
 	}
 
 	/**
 	 * @section Acetate interface
-	 * @method isLevelAvailable(levelName: String): Boolean
-	 * Returns whether the texture for the given level name is available.
-	 * In other words: when the given level has never been loaded, or it has
-	 * been expelled from the MRU list, this returns `false`.
+	 * @property framebuffer: FrameBuffer
+	 * The scalar field framebuffer. Read-only. Meant only to be read from
+	 * `Acetate`s rendering into this scalar field.
 	 */
-	isLevelAvailable(levelName) {
-		return this.#levels[levelName].valid && !!this._textures[levelName];
+	get framebuffer() {
+		return this.#fieldFramebuffer;
 	}
 
 	/**
-	 * @method destroyHigherScaleLevels(levelName: String): Boolean
-	 * Searches all levels with a scale lower than the given one (i.e. those with
-	 * "higher zoom levels") and marks them as invalid; will not be re-rendered
-	 * until a tile for that level is allocated.
+	 * @property framebufferRGBA: FrameBuffer
+	 * The RGBA framebuffer. Read-only. Meant only to be used by some
+	 * decorators.
 	 */
-	destroyHigherScaleLevels(levelName) {
-		const scale = this.#levels[levelName].scale;
-		// const str = Object.values(this.#levels).map(l=>l.valid?"1":"0").join("");
+	get framebufferRGBA() {
+		return super.framebuffer;
+	}
 
-		Object.entries(this.#levels).forEach(([name, level]) => {
-			if (level.scale < scale && level.valid) {
-				// console.log("invalidate", level);
-				level.valid = false;
+	clear() {
+		if (this.dirty) {
+			this.#fieldClear.run();
+		}
+		// super.clear();	// No need, since it overwrites values anyway
+		// this.#subAcetates.forEach(ac=>ac.clear())	// No need: they draw into the field
+		return this;
+	}
 
-				const sizeX = level.texSizeX;
-				const sizeY = level.texSizeY;
+	redraw(...args) {
+		if (!this.dirty) {
+			return;
+		}
 
-				this._textures[name]?.texArray(
-					sizeX,
-					sizeY,
-					new Uint8Array(sizeX * sizeY * 4)
-				);
-			}
-		});
-		// console.log(str + "\n" + Object.values(this.#levels).map(l=>l.valid?"1":"0").join(""));
+		// Will just set #dirty to false, and clear framebuffers
+		// (since this._knownSymbols is empty)
+		super.redraw(...args);
+
+		this.#subAcetates.forEach((ac) => ac.redraw(...args));
+
+		this.runProgram();
+		return this;
+	}
+
+	set dirty(d) {
+		super.dirty = d;
+		this.#subAcetates.forEach((ac) => (ac.dirty ||= d));
+	}
+	get dirty() {
+		return super.dirty;
+	}
+
+	// For compatibility
+	get cellSize() {
+		return 1;
+	}
+
+	get _fieldTexture() {
+		return this.#fieldTexture;
 	}
 
 	destroy() {
-		// Ignore missing/incomplete tile symbols that do exist as
-		// empty slots in _knownSymbols
-		// this._knownSymbols = this._knownSymbols.filter((s) => !!s);
-		Object.values(this._textures).forEach((t) => t.destroy());
-		return super.destroy();
+		super.destroy();
+
+		this.#subAcetateAttrs.destroy();
+		this.#subAcetates.forEach((ac) => ac.destroy());
+		this.#subAcetates = [];
+		this.#fieldTexture.destroy();
+		this.#fieldFramebuffer.destroy();
 	}
 
-	reprojectAll() {
-		// This acetate does not use an attribute allocator like most others,
-		// and must rely on the available tile levels to reproject existing
-		// tiles
-		for (const level of Object.values(this.#levels)) {
-			this.reproject(level.baseVtx, level.wrapX * level.wrapY * 4);
+	// Noop: Since there are no symbols, this won't be even called, but needs
+	// to be defined for ScalarFields to be destroyed.
+	deallocate() {}
+
+	/**
+	 * @section
+	 * @method getFieldVaueAt(x: Number, y: Number): Number
+	 * Returns the value of the scalar field at the given (CSS pixel) coordinates
+	 *
+	 * Used internally during event handling, so that the event can provide
+	 * the field value at the coordinates of the pointer event.
+	 *
+	 * Returns `undefined` if the coordinates fall outside of the acetate.
+	 */
+	getFieldValueAt(x, y) {
+		if (!this.#fieldFramebuffer) {
+			return undefined;
 		}
+
+		const h = this.#fieldFramebuffer.height;
+		const w = this.#fieldFramebuffer.width;
+
+		if (y < 0 || y > h || x < 0 || x > w) {
+			return this._nan;
+		}
+
+		const dpr = devicePixelRatio ?? 1;
+
+		// Textures are inverted in the Y axis because WebGL shenanigans. I know.
+		return this.#fieldFramebuffer.readPixels(dpr * x, h - dpr * y, 1, 1);
+	}
+
+	static _nan = NaN;
+
+	dispatchPointerEvent(ev, init) {
+		/**
+		 * @class GleoEvent
+		 * @property value: Number
+		 * For scalar field acetates (e.g. `AcetateHeatMap`) marked as
+		 * "queryable", this contains the value for the scalar field for the
+		 * pixel where the event took place.
+		 */
+		if (this.queryable) {
+			// The current implementation will query the framebuffer/texture
+			// when the expression is evaluated, which might be too late
+			// specially if the event is logged into the console. The following
+			// is the previous implementation, which is immediate but
+			// potentially very wasteful.
+			// See https://gitlab.com/IvanSanchez/gleo/-/issues/112
+			// ev.value = this.getFieldValueAt(ev.canvasX, ev.canvasY);
+
+			let value;
+			const getValue = function getValue() {
+				if (value) {
+					return value;
+				}
+				// console.log(
+				// 	"getting field value at dispatchPointerEvent",
+				// 	this.constructor.name,
+				// 	ev
+				// );
+				return (value = this.getFieldValueAt(ev.canvasX, ev.canvasY));
+			}.bind(this);
+			Object.defineProperty(ev, "value", { get: getValue });
+		}
+
+		this.#subAcetates.forEach((ac) => {
+			ac.dispatchPointerEvent(ev, init);
+		});
+
+		return super.dispatchPointerEvent(ev, init);
 	}
 }
 
 /**
- * @class Tile
- * @inherits GleoSymbol
+ * @class ScalarField
+ * @inherits Field
+ * @relationship compositionOf Acetate, 1..1, 0..n
  *
- * @relationship drawnOn AcetateStitchedTiles, 0..n, 0..1
+ * Abstract 1-component field. Use `HeatMap` or `GreyscaleField` instead.
  *
- * A rectangular, conformal (i.e. matching the display CRS) RGB(A) raster image,
- * part of a bigger grid mosaic.
- *
- * Users should not use `Tile` symbols directly - in most cases, using
- * a `RasterTileLoader` will fulfil most of their use cases.
- */
-
-class Tile extends GleoSymbol {
-	/**
-	 * @section
-	 * A `Tile` needs to be passed a 4-point `Geometry` with its bounds, the
-	 * name of the pyramid level it's in, its X and Y coordinates within the pyramid level,
-	 * and a `HTMLImageElement`
-	 *
-	 * @constructor Tile(geom: RawGeometry, levelName: String, tileX: Number, tileY: Number)
-	 */
-	constructor(geom, levelName, tileX, tileY, image) {
-		super(geom);
-
-		this.level = levelName;
-		this.tileX = tileX;
-		this.tileY = tileY;
-		this.image = image;
-
-		this.attrLength = 4;
-		this.idxLength = 6;
-	}
-}
-
-/**
- * @namespace Util
- * @function imagePromise(url: URL, fillCache?: Boolean): Promise of HTMLImageElement
- *
- * Requests the given `URL`, and returns a `Promise` of an `HTMLImageElement`.
- *
- * By default it **caches all images**, and uses a hash `Map` internally to
- * de-duplicate loading the same URL. Use a `false` value for `fillCache` to
- * prevent this.
- *
- * @alternative
- * @function imagePromise(url: String, fillCache?: Boolean): Promise of HTMLImageElement
- * Idem, but using a `String` containing a URL.
- *
- * @alternative
- * @function imagePromise(image: HTMLImageElement, fillCache?: Boolean): Promise of HTMLImageElement
- * Returns a `Promise` that immediately resolves to the given image. Does not
- * cache the image.
- */
-
-// TODO: This cache is ever increasing. There should be a way to clean it up, since
-// it will hold references to potentially big unused images.
-
-const cache = new Map();
-
-async function imagePromise(url, fillCache = true) {
-	if (url instanceof HTMLImageElement || url instanceof ImageData) {
-		return Promise.resolve(url);
-	} else if (typeof url === "string") {
-		url = new URL(url, document.URL);
-	} else if (!(url instanceof URL)) {
-		throw new Error(
-			"Bad parameter to imagePromise(): must be either a URL or an image."
-		);
-	}
-
-	const urlStr = url.toString();
-	const cached = cache.get(urlStr);
-	if (cached) {
-		return cached;
-	}
-
-	const promise = new Promise((res, rej) => {
-		const img = new Image();
-		img.addEventListener("load", (ev) => res(ev.target));
-		img.addEventListener("error", rej);
-		img.addEventListener("abort", rej);
-		img.crossOrigin = true;
-		img.src = url;
-	});
-	// const promise = Promise.any(known.map(format=>format.urlToRaster(urlStr)));
-
-	if (fillCache) {
-		cache.set(urlStr, promise);
-	}
-	return promise;
-}
-
-/**
- * @class RasterTileLoader
- * @inherits AbstractTileLoader
- * @relationship compositionOf AcetateStitchedTiles, 1..1, 1..1
- *
- * Loads raster tiles, according to a Gleo `TilePyramid` and a callback function
- * that returns tiles given the tile coordinates.
- *
- * Will automatically spawn an `AcetateStitchedTiles`.
+ * Holds a `float32` scalar field as a platina-sized texture & framebuffer,
+ * but lacks a shader program to interpret it.
  *
  */
-class RasterTileLoader extends AbstractTileLoader {
-	#boundOnLevelExpelled;
 
-	// Tile and tile request cache.
-	// Raster tile loaders use a sliding window - the cache holds a tile on
-	// a position given by the modulo of the tile XY coordinate.
-	// The cache itself is a simple key-value JS object, keyed by the names
-	// of the pyramid levels.
-	// Each value is an `Array` of tiles/tile requests. The array is 1-dimensional,
-	// and has a set maximum size (tileWrapX times tileWrapY);  the index of
-	// the array comes from the tile coordinates modulo tileWrapX/tileWrapY.
-	// Each tile/tile request is a JS object of the form: {x, y, req, data, abortController}
-	#cached = {};
-
-	#opts = {};
-	#zIndex = 0;
-	#tileFn;
-	#fallback;
-	#retry;
-
-	#pendingReqs = 0;
-	#lastLevel;
-	#fadeInDuration;
-	#cleanupTimeout;
-
-	/**
-	 * @section
-	 *
-	 * A `RasterTileLoader` needs a `TilePyramid` and a function that, given the
-	 * pyramid level ("`z`"), the coordinates of a tile within that level
-	 * ("`x`" and "`y`"), and an instance of `AbortController`, returns an
-	 * instance of `HTMLImageElement`, or a `Promise` to such an image. The
-	 * promise should be rejected whenever the abort controller's signal is
-	 * activated.
-	 *
-	 * @constructor TileLoader(pyramid:TilePyramid, tileFn: Function, opts: TileLoader Options)
-	 */
+class ScalarField extends Field {
 	constructor(
-		pyramid,
-		fn,
+		target,
 		{
-			/// FIXME: tile resolution is per pyramid level, not global!!
 			/**
-			 * @section TileLoader Options
-			 * @option tileResX: Number = 256; Horizontal size, in source raster pixels, of each tile.
-			 * @alternative
-			 * @option tileResX: Object of String to Number
-			 * A map of level identifier to horizontal raster size (in source raster pixels).
-			 * e.g. `{"0": 512, "1": 256}`
-			 * @option tileResY: Number = 256; Vertical size, in source raster pixels, of each tile.
-			 * @option tileResY: Object of String to Number
-			 * A map of level identifier to vertical raster size (in source raster pixels).
-			 * e.g. `{"0": 512, "1": 256}`
-			 * @option zIndex: Number = -5500; The z-index of the acetate for these tiles.
+			 * @option clearValue: Number = 0
+			 * The value of the scalar field prior to rendering data on it. It should
+			 * be zero for most cases.
 			 */
-			tileResX = 256,
-			tileResY = 256,
-
-			zIndex = -5500,
-
-			/**
-			 * @option fallback: HTMLImageElement
-			 * An image to use as fallback is loading a tile fails.
-			 * @alternative
-			 * @option fallback: URL
-			 * Idem, but using the `URL` to an image.
-			 * @alternative
-			 * @option fallback: String
-			 * Idem, but using a `String` containing a URL
-			 */
-			fallback,
-
-			/**
-			 * @option retry: Boolean = false
-			 * When `true`, tiles that failed to load will be re-requested
-			 * the next time the tile extent changes (i.e. moving the map enough
-			 * so that new tiles become visible). This can potentially
-			 * lead to lots of requests for missing tiles.
-			 */
-			retry = false,
-
-			/// TODO: Additional option to enable/disable scale snap points
-
-			/**
-			 * @section Options passed to spawned acetate
-			 * A `RasterTileLoader` creates a `AcetateStitchedTiles` under the hood.
-			 * The following options are passed through to this acetate.
-			 * @option interpolate: Boolean = false
-			 * Whether to use bilinear pixel interpolation or not.
-			 *
-			 * In other words: `false` means pixellated, `true` means smoother.
-			 * @option fadeInDuration: Number = 250
-			 * Duration, in milliseconds, of the tile fade-in animation.
-			 * @option maxLoadedLevels: Number = 3
-			 * Number of maximum tile levels to keep loaded in their textures.
-			 * Higher values can provide a slightly better experience when
-			 * zooming in and out, but will use more GPU RAM.
-			 * @option resizablePlatina: Boolean = true
-			 * Whether the platina can be expected to be resized up to the size
-			 * of the screen. When `false`, less GPU RAM is used for the textures.
-			 */
-			fadeInDuration = 250,
+			clearValue = 0,
 
 			...opts
 		} = {}
 	) {
-		super(pyramid, opts);
+		const glii = "glii" in target ? target.glii : target;
 
-		this.#boundOnLevelExpelled = this.#onLevelExpelled.bind(this);
-		this.#tileFn = fn;
-		this.#tileResX = tileResX;
-		this.#tileResY = tileResY;
-		this.#zIndex = zIndex;
-		this.#opts = opts;
-		if (fallback) {
-			this.#fallback = imagePromise(fallback);
-		} else {
-			this.#fallback;
-		}
-		this.#retry = retry;
-		this.#fadeInDuration = fadeInDuration;
-	}
+		super(target, {
+			...opts,
 
-	#tileResX;
-	#tileResY;
-	// 	#textureSizeX;
-	// 	#textureSizeY;
-
-	addTo(target) {
-		super.addTo(target);
-
-		let maxTileSize = 0;
-		if (isFinite(this.#tileResX)) {
-			maxTileSize = this.#tileResX;
-		} else {
-			maxTileSize = Math.max.apply(null, Object.values(this.#tileResX));
-		}
-		if (isFinite(this.#tileResY)) {
-			maxTileSize = Math.max(maxTileSize, this.#tileResY);
-		} else {
-			maxTileSize = Math.max.apply(null, Object.values(this.#tileResY));
-		}
-
-		const minTextureSize =
-			// 	this.platina.resizable && typeof screen !== undefined
-			// 		? getMaxScreenSize() :
-			Math.max.apply(null, this.platina.pxSize) + maxTileSize;
-		// const minTextureSize = 1024;
-
-		this._ac = new AcetateStitchedTiles(this.platina.glii, {
-			...this.#opts,
-
-			pyramid: this.pyramid,
-			tileResX: this.#tileResX,
-			tileResY: this.#tileResY,
-			minTextureSize,
-			// textureSizeX: this.#textureSizeX,
-			// textureSizeY: this.#textureSizeY,
-			zIndex: this.#zIndex,
-			fadeInDuration: this.#fadeInDuration,
-		});
-		if (target.addAcetate) {
-			target.addAcetate(this._ac);
-			this._ac._platina = this.platina;
-		} else {
-			this.platina.addAcetate(this._ac);
-		}
-
-		this.pyramid.forEachLevel((_name, def) => {
-			this.platina.setScaleStop(this.pyramid.crs.name, def.scale);
+			glFormat: glii.gl.RED,
+			glInternalFormat: glii.gl.R32F,
+			clearValue: [clearValue, 0, 0, 0],
 		});
 
-		//this.platina.on("viewchanged", this._boundOnViewChange);
-		this._ac.on("levelexpelled", this.#boundOnLevelExpelled);
-
-		if (target.actuators && target.actuators.get("zoomsnap")) {
-			// Trigger the map setter, and thus the ZoomYawSnapActuator functionality
-			target.scale = target.scale;
-		}
-
-		this._boundOnViewChange();
-
-		return this;
-	}
-
-	remove() {
-		this._ac.off("levelexpelled", this.#boundOnLevelExpelled);
-
-		/// remove acetate from map
-		this._ac.destroy();
-
-		super.remove();
-		/// TODO: Remove the scale stops
-		return this;
-	}
-
-	_abortLevel(level) {
-		this.#cached[level].forEach(({ data, abortController, x, y }) => {
-			if (!data) {
-				abortController?.abort();
-				// console.log("aborted", level, x, y);
-			}
-		});
-	}
-
-	_onRangeChange(level, minX, minY, maxX, maxY) {
-		if (!this.#cached[level]) {
-			// Init cache for level
-			// console.log("Create tile cache for level", level);
-			const levelInfo = this._ac.getLevelsInfo()[level];
-			this.#cached[level] = new Array(levelInfo.wrapX * levelInfo.wrapY)
-				.fill(0)
-				.map(() => {
-					return {
-						x: undefined,
-						y: undefined,
-						req: undefined,
-						data: undefined,
-						abortController: undefined,
-					};
-				});
-		}
-
-		const cachedLevel = this.#cached[level];
-		this.#lastLevel = level;
-
-		// console.log(cachedLevel);
-
-		const { spanX, spanY } = this.pyramid.getLevelDef(level);
-
-		if ((maxX - minX) * (maxY - minY) > 256) {
-			// This amount of tiles shouldn't appear during normal operation
-			console.warn("Attempted to load too many raster tiles");
-			return;
-		}
-
-		// Abort tiles outside the range, by looping through all
-		// the cache slots in the current level.
-		cachedLevel.forEach(({ x, y, abortController }) => {
-			// Check if the request is outside the range,
-			// accounting for the non-trivial case of comparing
-			// a maxX that wraps around spanX
-			if (
-				(maxX > spanX ? x < minX && x > maxX % spanX : x < minX || x > maxX) ||
-				(maxY > spanY ? y < minY && y > maxY % spanY : y < minY || y > maxY)
-			) {
-				// console.log("Aborting", cachedLevel, x, y);
-				/// Abort tiles in the level, but outside the range.
-				abortController?.abort();
-			}
-		});
-
-		let levelInfo = this._ac.getLevelsInfo()[level];
-		// const reqCount = 0;
-
-		// Load tiles inside the range, by looping through the range.
-		for (let i = minX; i < maxX; i++) {
-			for (let j = minY; j < maxY; j++) {
-				const x = i % spanX;
-				const y = j % spanY;
-
-				const xmod = (x % levelInfo.wrapX) * levelInfo.wrapY;
-				const ymod = y % levelInfo.wrapY;
-				const cacheSlot = cachedLevel[xmod + ymod];
-
-				if (
-					cacheSlot.x !== x ||
-					cacheSlot.y !== y ||
-					cacheSlot.abortController?.signal?.aborted
-				) {
-					cacheSlot.abortController?.abort();
-					cacheSlot.data = undefined;
-					cacheSlot.x = x;
-					cacheSlot.y = y;
-
-					const abortController = (cacheSlot.abortController =
-						new AbortController());
-					const req = (cacheSlot.req = Promise.resolve(
-						this.#tileFn(level, x, y, abortController)
-					));
-
-					this.#pendingReqs++;
-
-					req.then((data) => {
-						this.#decreasePendingReqs();
-						const [lastMinX, lastMinY, lastMaxX, lastMaxY] =
-							this.currentRange;
-
-						/// Async, so compare against the current range, not the range
-						/// inside the closure
-						if (
-							this.currentLevel !== level ||
-							i < lastMinX ||
-							i > lastMaxX ||
-							j < lastMinY ||
-							j > lastMaxY
-						) {
-							// Async, non-abortable tile finished loading when
-							// the viewport already changed
-							return;
-						}
-						cacheSlot.data = data;
-						this._onTileLoad(level, x, y, data);
-
-						// this.#prune(level, x, y);
-					}).catch((err) => {
-						this.#decreasePendingReqs();
-						const [lastMinX, lastMinY, lastMaxX, lastMaxY] =
-							this.currentRange;
-						if (
-							this.currentLevel !== level ||
-							i < lastMinX ||
-							i > lastMaxX ||
-							j < lastMinY ||
-							j > lastMaxY
-						) {
-							// Async, non-abortable tile failed when
-							// the viewport already changed
-							return;
-						}
-
-						if (this.#retry) {
-							// Invalidate this cache slot
-							cacheSlot.x = NaN;
-							cacheSlot.y = NaN;
-							cacheSlot.data = undefined;
-						}
-
-						if (this.#fallback) {
-							this.#fallback.then((f) =>
-								this._onTileLoad(level, x, y, f, true)
-							);
-						} else {
-							this._onTileError(level, x, y, err);
-						}
-					});
-				}
-			}
-		}
-		// console.log("range change; pending:", this.#pendingReqs);
-
-		if (this.#pendingReqs) {
-			clearTimeout(this.#cleanupTimeout);
+		if (this.constructor.name === "ScalarField") {
+			throw new Error(
+				"Cannot instantiate ScalarField. Use a subclass instead, such as HeatMap or GreyscaleField"
+			);
 		}
 	}
 
-	_onTileLoad(level, x, y, img, isFallback = false) {
-		const bounds = this.pyramid.tileCoordsToBbox(level, [x, y]);
-		const geom = new Geometry(
-			this.pyramid.crs,
-			[
-				[bounds[0], bounds[1]],
-				[bounds[2], bounds[1]],
-				[bounds[2], bounds[3]],
-				[bounds[0], bounds[3]],
-			],
-			{ wrap: false }
-		);
-		this._ac.add(new Tile(geom, level, x, y, img));
-		if (isFallback) {
-			super._onTileError(level, x, y);
-		} else {
-			super._onTileLoad(level, x, y, img);
-		}
+	getFieldValueAt(x, y) {
+		return super.getFieldValueAt(x, y)[0];
 	}
-
-	#decreasePendingReqs() {
-		this.#pendingReqs--;
-
-		// console.log("pending:", this.#pendingReqs);
-		if (this.#pendingReqs == 0) {
-			this.#cleanupTimeout = setTimeout(() => {
-				// console.log("cleanup");
-				// Tell the acetate to destroy textures
-				this._ac.destroyHigherScaleLevels(this.#lastLevel);
-
-				// Mark tiles from those levels as invalid
-				const acLevels = this._ac.getLevelsInfo();
-				const scale = acLevels[this.#lastLevel].scale;
-
-				Object.entries(acLevels).forEach(([name, level]) => {
-					if (level.scale < scale) {
-						delete this.#cached[name];
-					}
-				});
-				// console.log(this.#cached);
-			}, this.#fadeInDuration);
-		}
-	}
-
-	#onLevelExpelled(ev) {
-		const level = ev.detail.levelName;
-
-		/// TODO: Expel the level from the acetate (mark as unavailable, free the texture, etc)
-		delete this.#cached[level];
-
-		//console.log("Level invalidated", ev.detail.levelName);
-	}
+	static _nan = NaN;
 }
 
 /**
- * @namespace Util
+ * @class VectorField
+ * @inherits ScalarField
+ * @relationship compositionOf Acetate, 1..1, 0..n
  *
- * @function abortableImagePromise(url: String, controller?: AbortController): Promise
+ * Abstract 2-component field. Use `ArrowHeadField` or `ParticleTrailSimulator` instead.
  *
- * Returns a `Promise` to an `HTMLImageElement`, given a URL for the image.
+ * Holds a `float32` vector field as a platina-sized texture & framebuffer,
+ * but lacks a shader program to interpret it. The framebuffer format is
+ * `RG32F`
  *
- * If an `AbortController` is given, the `Promise` will reject whenever its
- * signal is activated.
- *
- * @alternative
- * @function abortableImagePromise(url: URL, controller?: AbortController): Promise
- * As before, but can take an instance of `URL` instead of a `String`.
  */
+class VectorField extends Field {
+	constructor(
+		target,
+		{
+			/**
+			 * @option clearValue: Array of Number = [0, 0]
+			 * The value of the scalar field prior to render data on it. It should
+			 * be [zero, zero] for most cases.
+			 */
+			clearValue = [0, 0],
 
-/// TODO: Does using `fetch` offer any benefit?? The logic could be changed.
+			...opts
+		} = {}
+	) {
+		const glii = "glii" in target ? target.glii : target;
 
-function abortableImagePromise(url, controller) {
-	if (!controller) {
-		controller = new AbortController();
-	}
+		super(target, {
+			...opts,
 
-	const img = new Image();
-	return new Promise((res, rej) => {
-		img.addEventListener("load", (ev) => res(ev.target));
-		img.addEventListener("error", rej);
-		img.addEventListener("abort", rej);
-		controller.signal.addEventListener("abort", (reason) => {
-			img.src = "";
-			rej(reason);
+			glFormat: glii.gl.RG,
+			glInternalFormat: glii.gl.RG32F,
+			clearValue: [clearValue[0], clearValue[1], 0, 0],
 		});
 
-		img.crossOrigin = true;
-		img.src = url;
-	});
+		if (this.constructor.name === "VectorField") {
+			throw new Error("Cannot instantiate VectorField. Use a subclass instead");
+		}
+	}
+
+	getFieldValueAt(x, y) {
+		return super.getFieldValueAt(x, y).subarray(0, 2);
+	}
+
+	static _nan = [NaN, NaN];
 }
 
 /**
@@ -15124,8 +15010,8 @@ class TilePyramid {
  */
 
 const limit = 20037508.34;
-const scale0 = limit * 2;
-const bbox = [-limit, limit, limit, -limit]; // x1, y1, x2, y2
+const scale0$1 = limit * 2;
+const bbox$1 = [-limit, limit, limit, -limit]; // x1, y1, x2, y2
 
 /**
  * @function create3857Pyramid(min: Number, max: Number, tileSize: Number = 256): TilePyramid
@@ -15146,8 +15032,8 @@ function create3857Pyramid(min, max, tileSize = 256) {
 	for (let i = min; i <= max; i++) {
 		const j = 1 << i;
 		pyramid[i] = {
-			scale: scale0 / j / tileSize,
-			bbox: bbox,
+			scale: scale0$1 / j / tileSize,
+			bbox: bbox$1,
 			spanX: j,
 			spanY: j,
 		};
@@ -15156,572 +15042,154 @@ function create3857Pyramid(min, max, tileSize = 256) {
 	return new TilePyramid(epsg3857, pyramid);
 }
 
-// Template regexp and function straight from Leaflet
-
-// @namespace Util
-// @function template(str: String, data: Object): String
-// Simple templating facility, accepts a template string of the form `'Hello {a}, {b}'`
-// and a data object like `{a: 'foo', b: 'bar'}`, returns evaluated string
-// `('Hello foo, bar')`. You can also specify functions instead of strings for
-// data values — they will be evaluated passing `data` as an argument.
-
-const templateRe = /\{ *([\w_ -]+) *\}/g;
-
-function template(str, data) {
-	return str.replace(templateRe, function (str, key) {
-		var value = data[key];
-
-		if (value === undefined) {
-			throw new Error("No value provided for variable " + str);
-		} else if (typeof value === "function") {
-			value = value(data);
-		}
-		return value;
-	});
-}
-
 /**
- * @class MercatorTiles
- * @inherits RasterTileLoader
- * @relationship compositionOf epsg3857, 0..n, 1..1
- *
- * Convenience wrapper for `RasterTileLoader`. Loads tilesets in the de-facto
- * standard for Web Mercator tiles.
- *
- * This aims to expose a minimalistic Leaflet-like API, instead of needing to use
- * a configurable `TilePyramid` like `TileLoader` does.
+ * @namespace Pyramid3857
  *
  * @example
+ * ```
+ * import { tileJsonToPyramid } from 'gleo/src/geometry/TileJsonPyramid.mjs';
  *
- * ```js
- * new MercatorTiles("https://tile.osm.org/{z}/{y}/{x}.png", {
- * 	maxZoom: 10,
- * 	attribution: "<a href='http://osm.org/copyright'>© OpenStreetMap contributors</a>",
- * }).addTo(myGleoMap);
+ * const myPyramid = tileJsonToPyramid("url/to/tile.json");
  * ```
  */
-class MercatorTiles extends RasterTileLoader {
-	/**
-	 * @constructor MercatorTiles(templateStr: String, options: MercatorTiles Options)
-	 */
-	constructor(templateStr, options = {}) {
-		/**
-		 * @section
-		 * @aka MercatorTiles Options
-		 * @option minZoom: Number = 0
-		 * The minimum zoom level for tiles to be loaded.
-		 * @option maxZoom: Number = 18
-		 * The maximum zoom level for tiles to be loaded.
-		 * @option tileSize: Number = 256
-		 * The size of the tiles, **in CSS pixels**.
-		 */
-		const pyramid = create3857Pyramid(
-			options.minZoom || 0,
-			options.maxZoom || 18,
-			options.tileSize || 256
-		);
-
-		function fetchImage(z, x, y, controller) {
-			return abortableImagePromise(
-				template(templateStr, { x, y, z, ...options }),
-				controller
-			);
-		}
-
-		super(pyramid, fetchImage, options);
-	}
-}
-
-/// These constants are used in the `_setPerPointStrides` method of symbols.
-
-
-// A point extrudes as a line cap - a butt or square
-// If here's a centerline, it's the 2nd vertex (offset 1)
-const LINECAP = Symbol("LINECAP");
-
-// 90 degrees, in radians
-const Δϕ90 = Math.PI / 2;
-
-// 150 degrees, in radians
-const Δϕ150 = Math.PI / 1.2;
 
 /**
- * @class AcetateChain
- * @inherits AcetateVertices
+ * @function tileJsonToPyramid(json: Object, tileSize:Number = 256): Promise to Object
+ * Converts a [TileJSON](https://docs.mapbox.com/help/glossary/tilejson/)
+ * document into a `TilePyramid` instance and a set of URL strings.
  *
- * An `Acetate` that draws lines as `Chain`s of overlapping 2-point segments
+ * All tiles are supposed to be square and have the given pixel size.
  *
+ * @alternative
+ * @function tileJsonToPyramid(url: String, tileSize:Number = 256): Promise to TilePyramid
+ * `fetch`es the URL expecting a JSON document, parses it as
+ * `TileJSON` and returns the corresponding `TilePyramid` and URL(s)
+ *
+ * @alternative
+ * @function tileJsonToPyramid(url: URL, tileSize:Number = 256): Promise to TilePyramid
+ * Idem, but with an instance of `URL` instead of a `String`.
  */
-class AcetateChain extends AcetateVertices {
-	/**
-	 * @constructor AcetateChain(target: GliiFactory)
-	 */
-	constructor(target, opts) {
-		super(target, { zIndex: 1500, ...opts });
 
-		// this._indices = new this.glii.SparseIndices({
-		// 	type: this.glii.UNSIGNED_INT,
-		// 	drawMode: this.glii.POINTS,
-		// });
+/// TODO: Handle more TileJSON fields
+// - scheme=xyz/tms : invert bbox
+// - bounds : EPSG:4326 bbox
 
-		// Could be done as a SingleAttribute, but is a InterleavedAttributes for
-		// compatibility with the `intensify` decorator.
-
-		this._attrs = new this.glii.InterleavedAttributes(
-			{
-				size: 1,
-				growFactor: 1.2,
-				usage: this.glii.STATIC_DRAW,
-			},
-			[
-				{
-					// RGBA Colour
-					glslType: "vec4",
-					type: Uint8Array,
-					normalized: true,
-				},
-				{
-					// Width, in 256ths of CSS pixels.
-					// Used for fading.
-					glslType: "float",
-					type: Uint16Array,
-					normalized: false,
-				},
-			]
-		);
-
-		this._geomAttrs = new this.glii.InterleavedAttributes(
-			{
-				size: 1,
-				growFactor: 1.2,
-				usage: this.glii.STATIC_DRAW,
-			},
-			[
-				{
-					// Vertex extrusion amount
-					glslType: "vec2",
-					type: Float32Array,
-					normalized: false,
-				},
-				{
-					// Segment length: lenght at vertex (either 0 or full),
-					// and segment lenght.
-					// Used for fading. The values will be interpolated in the
-					// non-cap triangles of each segment.
-					glslType: "vec2",
-					type: Float32Array,
-					normalized: false,
-				},
-			]
-		);
+async function tileJsonToPyramid(tilejson, tileSize = 256) {
+	let baseURL = document.url;
+	if (typeof tilejson === "string") {
+		tilejson = new URL(tilejson, document.url);
 	}
 
-	glProgramDefinition() {
-		const opts = super.glProgramDefinition();
-
-		return {
-			...opts,
-			attributes: {
-				aColour: this._attrs.getBindableAttribute(0),
-				aWidth: this._attrs.getBindableAttribute(1),
-				aExtrude: this._geomAttrs.getBindableAttribute(0),
-				aLength: this._geomAttrs.getBindableAttribute(1),
-				...opts.attributes,
-			},
-			uniforms: {
-				uPixelSize: "vec2",
-				uScale: "float",
-				...opts.uniforms,
-			},
-			vertexShaderMain: `
-				vColour = aColour;
-				vLength = aLength / uScale;
-				vWidth = aWidth / 512.;
-
-				gl_Position = vec4(
-					vec3(aCoords, 1.0) * uTransformMatrix
-					+ vec3(aExtrude * uPixelSize, 0.0)
-					, 1.0);
-			`,
-			varyings: {
-				vColour: "vec4",
-				vLength: "vec2",
-				vWidth: "float", // *half* the width
-				// vExterior: "float",
-				// vDashArray: "vec4",
-				// vAccLength: "float",
-				// vMiter: "float", // Only for joins: px distance to node
-			},
-			fragmentShaderMain: `
-				gl_FragColor = vColour;
-
-				float position = min(vLength.x, vLength.y - vLength.x);
-				float opacity = 0.5 + min(position / vWidth, 1.0) / 2.;
-
-				gl_FragColor.a *= opacity;
-			`,
-			blend: {
-				equationRGB: this.glii.FUNC_ADD,
-				equationAlpha: this.glii.FUNC_ADD,
-
-				srcRGB: this.glii.ONE_MINUS_DST_ALPHA,
-				srcAlpha: this.glii.ONE,
-				dstRGB: this.glii.DST_ALPHA,
-				dstAlpha: this.glii.ONE,
-			},
-		};
+	if (tilejson instanceof URL) {
+		// Set base URL - strip trailing slash (if any) then plot a trailing slash.
+		baseURL = tilejson.toString().replace(/\/?$/, "/");
+		tilejson = await fetch(tilejson).then((res) => res.json());
 	}
 
-	resize(w, h) {
-		super.resize(w, h);
-		const dpr2 = (devicePixelRatio ?? 1) * 2;
-		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
+	if (!tilejson.tilejson) {
+		console.warn("Non-compliant TileJSON!");
 	}
 
-	runProgram() {
-		this._programs.setUniform("uScale", this.platina.scale);
-		super.runProgram();
+	let min = tilejson.minzoom || 0;
+	let max = tilejson.maxzoom || 22;
+	let pyramid;
+
+	if (max < min || !isFinite(min) || !isFinite(max)) {
+		throw new Error("Invalid min/max zoom levels in tileJSON");
 	}
 
-	_getStridedArrays(maxVtx, maxIdx) {
-		return [
-			// Indices
-			this._indices.asTypedArray(maxIdx),
+	switch (tilejson.crs) {
+		case "EPSG:3857":
+		case undefined:
+			pyramid = create3857Pyramid(min, max, tileSize);
+			break;
+		case "EPSG:4326":
+			scale0 = 180;
+			bbox = [-180, 90, 180, -90]; // x1, y1, x2, y2
 
-			// Width (for fading)
-			this._attrs.asStridedArray(1, maxVtx),
-		];
+			let levels = {};
+
+			for (let i = min; i <= max; i++) {
+				const j = 1 << i;
+				levels[i] = {
+					scale: scale0 / j / tileSize,
+					bbox: bbox,
+					spanX: j * 2,
+					spanY: j,
+				};
+			}
+			pyramid = new TilePyramid(epsg4326, levels);
+			break;
+		default:
+			throw new Error("Unknown/unsupported CRS in TileJSON");
 	}
 
-	_getGeometryStridedArrays(maxVtx, maxIdx) {
-		return [
-			// CRS coords
-			this._coords.asStridedArray(maxVtx),
+	const tiles = tilejson.tiles.map((t) => decodeURI(new URL(t, baseURL)));
 
-			// Extrusion
-			this._geomAttrs.asStridedArray(0, maxVtx),
+	// 	if (tilejson.scale) {
+	// 		// Not part of the TileJSON standard, but used by MapTiler to provide
+	// 		// 512px raster tiles ????
+	// 		tileSize *= Number(tilejson.scale);
+	// 	}
 
-			// Segment length (and relative length position)
-			this._geomAttrs.asStridedArray(1),
+	return { pyramid, tiles };
+}
 
-			// Point strides
-			this._getPerPointStridedArrays(maxVtx, maxIdx),
-
-			// Segment strides
-			this._getPerSegmentStridedArrays(maxVtx, maxIdx),
-		];
+/**
+ * Performs a segment intersection with modulo: intersects the segment a1-a2
+ * with all occurences of segment b modulo m (for all i in Z, segment b1+im to b2+im)
+ *
+ * Assumes a2>a1, b2>b1, and either m>0 or m=Infinity
+ */
+function intersectSegments(a1, a2, b1, b2, m) {
+	if (b2 - b1 >= m) {
+		// Edge case: the b segment is larger than the modulo therefore
+		// all its occurences spans the whole R, therefore the intersection is
+		// the identity function.
+		return [[a1, a2]];
 	}
 
-	_commitStridedArrays(baseVtx, vtxLength, baseIdx, idxLength) {
-		this._attrs.commit(baseVtx, vtxLength);
-		this._indices.commit(baseIdx, idxLength);
+	let minShift, maxShift;
+	let modulo;
+	if (isFinite(m)) {
+		// How many times do we need to sum the modulo so that the end of the
+		// b segment overlaps a?
+		minShift = -Math.floor((b2 - a1) / m);
+		maxShift = Math.floor((a2 - b1) / m);
+		modulo = m;
+	} else {
+		minShift = maxShift = 0;
+		modulo = 0;
 	}
 
-	_commitGeometryStridedArrays(baseVtx, vtxLength /*, baseIdx, totalIndices*/) {
-		this._geomAttrs.commit(baseVtx, vtxLength);
-		this._attrs.commit(baseVtx, vtxLength);
-		this._commitPerPointStridedArrays(baseVtx, vtxLength);
-	}
-
-	_getPerPointStridedArrays(_maxVtx, _maxIdx) {
+	if (b1 + minShift * m > a2) {
+		// The segments do not intersect
 		return [];
 	}
 
-	_getPerSegmentStridedArrays(maxVtx, _maxIdx) {
-		return [
-			// Colour
-			this._attrs.asStridedArray(0, maxVtx),
-		];
+	const intersections = [];
+	for (let shift = minShift; shift <= maxShift; shift++) {
+		const offset = shift * modulo;
+		intersections.push([Math.max(a1, b1 + offset), Math.min(a2, b2 + offset)]);
 	}
-
-	multiAdd(syms) {
-		super.multiAdd(syms);
-		super.multiAllocate(syms);
-
-		return this;
-	}
-
-	reproject(start, length, symbols) {
-		const end = start + length;
-
-		// In most cases, it's safe to assume that relevant symbols in the same
-		// attribute allocation block have their vertex attributes in a
-		// compacted manner.
-		// The exception is tiles: tile vertex attributes are allocated in bulk
-		// (enough to fill a whole texture atlas), before actually instantiating
-		// tile symbols. Tile acetates shall overload this method.
-
-		const stridedCoords = this._coords.asStridedArray(end);
-		const geomStrides = this._getGeometryStridedArrays(end);
-
-		const relevantSymbols =
-			symbols ??
-			this._knownSymbols.filter((symbol, attrIdx) => {
-				return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
-			});
-
-		relevantSymbols.forEach((s) => {
-			const geom = s.geometry.toCRS(this._crs);
-			// stridedCoords.set(geom.coords, s.attrBase);
-			s._setGeometryStrides(geom, ...geomStrides);
-		});
-
-		this._coords.commit(start, length);
-		this._commitGeometryStridedArrays(start, length);
-
-		const coordData = new Float32Array(stridedCoords.buffer, start * 8, length * 2);
-		super.expandBBox(coordData);
-		return coordData;
-	}
+	return intersections;
 }
 
 /**
- * @class Chain
- * @inherits GleoSymbol
- * @relationship drawnOn AcetetateChain
- *
- * Draws line geometries as a set of overlapping 2-point segments.
- *
- * Behaves similar to `Stroke` symbols, but handles the line joins ("corners")
- * differently: instead of calculating joins, corner points are drawn twice
- * at half the opacity.
- *
- * Compared with `Stroke`s, `Chain`s produce less graphical artefacts when
- * drawing thick, short lines. The downside is reduced fidelity for corners
- * between long segments.
- *
+ * Runs intersectSegments on both vertical and horizontal components of the bboxes
+ * Returns an array of bboxes, which might be empty.
  */
+function intersectBboxes(a, b, crs) {
+	let horizontal = intersectSegments(a.minX, a.maxX, b.minX, b.maxX, crs.wrapPeriodX);
+	let vertical = intersectSegments(a.minY, a.maxY, b.minY, b.maxY, crs.wrapPeriodY);
 
-class Chain extends GleoSymbol {
-	static Acetate = AcetateChain;
+	let boxes = horizontal
+		.map(([x1, x2]) =>
+			vertical.map(([y1, y2]) => new ExpandBox().expandXY(x1, y1).expandXY(x2, y2))
+		)
+		.flat(2);
 
-	#colour;
-	#width;
-	// #dashArray;
-	// #centerline;
-
-	/**
-	 * @constructor Chain(geom: Geometry, opts?: Chain Options)
-	 */
-	constructor(
-		geom,
-		{
-			/**
-			 * @section
-			 * @aka Stroke Options
-			 * @option colour: Colour = '#3388ff'
-			 * The colour of the chain.
-			 * @alternative
-			 * @option colour: Array of Colour
-			 * The colour of each segment of the chain. There must be enough elements.
-			 */
-			colour = "#3388ff",
-			/**
-			 * @option width: Number = 4
-			 * The width of the chain, in CSS pixels
-			 */
-			width = 4,
-
-			...opts
-		} = {}
-	) {
-		super(geom, opts);
-
-		this.#calcStorage();
-
-		this.#colour = this.constructor._parseColour(colour);
-		if (this.#colour === null && Array.isArray(colour)) {
-			this.#colour = colour.map(this.constructor._parseColour);
-		}
-
-		this.#width = width;
-	}
-
-	#segmentCount;
-
-	#calcStorage() {
-		const segmentCount = (this.#segmentCount =
-			this.geometry.coords.length / this.geometry.dimension -
-			this.geometry.rings.length -
-			this.geometry.hulls.length -
-			1);
-
-		// Each segment has 10 vertices and 10 triangles (30 triangle primitive indices)
-		this.attrLength = segmentCount * 10;
-		this.idxLength = segmentCount * 30;
-	}
-
-	_setGlobalStrides(typedIdxs, strideWidth) {
-		/*
-		 * Vertices connect as follows, 1 and 6 being the offset-zero points
-		 * of the segment.
-		 *
-		 *      0---5
-		 *     /|\  |\
-		 *    3 | \ | 8
-		 *    |\|  \|/|
-		 *    | 1---6 |
-		 *    |/|\  |\|
-		 *    4 | \ | 9
-		 *     \|  \|/
-		 *      2---7
-		 *
-		 * (This is compatible with the LINECAP point extrusion type: line caps have
-		 * the centerline at the 2nd (offset 1) vertex).
-		 */
-
-		// prettier-ignore
-		const idxMap = [
-			1, 0, 3,
-			1, 3, 4,
-			1, 4, 2,
-			1, 6, 0,
-			0, 6, 5,
-			1, 7, 6,
-			1, 2, 7,
-			6, 8, 5,
-			6, 9, 8,
-			6, 7, 9,
-		];
-
-		let idx = this.idxBase;
-
-		for (let i = 0; i < this.#segmentCount; i++) {
-			const offset = this.attrBase + i * 10;
-			typedIdxs.set(
-				idxMap.map((n) => n + offset),
-				idx
-			);
-			idx += 30;
-		}
-
-		let w = this.#width * 256;
-		for (let i = 0; i < this.attrLength; i++) {
-			strideWidth.set([w], this.attrBase + i);
-		}
-	}
-
-	_setGeometryStrides(
-		geom,
-		strideCoords,
-		strideExtrude,
-		strideLength,
-		perPointStrides,
-		perSegmentStrides
-	) {
-		const w = this.#width / 2;
-
-		geom.mapRings((start, end, _length, _r) => {
-			for (let i = start + 1; i < end; i++) {
-				const coordAx = geom.coords[(i - 1) * geom.dimension];
-				const coordAy = geom.coords[(i - 1) * geom.dimension + 1];
-				const coordBx = geom.coords[i * geom.dimension];
-				const coordBy = geom.coords[i * geom.dimension + 1];
-
-				const Δx = coordBx - coordAx;
-				const Δy = coordBy - coordAy;
-				const ϕ = Math.atan2(Δy, Δx);
-
-				// Plus 90 degrees counter-clockwise
-				const ϕ90 = ϕ + Δϕ90;
-				const cosϕ90 = w * Math.cos(ϕ90);
-				const sinϕ90 = w * Math.sin(ϕ90);
-
-				// Plus 150 degrees counter-clockwise
-				const ϕ150 = ϕ + Δϕ150;
-				const cosϕ150 = w * Math.cos(ϕ150);
-				const sinϕ150 = w * Math.sin(ϕ150);
-
-				// Plus 210 degrees counter-clockwise
-				const ϕ210 = ϕ - Δϕ150;
-				const cosϕ210 = w * Math.cos(ϕ210);
-				const sinϕ210 = w * Math.sin(ϕ210);
-
-				const vtx = this.attrBase + i * 10 - 10;
-
-				strideExtrude.set([cosϕ90, sinϕ90], vtx + 0);
-				strideExtrude.set([0, 0], vtx + 1);
-				strideExtrude.set([-cosϕ90, -sinϕ90], vtx + 2);
-				strideExtrude.set([cosϕ150, sinϕ150], vtx + 3);
-				strideExtrude.set([cosϕ210, sinϕ210], vtx + 4);
-
-				strideExtrude.set([cosϕ90, sinϕ90], vtx + 5);
-				strideExtrude.set([0, 0], vtx + 6);
-				strideExtrude.set([-cosϕ90, -sinϕ90], vtx + 7);
-				strideExtrude.set([-cosϕ210, -sinϕ210], vtx + 8);
-				strideExtrude.set([-cosϕ150, -sinϕ150], vtx + 9);
-
-				// prettier-ignore
-				strideCoords.set([
-					coordAx, coordAy,
-					coordAx, coordAy,
-					coordAx, coordAy,
-					coordAx, coordAy,
-					coordAx, coordAy,
-
-					coordBx, coordBy,
-					coordBx, coordBy,
-					coordBx, coordBy,
-					coordBx, coordBy,
-					coordBx, coordBy,
-				], vtx);
-
-				// Length of segment
-				const l = Math.sqrt(Δx * Δx + Δy * Δy);
-
-				// Five first vertices are at position zero, five last ones
-				// are at position 100% length
-				for (let i = 0; i < 5; i++) {
-					strideLength.set([0, l], vtx + i);
-				}
-				for (let i = 5; i < 10; i++) {
-					strideLength.set([l, l], vtx + i);
-				}
-
-				/// TODO: Trick lengths at first and last point in the geometry
-				/// ring, unless the ring loops
-
-				this._setPerSegmentStrides(
-					i - 1,
-					this.attrBase + i * 10 - 10,
-					10,
-					geom,
-					...perSegmentStrides
-				); /// TODO!!!!
-
-				this._setPerPointStrides(
-					i - 1,
-					LINECAP,
-					this.attrBase + i * 10 - 10,
-					5,
-					...perPointStrides
-				);
-				this._setPerPointStrides(
-					i,
-					LINECAP,
-					this.attrBase + i * 10 - 5,
-					5,
-					...perPointStrides
-				);
-			}
-		});
-	}
-
-	_setPerPointStrides(_n, _pointType, _vtx, _vtxCount, _geom, ..._strides) {
-		// noop
-	}
-
-	_setPerSegmentStrides(n, vtx, vtxCount, _geom, strideColour) {
-		const segmentColour =
-			Array.isArray(this.#colour) && Array.isArray(this.#colour[0])
-				? this.#colour[n]
-				: this.#colour;
-		for (let i = 0; i < vtxCount; i++) {
-			strideColour.set(segmentColour, vtx + i);
-		}
-	}
-
-	static _parseColour = parseCSSColor;
+	return boxes;
 }
 
 /**
@@ -15910,6 +15378,338 @@ class ExtrudedPoint extends GleoSymbol {
 		 * Fired whenever the user stops dragging a draggable `ExtrudedPoint`.
 		 */
 		this.fire("dragend");
+	}
+}
+
+/**
+ * @namespace Util
+ * @function imagePromise(url: URL, fillCache?: Boolean): Promise of HTMLImageElement
+ *
+ * Requests the given `URL`, and returns a `Promise` of an `HTMLImageElement`.
+ *
+ * By default it **caches all images**, and uses a hash `Map` internally to
+ * de-duplicate loading the same URL. Use a `false` value for `fillCache` to
+ * prevent this.
+ *
+ * @alternative
+ * @function imagePromise(url: String, fillCache?: Boolean): Promise of HTMLImageElement
+ * Idem, but using a `String` containing a URL.
+ *
+ * @alternative
+ * @function imagePromise(image: HTMLImageElement, fillCache?: Boolean): Promise of HTMLImageElement
+ * Returns a `Promise` that immediately resolves to the given image. Does not
+ * cache the image.
+ */
+
+// TODO: This cache is ever increasing. There should be a way to clean it up, since
+// it will hold references to potentially big unused images.
+
+const cache = new Map();
+
+async function imagePromise(url, fillCache = true) {
+	if (url instanceof HTMLImageElement || url instanceof ImageData) {
+		return Promise.resolve(url);
+	} else if (typeof url === "string") {
+		url = new URL(url, document.URL);
+	} else if (!(url instanceof URL)) {
+		throw new Error(
+			"Bad parameter to imagePromise(): must be either a URL or an image."
+		);
+	}
+
+	const urlStr = url.toString();
+	const cached = cache.get(urlStr);
+	if (cached) {
+		return cached;
+	}
+
+	const promise = new Promise((res, rej) => {
+		const img = new Image();
+		img.addEventListener("load", (ev) => res(ev.target));
+		img.addEventListener("error", rej);
+		img.addEventListener("abort", rej);
+		img.crossOrigin = true;
+		img.src = url;
+	});
+	// const promise = Promise.any(known.map(format=>format.urlToRaster(urlStr)));
+
+	if (fillCache) {
+		cache.set(urlStr, promise);
+	}
+	return promise;
+}
+
+/**
+ * @namespace Util
+ *
+ * @function imagifyFetchResponse(r: Response): Promise to HTMLImageElement
+ *
+ * Given a `Response` from a `fetch` call, wraps it into an image - meant for
+ * `fetch` operations that are supposed to retrieve an image.
+ *
+ * If the parameter is not a `Response`, it will be passed through transparently.
+ *
+ */
+
+function imagifyFetchResponse(r) {
+	if (r instanceof Response) {
+		return new Promise((res, rej) => {
+			const img = new Image();
+			img.addEventListener("load", (ev) => res(ev.target));
+			img.addEventListener("error", rej);
+			img.addEventListener("abort", rej);
+			img.crossOrigin = true;
+			r.blob().then((blob) => (img.src = URL.createObjectURL(blob)));
+		});
+	} else {
+		return r;
+	}
+}
+
+/**
+ * @class AcetateVertices
+ * @inherits Acetate
+ *
+ * An abstract `Acetate` that implements multiple vertices per symbol.
+ *
+ * Most `Acetate`s draw symbols that must be represented by more than one vertex
+ * (and typically forming triangles), and should inherit this functionality.
+ *
+ * The only exception is acetates that do not need vertex indices at all because
+ * they do not rely on primitives (i.e. triangles) - the `AcetateDot` being the only
+ * instance of such.
+ */
+
+class AcetateVertices extends Acetate {
+	constructor(glii, opts) {
+		super(glii, opts);
+
+		// The SparseIndices allocates *vertex slots* on primitives, e.g.:
+		// * 3 slots per triangle, or
+		// * 2 slots per line segment
+		this._indices = new this.glii.SparseIndices({
+			// Glii defaults to UNSIGNED_SHORT, meaning a max of 2^16=65536
+			// primitive vertex slots (~32k lines ~21k triangles). It's
+			// reasonable to expect more, so this asks for 32-bit
+			// pointers, meaning a max of 2^32 primitive slots.
+			type: this.glii.UNSIGNED_INT,
+		});
+
+		// The attribute allocator allocates *attribute slots*,
+		// one per needed vertex (even if that vertex is used several times in several
+		// slots to be shared between several triangles/segments/primitives)
+		this._attribAllocator = new Allocator();
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			indexBuffer: this._indices,
+			blend: {
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+
+				srcRGB: this.glii.SRC_ALPHA,
+				dstRGB: this.glii.ONE_MINUS_SRC_ALPHA,
+				srcAlpha: this.glii.ONE,
+				dstAlpha: this.glii.ONE_MINUS_SRC_ALPHA,
+			},
+		};
+	}
+
+	/**
+	 * @section Internal Methods
+	 * @uninheritable
+	 * @method reproject(): this
+	 * Runs `toCRS` on the coordinates of all known symbols, and (re)sets the values in
+	 * the coordinates attribute buffer.
+	 */
+	reprojectAll() {
+		this._attribAllocator.forEachBlock((start, length) => {
+			this.reproject(start, length);
+		});
+		return this;
+	}
+
+	_getStridedArrays(_, maxIdx) {
+		return [
+			// Vertex indices
+			this._indices.asTypedArray(maxIdx),
+		];
+	}
+
+	_getPerPointStridedArrays(maxVtx, maxIdx) {
+		return [];
+	}
+
+	_commitStridedArrays(_, __, baseIdx, idxCount) {
+		this._indices.commit(baseIdx, idxCount);
+	}
+
+	_commitPerPointStridedArrays(vtx, vtxCount) {
+		// noop
+	}
+
+	/**
+	 * @method deallocate(symbol: GleoSymbol): this
+	 * Deallocate the symbol from this acetate (so it's not drawn on the next refresh)
+	 */
+	deallocate(symbol) {
+		return this.multiDeallocate([symbol]);
+	}
+
+	multiAllocate(symbols) {
+		// Skip:
+		// - Already added symbols
+		// - Symbols with zero vertices
+		// - Symbols with zero indices/triangles (e.g. one-point strokes)
+		symbols = symbols.filter(
+			(s) => isNaN(s.attrBase) && s.idxLength > 0 && s.attrLength > 0
+		);
+		if (symbols.length === 0) {
+			return;
+		}
+
+		const totalVertices = symbols.reduce((acc, ext) => acc + ext.attrLength, 0);
+		const baseVtx = this._attribAllocator.allocateBlock(totalVertices);
+		let vtxAcc = baseVtx;
+
+		const totalIndices = symbols.reduce((acc, ext) => acc + ext.idxLength, 0);
+		const baseIdx = this._indices.allocateSlots(totalIndices);
+		let idxAcc = baseIdx;
+
+		let stridedArrays = this._getStridedArrays(
+			baseVtx + totalVertices,
+			baseIdx + totalIndices
+		);
+
+		symbols.forEach((sym) => {
+			sym._inAcetate = this;
+			sym.attrBase = vtxAcc;
+			sym.idxBase = idxAcc;
+			this._knownSymbols[vtxAcc] = sym;
+
+			sym._setGlobalStrides(...stridedArrays);
+
+			vtxAcc += sym.attrLength;
+			idxAcc += sym.idxLength;
+		});
+
+		this._commitStridedArrays(baseVtx, totalVertices, baseIdx, totalIndices);
+
+		if (this._crs) {
+			this.reproject(baseVtx, totalVertices, symbols);
+		}
+
+		// The AcetateInteractive functionality will assign IDs to symbol vertices.
+		this.multiAddIds?.(symbols, baseVtx, baseVtx + totalVertices);
+
+		this.dirty = true;
+		return this;
+	}
+
+	multiDeallocate(symbols) {
+		symbols = symbols.filter((s) => !!s);
+		symbols.sort((a, b) => a.idxBase - b.idxBase);
+
+		if (symbols.length === 0) {
+			return this;
+		}
+
+		// let attribBlocks = [];
+		let blockStart = symbols[0].idxBase,
+			blockLength = 0;
+		symbols.forEach((symbol) => {
+			if (blockStart + blockLength === symbol.idxBase) {
+				blockLength += symbol.idxLength;
+			} else {
+				// attribBlocks.push([ blockStart, blockLength ]);
+				this._indices.deallocateSlots(blockStart, blockLength);
+				blockStart = symbol.idxBase;
+				blockLength = symbol.idxLength;
+			}
+		});
+		this._indices.deallocateSlots(blockStart, blockLength);
+
+		symbols.sort((a, b) => a.attrBase - b.attrBase);
+
+		blockStart = symbols[0].attrBase;
+		blockLength = 0;
+
+		symbols.forEach((symbol) => {
+			if (blockStart + blockLength === symbol.attrBase) {
+				blockLength += symbol.attrLength;
+			} else {
+				// attribBlocks.push([ blockStart, blockLength ]);
+				this._attribAllocator.deallocateBlock(blockStart, blockLength);
+				blockStart = symbol.attrBase;
+				blockLength = symbol.attrLength;
+			}
+			delete this._knownSymbols[symbol.attrBase];
+			symbol.updateRefs(undefined, undefined, undefined);
+		});
+		this._attribAllocator.deallocateBlock(blockStart, blockLength);
+
+		// Edge case for the last symbol. See comments on Acetate.multiDeallocate().
+		if (!this._knownSymbols.some(() => true)) {
+			this._knownSymbols = [];
+		}
+
+		return this;
+	}
+
+	/**
+	 * @method reproject(start: Number, length: Number, symbols?: Array of GleoSymbol): Array of Number
+	 * Dumps a new set of values to the `this._coords` attribute buffer, based
+	 * on the known set of symbols added to the acetate (only those which have
+	 * their attribute offsets between `start` and `start+length`.
+	 *
+	 * If the list of symbols is already known, they can be passed as a third
+	 * argument for a performance improvement.
+	 *
+	 * This default implementation **assumes** that the `attrLength` of a
+	 * `GleoSymbol` is equal to the length of its `Geometry` (i.e. there's
+	 * `one vertex per point in the geometry).
+	 *
+	 * Returns the data set into the attribute buffer: a ' Float32Array`
+	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
+	 */
+	reproject(start, length, symbols) {
+		const end = start + length;
+		let maxIdx = -Infinity;
+		let minIdx = Infinity;
+
+		// In most cases, it's safe to assume that relevant symbols in the same
+		// attribute allocation block have their vertex attributes in a
+		// compacted manner.
+		// The exception is tiles: tile vertex attributes are allocated in bulk
+		// (enough to fill a whole texture atlas), before actually instantiating
+		// tile symbols. Tile acetates shall overload this method.
+
+		const stridedCoords = this._coords.asStridedArray(end);
+		const geomStrides = this._getGeometryStridedArrays(end);
+
+		const relevantSymbols =
+			symbols ??
+			this._knownSymbols.filter((symbol, attrIdx) => {
+				return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
+			});
+
+		relevantSymbols.forEach((s) => {
+			const geom = s.geometry.toCRS(this._crs);
+			stridedCoords.set(geom.coords, s.attrBase);
+			s._setGeometryStrides(geom, ...geomStrides);
+			maxIdx = Math.max(maxIdx, s.idxBase + s.idxLength);
+			minIdx = Math.min(maxIdx, s.idxBase);
+		});
+
+		this._coords.commit(start, length);
+		this._commitGeometryStridedArrays(start, length, minIdx, maxIdx - minIdx);
+
+		const coordData = new Float32Array(stridedCoords.buffer, start * 8, length * 2);
+		super.expandBBox(coordData);
+		return coordData;
 	}
 }
 
@@ -16558,306 +16358,6 @@ class AcetateExtrudedPoint extends AcetateInteractive {
 		this.dirty = true;
 
 		return coordData;
-	}
-}
-
-/**
- * @class AcetateSolidBorder
- * @inherits AcetateExtrudedPoint
- *
- * An `Acetate` for solid extrusions with two colours: fill and border.
- *
- * Used in `HeadingTriangle` and `Circle`.
- *
- */
-class AcetateSolidBorder extends AcetateExtrudedPoint {
-	constructor(target, opts) {
-		super(target, { zIndex: 2500, opts });
-
-		this._attrs = new this.glii.InterleavedAttributes(
-			{
-				usage: this.glii.STATIC_DRAW,
-				size: 1,
-				growFactor: 1.2,
-			},
-			[
-				{
-					// Fill RGBA colour
-					glslType: "vec4",
-					type: Uint8Array,
-					normalized: true,
-				},
-				{
-					// Border RGBA colour
-					glslType: "vec4",
-					type: Uint8Array,
-					normalized: true,
-				},
-				{
-					// Border width and feather width (in CSS pixels)
-					glslType: "vec2",
-					type: Float32Array,
-					normalized: false,
-				},
-				{
-					// Per-vertex distance from farthest edge. In a HeadingTriangle,
-					// each vertex will have values like N-0-0, 0-N-0, 0-0-N.
-					// In a Circle, all values are the same.
-					// Units should be CSS pixels.
-					glslType: "vec3",
-					type: Float32Array,
-					normalized: false,
-				},
-			]
-		);
-	}
-
-	glProgramDefinition() {
-		const opts = super.glProgramDefinition();
-		return {
-			...opts,
-			attributes: {
-				aFillColour: this._attrs.getBindableAttribute(0),
-				aBorderColour: this._attrs.getBindableAttribute(1),
-
-				// Per-triangle border and feather width
-				aBorder: this._attrs.getBindableAttribute(2),
-
-				// Per-vertex distance to edge
-				aEdge: this._attrs.getBindableAttribute(3),
-
-				...opts.attributes,
-			},
-			uniforms: {
-				uPixelSize: "vec2",
-				...opts.uniforms,
-			},
-			vertexShaderMain: `
-				vFillColour = aFillColour;
-				vBorderColour = aBorderColour;
-				vBorder = aBorder;
-				vEdge = aEdge;
-
-				gl_Position = vec4(
-						vec3(aCoords, 1.0) * uTransformMatrix +
-						vec3(aExtrude * uPixelSize, 0.0)
-						, 1.0);
-
-			`,
-			varyings: {
-				vFillColour: "vec4",
-				vBorderColour: "vec4",
-				vBorder: "vec2",
-				vEdge: "vec3",
-			},
-			fragmentShaderMain: `
-				float edgeDistance = min(min(vEdge.x, vEdge.y), vEdge.z);
-
-				if (edgeDistance < vBorder.x) {
-					gl_FragColor = vBorderColour;
-					gl_FragColor.a *= min(1., edgeDistance / vBorder.y);
-				} else {
-					// gl_FragColor = vFillColour /** edgeDistance / 16.*/;
-					gl_FragColor = mix(vBorderColour, vFillColour, min(edgeDistance - vBorder.y / vBorder.x, 1.0));
-				}
-
-				// gl_FragColor.rgb = vEdge / 16.;
-				// gl_FragColor.a = 1.;
-			`,
-		};
-	}
-
-	_getStridedArrays(maxVtx, maxIdx) {
-		return [
-			// Extrusion
-			this._extrusions.asStridedArray(maxVtx),
-			// Fill colour
-			this._attrs.asStridedArray(0, maxVtx),
-			// Border colour
-			this._attrs.asStridedArray(1),
-			// Border+feather
-			this._attrs.asStridedArray(2),
-			// Distance to edge
-			this._attrs.asStridedArray(3),
-			// Triangle indices
-			this._indices.asTypedArray(maxIdx),
-		];
-	}
-
-	// The map will call resize() on acetates when needed - besides redoing the
-	// framebuffer with the new size, this needs to reset the uniform uPixelSize.
-	resize(w, h) {
-		super.resize(w, h);
-		const dpr2 = (devicePixelRatio ?? 1) * 2;
-		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
-	}
-}
-
-/**
- * @class Circle
- * @inherits ExtrudedPoint
- * @relationship drawnOn AcetateSolidBorder
- *
- * A circle with both fill and stroke (i.e. perimeter line).
- *
- * Renders with a different `Acetate` than the simpler `CircleFill` and
- * `CircleStroke`.
- *
- * @example
- * ```js
- * new Circle([0, 0], {
- * 	fillColour: "red",
- * 	strokeColour: "black",
- * 	width: 3,
- * 	radius: 40
- * }).addTo(map);
- * ```
- */
-
-class Circle extends ExtrudedPoint {
-	/// @section Static properties
-	/// @property Acetate: Prototype of AcetateSolidExtrusion
-	// The `Acetate` class that draws this symbol.
-	static Acetate = AcetateSolidBorder;
-
-	#radius;
-	#width;
-	#fillColour;
-	#strokeColour;
-	#feather;
-
-	/**
-	 * @constructor CircleFill(geom: Geometry, opts?: CircleFill Options)
-	 */
-	constructor(
-		geom,
-		{
-			/**
-			 * @section
-			 * @aka Circle Options
-			 * @option radius: Number = 20; Radius of the circle, in CSS pixels
-			 * @option width: Number = 4; Width of the border, in CSS pixels
-			 * @option fillColour: Colour = '#3388ff33'; The fill colour
-			 * @option strokeColour: Colour = '#3388ff33'; The border stroke colour
-			 */
-			radius = 20,
-			width = 4,
-			fillColour = "#3388ff33",
-			strokeColour = "#3388ff",
-			/**
-			 * @option feather: Number = 0.5
-			 * The width of the antialiasing feather, in CSS pixels.
-			 */
-			feather = 0.5,
-
-			...opts
-		} = {}
-	) {
-		super(geom, opts);
-
-		this.#radius = radius;
-		this.#width = width * 2;
-		this.#fillColour = this.constructor._parseColour(fillColour);
-		this.#strokeColour = this.constructor._parseColour(strokeColour);
-		this.#feather = feather;
-
-		// Length of circumference
-		const length = Math.PI * 2 * this.#radius;
-		// Divide in triangles so there's a triangle per...
-		// 6 pixels of circumference length. That should be enough.
-		this.steps = Math.max(7, Math.ceil(length / 6));
-		// this.steps = 4;
-
-		this.attrLength = this.steps + 1;
-		this.idxLength = this.steps * 3;
-	}
-
-	/**
-	 * @section Acetate interface
-	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
-	 * Sets the appropriate values into the strided arrays, based on the
-	 * symbol's `attrBase` and `idxBase`.
-	 *
-	 * Receives the width of the feathering as a parameter, in pixels.
-	 */
-	_setGlobalStrides(
-		strideExtrusion,
-		strideFillColour,
-		strideBorderColour,
-		strideBorder,
-		strideEdgeDistance,
-		typedIdxs
-	) {
-		// const feather = this._inAcetate.feather;
-
-		// Radian increment per step
-		const ɛ = (Math.PI * 2) / this.steps;
-
-		const ρ = this.#radius + this.#feather / 2;
-		const [Δx, Δy] = this.offset;
-
-		// Attributes start with the center point
-		strideExtrusion.set([Δx, Δy], this.attrBase);
-		strideFillColour?.set(this.#fillColour, this.attrBase);
-		strideBorderColour?.set(this.#strokeColour, this.attrBase);
-		strideEdgeDistance.set([this.#radius, this.#radius, this.#radius], this.attrBase);
-
-		let θ = 0;
-		let vtx = this.attrBase + 1;
-		let idx = this.idxBase;
-		for (let i = 0; i < this.steps; i++) {
-			strideExtrusion.set([Math.sin(θ) * ρ + Δx, Math.cos(θ) * ρ + Δy], vtx);
-			strideFillColour?.set(this.#fillColour, vtx);
-			strideBorderColour?.set(this.#strokeColour, vtx);
-
-			// Vertices of the i-th triangle are: center, current, next
-			if (i !== this.steps - 1) {
-				typedIdxs?.set([this.attrBase, vtx, vtx + 1], idx);
-			} else {
-				typedIdxs?.set([this.attrBase, vtx, this.attrBase + 1], idx);
-			}
-
-			strideEdgeDistance.set([0, 0, 0], vtx);
-			strideBorder.set([this.#width, this.#feather], vtx);
-
-			θ += ɛ;
-			vtx++;
-			idx += 3;
-		}
-	}
-
-	_setStridedExtrusion(strideExtrusion) {
-		this._setGlobalStrides(strideExtrusion);
-	}
-
-	// Can be overriden by subclasses or the `intensify` decorator
-	static _parseColour = parseCSSColor;
-}
-
-/**
- * @namespace Util
- *
- * @function imagifyFetchResponse(r: Response): Promise to HTMLImageElement
- *
- * Given a `Response` from a `fetch` call, wraps it into an image - meant for
- * `fetch` operations that are supposed to retrieve an image.
- *
- * If the parameter is not a `Response`, it will be passed through transparently.
- *
- */
-
-function imagifyFetchResponse(r) {
-	if (r instanceof Response) {
-		return new Promise((res, rej) => {
-			const img = new Image();
-			img.addEventListener("load", (ev) => res(ev.target));
-			img.addEventListener("error", rej);
-			img.addEventListener("abort", rej);
-			img.crossOrigin = true;
-			r.blob().then((blob) => (img.src = URL.createObjectURL(blob)));
-		});
-	} else {
-		return r;
 	}
 }
 
@@ -18094,6 +17594,12133 @@ class Sprite extends ExtrudedPoint {
 	}
 }
 
+/**
+ * @class AcetateStroke
+ * @inherits AcetateVertices
+ *
+ * An `Acetate` that draws line strokes.
+ */
+
+class AcetateStroke extends AcetateInteractive {
+	#miterLimit;
+
+	/**
+	 * @constructor AcetateStroke(glii: GliiFactory, opts: AcetateStroke Options)
+	 */
+	constructor(
+		glii,
+		{
+			/** @section AcetateStroke Options
+			 * @option miterLimit: Number = 10
+			 * Maximum value for the extrusion factor in miter line joints.
+			 * Note this is not the same behaviour as 2D miter limit, which
+			 * replaces miter joins with bevel joins.
+			 */
+			miterLimit = 10,
+			...opts
+		} = {}
+	) {
+		super(glii, { zIndex: 3000, ...opts });
+
+		this.#miterLimit = miterLimit;
+
+		// Non-geometric attributes - the ones that don't change with a full
+		// reprojection
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// RGBA Colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// (Accumulated) dash array, with up to 4 elements.
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: false,
+				},
+				// TODO: antialias feather (or make it an Acetate uniform)
+			]
+		);
+
+		// Geometric attributes - the ones that change with a full reprojection
+		this._geomAttrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Vertex extrusion amount
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Distance to stroke start, in CRS units
+					// Used for dashing
+					glslType: "float",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Data for shortening extrusion in the inner vertex of
+					// joins (if not an inner vertex, values are zero):
+					// - Length of the shortest adjacent segment, in CRS units
+					// - Ratio between half stroke width and extrusion length
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			attributes: {
+				aColour: this._attrs.getBindableAttribute(0),
+				aExtrude: this._geomAttrs.getBindableAttribute(0),
+				aDashArray: this._attrs.getBindableAttribute(1),
+				aAccLength: this._geomAttrs.getBindableAttribute(1),
+				aInnerAdjustment: this._geomAttrs.getBindableAttribute(2),
+				...opts.attributes,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				uScale: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				vDashArray = aDashArray;
+				vAccLength = aAccLength / uScale;
+
+				vec2 extrude = aExtrude;
+				if (aInnerAdjustment.x != 0.) {
+					// Reduce the length of extrusion on the vertices in the
+					// inside of joins, if their extrusions would be larger
+					// than the length of an adjacent segment; but never so
+					// much that it becomes less than half the stroke width.
+					float factor = clamp(
+						length(aExtrude) * uScale / aInnerAdjustment.x,
+						1.,
+						aInnerAdjustment.y
+					);
+					extrude /= factor;
+				}
+
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix
+					+ vec3(extrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vColour: "vec4",
+				vDashArray: "vec4",
+				vAccLength: "float",
+				vMiter: "float", // Only for joins: px distance to node
+			},
+			fragmentShaderMain: `
+				float dashIdx = mod(vAccLength, vDashArray.w);
+				if (dashIdx <= vDashArray.x) {
+					gl_FragColor = vColour;
+				} else if (dashIdx <= vDashArray.y) {
+					discard;
+				} else if (dashIdx <= vDashArray.z) {
+					gl_FragColor = vColour;
+				} else {
+					discard;
+				}
+
+				// if (!gl_FrontFacing) {gl_FragColor = vec4(1., 0., 0., .5);}
+				if (!gl_FrontFacing) { discard; }
+			`,
+		};
+	}
+
+	// The platina will call resize() on acetates when needed - besides redoing the
+	// framebuffer with the new size, this needs to reset the uniform uPixelSize.
+	resize(w, h) {
+		super.resize(w, h);
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
+	}
+
+	runProgram() {
+		this._programs.setUniform("uScale", this.platina.scale);
+		super.runProgram();
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Indices
+			// ...super._getStridedArrays(maxVtx, maxIdx),
+
+			// Dash
+			this._attrs.asStridedArray(1, maxVtx),
+
+			// All per-point strided arrays
+			this._getPerPointStridedArrays(maxVtx, maxIdx),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, vtxLength, baseIdx, totalIndices) {
+		// this._attrs.commit(baseVtx, vtxLength);
+		return this._commitPerPointStridedArrays(
+			baseVtx,
+			vtxLength,
+			baseIdx,
+			totalIndices
+		);
+	}
+
+	_getGeometryStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Indices
+			this._indices.asTypedArray(maxIdx),
+
+			// Extrusion (offset in CSS pixels)
+			this._geomAttrs.asStridedArray(0, maxVtx),
+
+			// Distance (in CRS units, to first point of each ring)
+			this._geomAttrs.asStridedArray(1),
+
+			// Miter limit constant
+			1 / this.#miterLimit,
+
+			// per-point strides
+			this._getPerPointGeomStridedArrays(maxVtx, maxIdx),
+		];
+	}
+
+	_getPerPointStridedArrays(maxVtx, _maxIdx) {
+		return [
+			// Colour
+			this._attrs.asStridedArray(0, maxVtx),
+		];
+	}
+
+	_getPerPointGeomStridedArrays(_maxVtx, _maxIdx) {
+		return [];
+	}
+
+	_commitGeometryStridedArrays(baseVtx, vtxLength, baseIdx, idxLength) {
+		this._indices.commit(baseIdx, idxLength);
+		this._geomAttrs.commit(baseVtx, vtxLength);
+		this._commitPerPointGeomStridedArrays(baseVtx, vtxLength);
+	}
+	_commitPerPointStridedArrays(baseVtx, vtxLength) {
+		this._attrs.commit(baseVtx, vtxLength);
+	}
+	_commitPerPointGeomStridedArrays(_baseVtx, _vtxLength) {
+		// this._attrs.commit(baseVtx, vtxLength);
+	}
+
+	/**
+	 * @method multiAdd(strokes: Array of Stroke): this
+	 * Adds the strokes to this acetate (so they're drawn on the next refresh),
+	 * using as few WebGL calls as feasible.
+	 */
+	multiAdd(strokes) {
+		// Skip already added symbols
+		strokes = strokes.filter((s) => isNaN(s.attrBase));
+
+		// Skip strokes with zero indices or vertices, typically strokes with
+		// degenerate geometries (with either zero or one points).
+		// Instead of just skipping, mark them as belonging to the acetate, so
+		// that they may be removed.
+		strokes = strokes.filter((s) => {
+			let hasData = s.idxLength > 0 && s.attrLength > 0;
+			if (!hasData) {
+				s._inAcetate = this;
+			}
+			return hasData;
+		});
+		if (strokes.length === 0) {
+			return;
+		}
+
+		const totalIndices = strokes.reduce((acc, stroke) => acc + stroke.idxLength, 0);
+		const totalVertices = strokes.reduce((acc, stroke) => acc + stroke.attrLength, 0);
+
+		// There is a degenerate case when only Strokes with one point are
+		// added, and would ask for zero indices
+
+		let baseIdx = totalIndices > 0 ? this._indices.allocateSlots(totalIndices) : 0;
+		let baseVtx = this._attribAllocator.allocateBlock(totalVertices);
+		let idxAcc = baseIdx;
+		let vtxAcc = baseVtx;
+
+		let stridedArrays = this._getStridedArrays(
+			baseVtx + totalVertices,
+			baseIdx + totalIndices
+		);
+		// const strideColour = this._attrs.asStridedArray(0, baseVtx + totalVertices);
+		// const strideDash = this._attrs.asStridedArray(1);
+
+		strokes.forEach((stroke) => {
+			stroke._inAcetate = this;
+			stroke.attrBase = vtxAcc;
+			stroke.idxBase = idxAcc;
+			this._knownSymbols[vtxAcc] = stroke;
+
+			stroke._setGlobalStrides(...stridedArrays);
+
+			vtxAcc += stroke.attrLength;
+			idxAcc += stroke.idxLength;
+		});
+
+		this._commitStridedArrays(baseVtx, totalVertices /*, baseIdx, totalIndices*/);
+
+		if (this._crs) {
+			this.reproject(baseVtx, totalVertices, strokes);
+		}
+
+		this.dirty = true;
+		super.multiAddIds(strokes, baseVtx);
+		return super.multiAdd(strokes);
+	}
+
+	/**
+	 * @method reprojectAll(start: Number, length: Number, skipEarcut: Boolean): Array of Number
+	 * As `AcetateVertices.reproject()`, but also recalculates the values for the
+	 * attributes which depend on the geometry (including the extrusion amount, which
+	 * depends on the linestring angle on each node) and mesh triangulation
+	 * (for dextro- or levo-oriented bevel and round joins).
+	 */
+	reproject(start, length, strokes) {
+		//console.log("stroke reproject", start.toString(16), length.toString(16));
+		const relevantSymbols =
+			strokes ??
+			this._knownSymbols.filter((symbol, attrIdx) => {
+				return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
+			});
+
+		const coordData = new Float64Array(length * 2);
+		const end = start + length;
+		// const strideExtrude = this._geomAttrs.asStridedArray(0, end);
+		// const strideDistance = this._geomAttrs.asStridedArray(1);
+		// const typedIdxs = this._indices.asTypedArray(end);
+		// const miterLimit = 1 / this.#miterLimit;
+
+		const [
+			typedIdxs,
+			strideExtrude,
+			strideDistance,
+			miterLimit,
+			perPointStrides,
+			...geometryStrides
+		] = this._getGeometryStridedArrays(
+			end,
+			end // FIXME: calculate max idx, not just max vtx
+		);
+
+		let minIdx = Infinity,
+			maxIdx = -Infinity,
+			vtxLength = 0;
+
+		relevantSymbols.forEach((symbol) => {
+			const projectedGeom = symbol.geometry.toCRS(this._crs);
+			let addr = (symbol.attrBase - start) * 2;
+
+			projectedGeom.mapRings((start, end, length, r) => {
+				if (length === 1) {
+					return;
+				}
+
+				for (let v = start; v < end; v++) {
+					let vtxCount;
+					if (v === start) {
+						// Start of a ring. Behaves as 2 vertices if the
+						// ring loops (join is added at the last and closing
+						// vertex instead), as endcap if not.
+						vtxCount =
+							(projectedGeom.loops[r] ? 2 : symbol.verticesPerEnd) +
+							symbol.centerline;
+					} else if (v === end - 1) {
+						// End of a ring. Idem as start.
+						vtxCount =
+							(projectedGeom.loops[r]
+								? symbol.verticesPerJoin
+								: symbol.verticesPerEnd) + symbol.centerline;
+					} else {
+						// Not start, not end: always a line join
+						vtxCount = symbol.verticesPerJoin + symbol.centerline;
+					}
+
+					const coord = projectedGeom.coords.slice(v * 2, v * 2 + 2);
+
+					// Store the coordinate once per vertex
+					for (let j = 0; j < vtxCount; j++) {
+						coordData.set(coord, addr);
+						addr += 2;
+					}
+
+					vtxLength += vtxCount;
+				}
+			});
+
+			symbol._setGeometryStrides(
+				projectedGeom,
+				strideExtrude,
+				strideDistance,
+				miterLimit,
+				perPointStrides,
+				typedIdxs,
+				...geometryStrides
+			);
+
+			minIdx = Math.min(minIdx, symbol.idxBase);
+			maxIdx = Math.max(maxIdx, symbol.idxBase + symbol.idxLength);
+		});
+
+		this.multiSetCoords(start, coordData);
+
+		// this._geomAttrs.commit(start, vtxLength);
+
+		if (isFinite(minIdx)) {
+			// this._indices.commit(minIdx, maxIdx - minIdx);
+			this._commitGeometryStridedArrays(start, vtxLength, minIdx, maxIdx - minIdx);
+		}
+
+		return coordData;
+	}
+
+	reprojectAll() {
+		this.reproject(0, this._indices._size, this._knownSymbols);
+	}
+
+	destroy() {
+		this._geomAttrs.destroy();
+		return super.destroy();
+	}
+}
+
+/**
+ * ISC License.
+ *
+ * Copyright (c) 2015, Tom MacWright
+ * Copyright (c) 2015, Mapbox <>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ */
+
+/**
+ * A standalone point geometry with useful accessor, comparison, and
+ * modification methods.
+ *
+ * @class Point
+ * @param {Number} x the x-coordinate. this could be longitude or screen
+ * pixels, or any other sort of unit.
+ * @param {Number} y the y-coordinate. this could be latitude or screen
+ * pixels, or any other sort of unit.
+ * @example
+ * var point = new Point(-77, 38);
+ */
+class Point {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	/**
+	 * Clone this point, returning a new point that can be modified
+	 * without affecting the old one.
+	 * @return {Point} the clone
+	 */
+	clone() {
+		return new Point(this.x, this.y);
+	}
+
+	/**
+	 * Add this point's x & y coordinates to another point,
+	 * yielding a new point.
+	 * @param {Point} p the other point
+	 * @return {Point} output point
+	 */
+	add(p) {
+		return this.clone()._add(p);
+	}
+	_add(p) {
+		this.x += p.x;
+		this.y += p.y;
+		return this;
+	}
+
+	/**
+	 * Subtract this point's x & y coordinates to from point,
+	 * yielding a new point.
+	 * @param {Point} p the other point
+	 * @return {Point} output point
+	 */
+	sub(p) {
+		return this.clone()._sub(p);
+	}
+	_sub(p) {
+		this.x -= p.x;
+		this.y -= p.y;
+		return this;
+	}
+
+	/**
+	 * Multiply this point's x & y coordinates by point,
+	 * yielding a new point.
+	 * @param {Point} p the other point
+	 * @return {Point} output point
+	 */
+	multByPoint(p) {
+		return this.clone()._multByPoint(p);
+	}
+	_multByPoint(p) {
+		this.x *= p.x;
+		this.y *= p.y;
+		return this;
+	}
+
+	/**
+	 * Divide this point's x & y coordinates by point,
+	 * yielding a new point.
+	 * @param {Point} p the other point
+	 * @return {Point} output point
+	 */
+	divByPoint(p) {
+		return this.clone()._divByPoint(p);
+	}
+	_divByPoint(p) {
+		this.x /= p.x;
+		this.y /= p.y;
+		return this;
+	}
+
+	/**
+	 * Multiply this point's x & y coordinates by a factor,
+	 * yielding a new point.
+	 * @param {Number} k factor
+	 * @return {Point} output point
+	 */
+	mult(k) {
+		return this.clone()._mult(k);
+	}
+	_mult(k) {
+		this.x *= k;
+		this.y *= k;
+		return this;
+	}
+
+	/**
+	 * Divide this point's x & y coordinates by a factor,
+	 * yielding a new point.
+	 * @param {Point} k factor
+	 * @return {Point} output point
+	 */
+	div(k) {
+		return this.clone()._div(k);
+	}
+	_div(k) {
+		this.x /= k;
+		this.y /= k;
+		return this;
+	}
+
+	/**
+	 * Rotate this point around the 0, 0 origin by an angle a,
+	 * given in radians
+	 * @param {Number} a angle to rotate around, in radians
+	 * @return {Point} output point
+	 */
+	rotate(a) {
+		return this.clone()._rotate(a);
+	}
+	_rotate(angle) {
+		var cos = Math.cos(angle),
+			sin = Math.sin(angle),
+			x = cos * this.x - sin * this.y,
+			y = sin * this.x + cos * this.y;
+		this.x = x;
+		this.y = y;
+		return this;
+	}
+
+	/**
+	 * Rotate this point around p point by an angle a,
+	 * given in radians
+	 * @param {Number} a angle to rotate around, in radians
+	 * @param {Point} p Point to rotate around
+	 * @return {Point} output point
+	 */
+	rotateAround(a, p) {
+		return this.clone()._rotateAround(a, p);
+	}
+	_rotateAround(angle, p) {
+		var cos = Math.cos(angle),
+			sin = Math.sin(angle),
+			x = p.x + cos * (this.x - p.x) - sin * (this.y - p.y),
+			y = p.y + sin * (this.x - p.x) + cos * (this.y - p.y);
+		this.x = x;
+		this.y = y;
+		return this;
+	}
+
+	/**
+	 * Multiply this point by a 4x1 transformation matrix
+	 * @param {Array<Number>} m transformation matrix
+	 * @return {Point} output point
+	 */
+	matMult(m) {
+		return this.clone()._matMult(m);
+	}
+	_matMult(m) {
+		var x = m[0] * this.x + m[1] * this.y,
+			y = m[2] * this.x + m[3] * this.y;
+		this.x = x;
+		this.y = y;
+		return this;
+	}
+
+	/**
+	 * Calculate this point but as a unit vector from 0, 0, meaning
+	 * that the distance from the resulting point to the 0, 0
+	 * coordinate will be equal to 1 and the angle from the resulting
+	 * point to the 0, 0 coordinate will be the same as before.
+	 * @return {Point} unit vector point
+	 */
+	unit() {
+		return this.clone()._unit();
+	}
+	_unit() {
+		this._div(this.mag());
+		return this;
+	}
+
+	/**
+	 * Compute a perpendicular point, where the new y coordinate
+	 * is the old x coordinate and the new x coordinate is the old y
+	 * coordinate multiplied by -1
+	 * @return {Point} perpendicular point
+	 */
+	perp() {
+		return this.clone()._perp();
+	}
+	_perp() {
+		var y = this.y;
+		this.y = this.x;
+		this.x = -y;
+		return this;
+	}
+
+	/**
+	 * Return a version of this point with the x & y coordinates
+	 * rounded to integers.
+	 * @return {Point} rounded point
+	 */
+	round() {
+		return this.clone()._round();
+	}
+	_round() {
+		this.x = Math.round(this.x);
+		this.y = Math.round(this.y);
+		return this;
+	}
+
+	/**
+	 * Return the magnitude of this point: this is the Euclidean
+	 * distance from the 0, 0 coordinate to this point's x and y
+	 * coordinates.
+	 * @return {Number} magnitude
+	 */
+	mag() {
+		return Math.sqrt(this.x * this.x + this.y * this.y);
+	}
+
+	/**
+	 * Judge whether this point is equal to another point, returning
+	 * true or false.
+	 * @param {Point} other the other point
+	 * @return {boolean} whether the points are equal
+	 */
+	equals(other) {
+		return this.x === other.x && this.y === other.y;
+	}
+
+	/**
+	 * Calculate the distance from this point to another point
+	 * @param {Point} p the other point
+	 * @return {Number} distance
+	 */
+	dist(p) {
+		return Math.sqrt(this.distSqr(p));
+	}
+
+	/**
+	 * Calculate the distance from this point to another point,
+	 * without the square root step. Useful if you're comparing
+	 * relative distances.
+	 * @param {Point} p the other point
+	 * @return {Number} distance
+	 */
+	distSqr(p) {
+		var dx = p.x - this.x,
+			dy = p.y - this.y;
+		return dx * dx + dy * dy;
+	}
+
+	/**
+	 * Get the angle from the 0, 0 coordinate to this point, in radians
+	 * coordinates.
+	 * @return {Number} angle
+	 */
+	angle() {
+		return Math.atan2(this.y, this.x);
+	}
+
+	/**
+	 * Get the angle from this point to another point, in radians
+	 * @param {Point} b the other point
+	 * @return {Number} angle
+	 */
+	angleTo(b) {
+		return Math.atan2(this.y - b.y, this.x - b.x);
+	}
+
+	/**
+	 * Get the angle between this point and another point, in radians
+	 * @param {Point} b the other point
+	 * @return {Number} angle
+	 */
+	angleWith(b) {
+		return this.angleWithSep(b.x, b.y);
+	}
+
+	/*
+	 * Find the angle of the two vectors, solving the formula for
+	 * the cross product a x b = |a||b|sin(θ) for θ.
+	 * @param {Number} x the x-coordinate
+	 * @param {Number} y the y-coordinate
+	 * @return {Number} the angle in radians
+	 */
+	angleWithSep(x, y) {
+		return Math.atan2(this.x * y - this.y * x, this.x * x + this.y * y);
+	}
+
+	/**
+	 * Construct a point from an array if necessary, otherwise if the input
+	 * is already a Point, or an unknown type, return it unchanged
+	 * @param {Array<number> | Point} a any kind of input value
+	 * @return {Point} constructed point, or passed-through value.
+	 * @example
+	 * // this
+	 * var point = Point.convert([0, 1]);
+	 * // is equivalent to
+	 * var point = new Point(0, 1);
+	 */
+	static convert(a) {
+		if (a instanceof Point) {
+			return a;
+		}
+		if (Array.isArray(a)) {
+			return new Point(a[0], a[1]);
+		}
+		return a;
+	}
+}
+
+/// These constants are used in the `_setPerPointStrides` method of symbols.
+
+// A point extrudes as a line join - a miter, bevel or outbevel.
+// If here's a centerline, it's the 2nd vertex (offset 1)
+const LINEJOIN = Symbol("LINEJOIN");
+
+// A point extrudes as a line bevel join at the start of a geometry linear ring
+// - skipping a vertex for the bevel (which will be accounted for at the end
+// of the ring loop.
+// If there's a centerline, it's the 1st vertex (offset 0)
+const LINELOOP = Symbol("LINELOOP");
+
+// A point extrudes as a line cap - a butt or square
+// If here's a centerline, it's the 2nd vertex (offset 1)
+const LINECAP = Symbol("LINECAP");
+
+/// The following is used for `Fill`s, `Mesh`es and also `Hair`s - any symbol
+/// where each geometry point spawns one and just one WebGL vertex.
+
+const MESH = Symbol("MESH");
+
+/**
+ * @miniclass Join type (Stroke)
+ * @section
+ * Static property constants that define how the line joins are drawn; use
+ * one of these in the `joins` option of the `Stroke` constructor. For context, see
+ * [https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineJoin](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineJoin)
+ * @property MITER: Symbol
+ * "Miter" joins are sharp, and look bad with very acute angles, but require
+ * less vertices and triangles to be drawn.
+ * @property BEVEL: Symbol
+ * "Bevel" joins look like miters cut in a straight edge. They use points
+ * extruded perpendicularly to each segment.
+ * @property OUTBEVEL: Symbol
+ * "Outer bevel" joins look like bevels, in such a way that a circle of the same
+ * diameter as the stroke width, positioned at the intersection of two
+ * segments, would be  tangent to each segment and to the bevel edge.
+ */
+
+const MITER = Symbol("MITER");
+const BEVEL = Symbol("BEVEL");
+const OUTBEVEL = Symbol("OUTBEVEL");
+
+/**
+ * @miniclass Cap type (Stroke)
+ * @section
+ * Static property constants that define how the line caps are drawn;
+ * use one of these in the `caps` option of the `Stroke` constructor.
+ * For context, see [https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineCap](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineCap)
+ *
+ * @property BUTT: Symbol
+ * "Butt" caps are perpendicular to the first/last segment, and are located
+ * exactly at the line's endpoints.
+ * @property SQUARE: Symbol
+ * "Square" caps are perpendicular to the first/last segment, and are extruded
+ * an amount equal to half the stroke's width. In other words: extrudes
+ * half a square on each cap.
+ * @property HEX: Symbol
+ * Short for "hexagon" - extrudes half a hexagon on each cap.
+ */
+
+const BUTT = Symbol("BUTT");
+const SQUARE = Symbol("SQUARE");
+const HEX = Symbol("HEX");
+
+const SQRT3$1 = Math.sqrt(3);
+
+/**
+ * @class Stroke
+ * @inherits GleoSymbol
+ * @relationship dependsOn AcetateStroke
+ *
+ * A stroked line, with variable width, colour, dashing, and style of line joins.
+ *
+ * The `Geometry` used in the constructor might have any depth. If the depth
+ * is 1, a single continuous stroke line is created. If it's deeper (e.g.
+ * geometries for polygons, multipolylines or multipolygons), then multiple
+ * line strokes are created, one per ring.
+ */
+
+/*
+ Internally represented series of extruded vertices, two per geometry point.
+ The extrusion is a function of the stroke width and the angle between
+ consecutive points.
+*/
+
+class Stroke extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateStroke
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateStroke;
+
+	#joins;
+	static get MITER() {
+		return MITER;
+	}
+	static get BEVEL() {
+		return BEVEL;
+	}
+	static get OUTBEVEL() {
+		return OUTBEVEL;
+	}
+
+	#caps;
+	static get BUTT() {
+		return BUTT;
+	}
+	static get SQUARE() {
+		return SQUARE;
+	}
+	static get HEX() {
+		return HEX;
+	}
+
+	#colour;
+	#width;
+	#dashArray;
+	#centerline;
+	#offset;
+
+	/**
+	 * @class Stroke
+	 * @constructor Stroke(geom: Geometry, opts?: Stroke Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka Stroke Options
+			 * @option colour: Colour = '#3388ff'
+			 * The colour of the stroke.
+			 * @alternative
+			 * @option colour: Array of Colour
+			 * The colour of each point of the chain. There must be enough elements.
+			 */
+			colour = "#3388ff",
+			/**
+			 * @option width: Number = 2
+			 * The width of the stroke, in CSS pixels
+			 */
+			width = 2,
+
+			/**
+			 * @option dashArray: undefined = undefined
+			 * An undefined (or falsy) value for `dashArray` disables line dashing.
+			 * @alternative
+			 * @option dashArray: Array of Number
+			 * An `Array` of either 2 or 4 `Number`s, defining the line dashing.
+			 * Works as per [2D Canvas' `setLineDash`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash),
+			 * but the array **must** have either **0**, **2** or **4** values.
+			 */
+			dashArray = undefined,
+
+			/**
+			 * @option joins: Join type = Stroke.OUTBEVEL
+			 * Defines the shape of line joins. Must be one of `Stroke.MITER`,
+			 * `Stroke.BEVEL` or `Stroke.OUTBEVEL`.
+			 */
+			/// TODO: Implement "tent" joins (4 vertices) and "dome" joins
+			/// (5 vertices)
+			joins = OUTBEVEL,
+
+			/**
+			 * @option caps: Cap type = Stroke.BUTT
+			 * Defines the shape of line caps. Must be one of `Stroke.BUTT`,
+			 * `Stroke.SQUARE`, or `Stroke.HEX`.
+			 */
+			/// TODO: Implement more types of line ends
+			caps = BUTT,
+
+			/**
+			 * @option centerline: Boolean = false
+			 * Whether the stroke has vertices along its centerline, or not.
+			 */
+			centerline = false,
+
+			/**
+			 * @option offset: Number = 0
+			 * Line offset, in CSS pixels. Positive means to the right of the
+			 * line (when going through the geometry from first to last point).
+			 * Use this to create line strokes parallel to each other.
+			 */
+			offset = 0,
+
+			/// TODO: feather,
+
+			interactive = true,
+
+			...opts
+		} = {}
+	) {
+		super(null, { interactive, ...opts });
+		this.#joins = joins;
+		this.#caps = caps;
+		this.#centerline = centerline ? 1 : 0;
+		this.#offset = -offset; // Note inverted sign, so offset goes right
+		this.geometry = geom; // Calculates storage
+
+		this.#colour = this.constructor._parseColour(colour);
+		if (this.#colour === null && Array.isArray(colour)) {
+			this.#colour = colour.map(this.constructor._parseColour);
+		}
+
+		this.#dashArray = dashArray;
+
+		this.#width = width;
+
+		if (this.#joins === Stroke.MITER) {
+			this._fillLineJoin = this._fillLineJoinMiter;
+		} else {
+			this._fillLineJoin = this._fillLineJoinBevel;
+		}
+
+		if (this.#caps === Stroke.BUTT) {
+			this._fillLineEnd = this._fillLineEndButt;
+		} else if (this.#caps === Stroke.SQUARE) {
+			this._fillLineEnd = this._fillLineEndSquare;
+		} else {
+			this._fillLineEnd = this._fillLineEndHex;
+		}
+
+		// Calculations for attrLength and idxLength are offloaded.
+		// this.#calcStorage();
+	}
+
+	get geometry() {
+		return super.geometry;
+	}
+	set geometry(geom) {
+		const ac = this._inAcetate;
+		if (ac) {
+			ac.remove(this);
+			super.geometry = geom;
+			this.#calcStorage();
+			ac.add(this);
+		} else {
+			super.geometry = geom;
+			this.#calcStorage();
+		}
+		return this;
+	}
+
+	/**
+	 * @property dashArray: Array of Number
+	 * Runtime value of the `dashArray` constructor option. Can be updated.
+	 */
+	get dashArray() {
+		return this.#dashArray;
+	}
+	set dashArray(d) {
+		this.#dashArray = d;
+		this.#updateColourDash();
+	}
+
+	/**
+	 * @property colour: Colour
+	 * Runtime value of the `colour` constructor option. Can be updated.
+	 */
+	get colour() {
+		return this.#colour;
+	}
+	set colour(c) {
+		this.#colour = this.constructor._parseColour(c);
+		if (this.#colour === null && Array.isArray(c)) {
+			this.#colour = c.map(this.constructor._parseColour);
+		}
+		this.#updateColourDash();
+	}
+
+	/**
+	 * @property verticesPerEnd: Number
+	 * Read-only getter for the number of line vertices used per line end/cap.
+	 */
+	get verticesPerEnd() {
+		return this.#caps === Stroke.BUTT ? 2 : 4;
+	}
+
+	/**
+	 * @property trianglesPerEnd: Number
+	 * Read-only getter for the number of triangles per line end/cap.
+	 */
+	get trianglesPerEnd() {
+		return this.#caps === Stroke.BUTT ? 0 : this.centerline ? 3 : 2;
+	}
+
+	/**
+	 * @property verticesPerJoin: Number
+	 * Read-only getter for the number of line vertices used per line join.
+	 */
+	get verticesPerJoin() {
+		return this.#joins === Stroke.MITER ? 2 : 3;
+	}
+
+	/**
+	 * @property centerline: Number
+	 * Read-only getter for whether there's vertices in the stroke centerline.
+	 */
+	get centerline() {
+		return this.#centerline ? 1 : 0;
+	}
+
+	/**
+	 * @property width: Number
+	 * Read-only getter for the `stroke` constructor option.
+	 */
+	get width() {
+		return this.#width;
+	}
+
+	get joins() {
+		return this.#joins;
+	}
+	get caps() {
+		return this.#caps;
+	}
+
+	// Calculate amount of vertices/triangles needed.
+	#calcStorage() {
+		// Assuming two vertices per point
+		// Even when line (ring) start and end are copunctual, attributes might
+		// be different, specifically line length for the dashing. So, always two
+		// vertices per point.
+
+		this.idxLength = 0;
+		this.attrLength = 0;
+		const center = this.centerline ? 1 : 0;
+
+		// this._verticesPerPoint = new Array(
+		// 	this.geometry.coords.length / this.geometry.dimension
+		// ).fill(this.verticesPerJoin);
+
+		this.geometry.mapRings((start, end, _length, r) => {
+			const pointCount = end - start;
+			const segCount = pointCount - 1;
+			const joinCount = pointCount - 2;
+
+			// Segment triangles
+			this.idxLength += (this.centerline ? 12 : 6) * segCount;
+
+			if (this.geometry.loops[r]) {
+				// Join triangles
+				this.idxLength += segCount * (this.verticesPerJoin - 2) * 3;
+
+				this.attrLength += (center + this.verticesPerJoin) * segCount;
+				this.attrLength += 2 + center;
+			} else {
+				// Join triangles
+				this.idxLength += joinCount * (this.verticesPerJoin - 2) * 3;
+
+				// Line cap triangles
+				this.idxLength += this.trianglesPerEnd * 6;
+
+				this.attrLength += (center + this.verticesPerEnd) * 2;
+				this.attrLength += (center + this.verticesPerJoin) * joinCount;
+
+				// this._verticesPerPoint[start] = this.verticesPerEnd;
+				// this._verticesPerPoint[end] = this.verticesPerEnd;
+			}
+		});
+		// console.log(this._verticesPerPoint);
+	}
+
+	// _setGlobalStrides(stridedColour, stridedDash, strideExtrude, strideDistance, coordData) {
+	// 	this._setGlobalStridesGeom(strideExtrude, strideDistance, coordData);
+	// 	this._setGlobalStrides(stridedColour, stridedDash);
+	// }
+
+	// Takes strided arrays for extrusion and distance (zero-indexed), plus
+	// this symbol's geometry *projected* to the platina's CRS.
+	// _setGlobalStridesGeom(strideExtrude, strideDistance, typedIdxs, geom, miterLimit) {
+	_setGeometryStrides(
+		geom,
+		strideExtrude,
+		strideDistance,
+		miterLimit,
+		perPointStrides,
+		typedIdxs
+	) {
+		let vtx = this.attrBase;
+		let idx = this.idxBase;
+		const coords = geom.coords;
+
+		// Extrusion width. TODO: feather.
+		const width = this.#width / 2;
+
+		// `segments` contains vectors from the n-th point to the n+1-th point.
+		// Each vector is represented as a `Point` instance.
+		const segments = Array.from(new Array(coords.length / 2 - 1), (_, i) => {
+			const offset = i * 2;
+			return new Point(
+				coords[offset + 2] - coords[offset + 0],
+				coords[offset + 3] - coords[offset + 1]
+			);
+		});
+
+		// `mags` contains the magnitudes of the segments, i.e. the lengths of
+		// `the segments
+		const mags = segments.map((s) => s.mag());
+
+		// `angles` contains the **heading** angles from the n-th
+		// point to the n+1-th point. In radians.
+		// const angles = segments.map((s) => s.angle());
+
+		// As `segments`, but with unit vectors
+		const units = segments.map((s, i) => s.div(mags[i]));
+
+		// By making an object with the data, we can have a cheap version
+		// of pass-by-reference, so that _fillLineEnd and _fillLineJoin can
+		// update some members
+		const data = {
+			idx,
+			vtx,
+			width,
+			segments,
+			mags,
+			// angles,
+			units,
+			miterLimit: miterLimit,
+			accDistance: 0,
+			lastLeftVtx: 0,
+			lastRightVtx: 0,
+			lastCenterVtx: 0,
+			strideExtrude: strideExtrude,
+			strideDistance: strideDistance,
+			typedIdxs,
+			perPointStrides: perPointStrides,
+		};
+
+		geom.mapRings((start, end, length, r) => {
+			if (length === 1) {
+				// Skip degenerate geometries. Can be triggered by applying
+				// "stroke" symbols to point geometries, which in turn can
+				// be triggered by vector tile stylesheets that don't filter
+				// geometries before deciding which symbol to apply.
+				return;
+			}
+
+			data.accDistance = 0;
+
+			// Is this a closed ring?
+			const loop = geom.loops[r];
+
+			for (let i = start; i < end; i++) {
+				if (i === start) {
+					// First vertex of the stroke
+					if (loop) {
+						const minSegLength = Math.min(mags[end - 2], mags[start]);
+						this._fillLineJoin(
+							units[end - 2],
+							units[start],
+							minSegLength,
+							geom,
+							data,
+							i,
+							true
+						);
+					} else {
+						this._fillLineEnd(units[start], data, geom, i, true);
+					}
+				} else if (i === end - 1) {
+					// Last vertex of the stroke
+					if (loop) {
+						const minSegLength = Math.min(mags[end - 2], mags[start]);
+						this._fillLineJoin(
+							units[end - 2],
+							units[start],
+							minSegLength,
+							geom,
+							data,
+							i,
+							false
+						);
+					} else {
+						this._fillLineEnd(units[end - 2], data, geom, i, false);
+					}
+				} else {
+					// Minimum segment length (of previous and next), populates aInnerAdjustment.
+					const minSegLength = Math.min(mags[i - 1], mags[i]);
+					this._fillLineJoin(
+						units[i - 1],
+						units[i],
+						minSegLength,
+						geom,
+						data,
+						i,
+						false
+					);
+				}
+
+				if (i !== end - 1) {
+					data.accDistance += mags[i];
+
+					if (this.centerline) {
+						// Indices for four triangles between two vertices,
+						// using centerline
+						// prettier-ignore
+						typedIdxs.set([
+							data.lastCenterVtx, data.vtx + 0, data.lastLeftVtx,
+							data.lastCenterVtx, data.vtx + 1, data.vtx + 0,
+							data.lastRightVtx, data.vtx + 1, data.lastCenterVtx,
+							data.lastRightVtx, data.vtx + 2, data.vtx + 1,
+						], data.idx);
+
+						data.idx += 12;
+					} else {
+						// Indices for two triangles between two vertices
+						// prettier-ignore
+						typedIdxs.set( [
+							data.lastRightVtx, data.vtx + 1, data.lastLeftVtx,
+							data.lastLeftVtx, data.vtx + 1, data.vtx + 0,
+						], data.idx );
+
+						data.idx += 6;
+					}
+				}
+			}
+		});
+	}
+
+	// Runs as part of _setGlobalStrides: sets data for the vertices for a line end
+	// on the i-th coordinate of the geometry (and possibly, for the triangles
+	// spawned by that line end)
+	_fillLineEndButt(heading, data, geom, i) {
+		// Fills two vertices with a line butt cap: extrusion perpendicular
+		// to the ehading of first/last segment.
+
+		const perp = heading.perp(); // vector perpendicular to heading
+		const extrude = perp.mult(data.width);
+		const offset = perp.mult(this.#offset);
+
+		// ._add({x: this.#offset, y:0})
+
+		if (this.centerline) {
+			this._setPerPointGeomStrides(
+				i,
+				LINECAP,
+				data.vtx,
+				3,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set( [
+				offset.x + extrude.x, offset.y + extrude.y, data.accDistance, 0, 0,
+				offset.x,             offset.y,             data.accDistance, 0, 0,
+				offset.x - extrude.x, offset.y - extrude.y, data.accDistance, 0, 0,
+			], data.vtx);
+			data.lastLeftVtx = data.vtx;
+			data.lastCenterVtx = data.vtx + 1;
+			data.lastRightVtx = data.vtx + 2;
+			data.vtx += 3;
+		} else {
+			this._setPerPointGeomStrides(
+				i,
+				LINECAP,
+				data.vtx,
+				2,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set( [
+				offset.x + extrude.x, offset.y + extrude.y, data.accDistance, 0,0,
+				offset.x - extrude.x, offset.y - extrude.y, data.accDistance, 0,0,
+			], data.vtx );
+			data.lastLeftVtx = data.vtx;
+			data.lastRightVtx = data.vtx + 1;
+			data.vtx += 2;
+		}
+	}
+
+	_fillLineEndSquare(heading, data, geom, i, first) {
+		// Fills *four* vertices with a square cap.
+
+		const perp = heading.perp(); // vector perpendicular to heading
+		const extrude = perp.mult(data.width);
+		const offset = perp.mult(this.#offset);
+		const widthHeading = heading.mult(first ? -data.width : data.width);
+		const leftExtrude = widthHeading.add(extrude);
+		const rightExtrude = widthHeading._sub(extrude);
+
+		if (this.centerline) {
+			this._setPerPointGeomStrides(
+				i,
+				LINECAP,
+				data.vtx,
+				5,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set( [
+				offset.x + extrude.x,      offset.y + extrude.y, data.accDistance, 0, 0,
+				offset.x ,                 offset.y, data.accDistance, 0,0,
+				offset.x - extrude.x,      offset.y - extrude.y, data.accDistance, 0, 0,
+				offset.x + leftExtrude.x,  offset.y + leftExtrude.y, data.accDistance, 0, 0,
+				offset.x + rightExtrude.x, offset.y + rightExtrude.y, data.accDistance, 0, 0,
+			], data.vtx);
+
+			if (first) {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 3, data.vtx + 1,
+					data.vtx + 1, data.vtx + 3, data.vtx + 4,
+					data.vtx + 1, data.vtx + 4, data.vtx + 2,
+				], data.idx);
+			} else {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 1, data.vtx + 3,
+					data.vtx + 1, data.vtx + 4, data.vtx + 3,
+					data.vtx + 1, data.vtx + 2, data.vtx + 4,
+				], data.idx);
+			}
+			data.idx += 9;
+
+			data.lastLeftVtx = data.vtx + 0;
+			data.lastCenterVtx = data.vtx + 1;
+			data.lastRightVtx = data.vtx + 2;
+			data.vtx += 5;
+		} else {
+			this._setPerPointGeomStrides(
+				i,
+				LINECAP,
+				data.vtx,
+				4,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set( [
+				offset.x + extrude.x,      offset.y + extrude.y, data.accDistance, 0, 0,
+				offset.x - extrude.x,      offset.y - extrude.y, data.accDistance, 0, 0,
+				offset.x + leftExtrude.x,  offset.y + leftExtrude.y, data.accDistance, 0, 0,
+				offset.x + rightExtrude.x, offset.y + rightExtrude.y, data.accDistance, 0, 0,
+			], data.vtx );
+
+			if (first) {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 2, data.vtx + 1,
+					data.vtx + 1, data.vtx + 2, data.vtx + 3,
+				], data.idx);
+			} else {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 1, data.vtx + 3,
+					data.vtx + 0, data.vtx + 3, data.vtx + 2,
+				], data.idx);
+			}
+
+			data.idx += 6;
+			data.lastLeftVtx = data.vtx + 0;
+			data.lastRightVtx = data.vtx + 1;
+			data.vtx += 4;
+		}
+	}
+
+	_fillLineEndHex(heading, data, geom, i, first) {
+		// Fills *four* vertices with a half-hexagon cap.
+
+		const hexHeight = data.width * 0.5 * SQRT3$1;
+
+		const perp = heading.perp(); // vector perpendicular to heading
+		const extrude = perp.mult(data.width);
+		const offset = perp.mult(this.#offset);
+		const halfExtrude = extrude.mult(0.5);
+		const widthHeading = heading.mult(first ? -hexHeight : hexHeight);
+		const leftExtrude = widthHeading.add(halfExtrude);
+		const rightExtrude = widthHeading._sub(halfExtrude);
+
+		// The rest of the method is identical to _fillLineEndSquare
+
+		if (this.centerline) {
+			this._setPerPointGeomStrides(
+				i,
+				LINECAP,
+				data.vtx,
+				5,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set( [
+				offset.x + extrude.x,      offset.y + extrude.y, data.accDistance, 0, 0,
+				offset.x ,                 offset.y, data.accDistance, 0,0,
+				offset.x - extrude.x,      offset.y - extrude.y, data.accDistance, 0, 0,
+				offset.x + leftExtrude.x,  offset.y + leftExtrude.y, data.accDistance, 0, 0,
+				offset.x + rightExtrude.x, offset.y + rightExtrude.y, data.accDistance, 0, 0,
+			], data.vtx);
+
+			if (first) {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 3, data.vtx + 1,
+					data.vtx + 1, data.vtx + 3, data.vtx + 4,
+					data.vtx + 1, data.vtx + 4, data.vtx + 2,
+				], data.idx);
+			} else {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 1, data.vtx + 3,
+					data.vtx + 1, data.vtx + 4, data.vtx + 3,
+					data.vtx + 1, data.vtx + 2, data.vtx + 4,
+				], data.idx);
+			}
+			data.idx += 9;
+
+			data.lastLeftVtx = data.vtx + 0;
+			data.lastCenterVtx = data.vtx + 1;
+			data.lastRightVtx = data.vtx + 2;
+			data.vtx += 5;
+		} else {
+			this._setPerPointGeomStrides(
+				i,
+				LINECAP,
+				data.vtx,
+				4,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set( [
+				offset.x + extrude.x,      offset.y + extrude.y, data.accDistance, 0, 0,
+				offset.x - extrude.x,      offset.y - extrude.y, data.accDistance, 0, 0,
+				offset.x + leftExtrude.x,  offset.y + leftExtrude.y, data.accDistance, 0, 0,
+				offset.x + rightExtrude.x, offset.y + rightExtrude.y, data.accDistance, 0, 0,
+			], data.vtx );
+
+			if (first) {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 2, data.vtx + 1,
+					data.vtx + 1, data.vtx + 2, data.vtx + 3,
+				], data.idx);
+			} else {
+				// prettier-ignore
+				data.typedIdxs.set([
+					data.vtx + 0, data.vtx + 1, data.vtx + 3,
+					data.vtx + 0, data.vtx + 3, data.vtx + 2,
+				], data.idx);
+			}
+
+			data.idx += 6;
+			data.lastLeftVtx = data.vtx + 0;
+			data.lastRightVtx = data.vtx + 1;
+			data.vtx += 4;
+		}
+	}
+
+	// As _fillLineEnd, but for joins. Miter version.
+	_fillLineJoinMiter(headingFrom, headingTo, minSegLength, geom, data, i) {
+		const prevNormal = headingFrom.perp();
+		const nextNormal = headingTo.perp();
+		const joinNormal = prevNormal.add(nextNormal);
+		if (joinNormal.x !== 0 || joinNormal.y !== 0) {
+			joinNormal._unit();
+		} else {
+			// Degenerate case: 180° angle
+			joinNormal.x = prevNormal.x;
+			joinNormal.y = prevNormal.y;
+		}
+
+		// const cosα = prevNormal.x * nextNormal.x + prevNormal.y * nextNormal.y;
+		const cosHalfα = joinNormal.x * nextNormal.x + joinNormal.y * nextNormal.y;
+		// joinNormal._div(cosHalfα || 1)._mult(data.width);
+		joinNormal._div(cosHalfα || 1);
+
+		const leftOffset = joinNormal.mult(data.width + this.#offset);
+		const rightOffset = joinNormal.mult(data.width - this.#offset);
+
+		const isRightTurn = prevNormal.x * nextNormal.y - prevNormal.y * nextNormal.x < 0;
+
+		// Put min segment length and extrusion ratio in either left or right
+		// aInnerAdjustment.
+		const leftAdj1 = isRightTurn ? 0 : minSegLength;
+		const leftAdj2 = isRightTurn ? 0 : 1 / cosHalfα;
+		const rightAdj1 = isRightTurn ? minSegLength : 0;
+		const rightAdj2 = isRightTurn ? 1 / cosHalfα : 0;
+
+		if (this.centerline) {
+			this._setPerPointGeomStrides(
+				i,
+				LINEJOIN,
+				data.vtx,
+				3,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set([
+				leftOffset.x, leftOffset.y, data.accDistance, leftAdj1, leftAdj2,
+				0, 0, data.accDistance, 0,0,
+				-rightOffset.x, -rightOffset.y, data.accDistance, rightAdj1, rightAdj2,
+			], data.vtx);
+
+			data.lastLeftVtx = data.vtx;
+			data.lastCenterVtx = data.vtx + 1;
+			data.lastRightVtx = data.vtx + 2;
+
+			data.vtx += 3;
+		} else {
+			this._setPerPointGeomStrides(
+				i,
+				LINEJOIN,
+				data.vtx,
+				2,
+				geom,
+				...data.perPointStrides
+			);
+
+			// prettier-ignore
+			data.strideExtrude.set([
+				leftOffset.x, leftOffset.y, data.accDistance, leftAdj1,leftAdj2,
+				-rightOffset.x, -rightOffset.y, data.accDistance, rightAdj1, rightAdj2,
+			], data.vtx);
+
+			data.lastLeftVtx = data.vtx;
+			data.lastRightVtx = data.vtx + 1;
+
+			data.vtx += 2;
+		}
+	}
+
+	// As _fillLineEnd, but for joins. Bevel version.
+	// Splits code path into left- and right-turns, since left/right extrusion is
+	// different between each. Order of vertices is always left-(center)-right-to:
+	// bevel is formed between left-right-to without centerline vertex, or
+	// left-center-to / right-center-to with centerline vertex.
+	_fillLineJoinBevel(headingFrom, headingTo, minSegLength, geom, data, i, first) {
+		const prevNormal = headingFrom.perp();
+		const nextNormal = headingTo.perp();
+		const joinNormal = prevNormal.add(nextNormal);
+		if (joinNormal.x !== 0 || joinNormal.y !== 0) {
+			joinNormal._unit();
+		} else {
+			// Degenerate case: 180° angle
+			joinNormal.x = prevNormal.x;
+			joinNormal.y = prevNormal.y;
+		}
+
+		// const cosα = prevNormal.x * nextNormal.x + prevNormal.y * nextNormal.y;
+		const cosHalfα = joinNormal.x * nextNormal.x + joinNormal.y * nextNormal.y;
+		// const sinHalfα = Math.sqrt(1 - cosHalfα * cosHalfα);
+		// joinNormal._div(cosHalfα || 1)._mult(data.width);
+		joinNormal._div(cosHalfα || 1);
+		const joinNormalZeroOffset = joinNormal.mult(data.width);
+
+		const deltaAngle =
+			(Math.PI * 2 + headingTo.angle() - headingFrom.angle()) % (Math.PI * 2);
+
+		// The tangent of a quarter of the angle (or half the angle between
+		// join normal and prev/next normal), needed for outer bevels
+		const tgQuarterα = Math.tan(deltaAngle / 4);
+
+		const isRightTurn = prevNormal.x * nextNormal.y - prevNormal.y * nextNormal.x < 0;
+
+		let centerVertex = this.centerline ? [0, 0, data.accDistance, 0, 0] : [];
+		const firstOffset = first ? 0 : 1;
+
+		this._setPerPointGeomStrides(
+			i,
+			first /* && isRightTurn*/ ? LINELOOP : LINEJOIN, // FIXME: left turns should work
+			data.vtx,
+			(this.centerline ? 3 : 2) + firstOffset,
+			geom,
+			...data.perPointStrides
+		);
+
+		if (isRightTurn) {
+			if (this.#joins === Stroke.OUTBEVEL) {
+				// Outer bevel offset:
+				prevNormal._add(headingFrom.div(tgQuarterα));
+				nextNormal._sub(headingTo.div(tgQuarterα));
+			}
+
+			joinNormal._mult(data.width - this.#offset);
+			const joinNormalDelta = joinNormal.sub(joinNormalZeroOffset);
+			prevNormal._mult(data.width)._sub(joinNormalDelta);
+			nextNormal._mult(data.width)._sub(joinNormalDelta);
+
+			const prevVertex = first
+				? []
+				: [prevNormal.x, prevNormal.y, data.accDistance, 0, 0];
+
+			// prettier-ignore
+			data.strideExtrude.set([
+				// Left vertex, from previous segment
+				...prevVertex,
+
+				// Center vertex
+				...centerVertex,
+
+				// Right vertex, common to segments
+				-joinNormal.x, -joinNormal.y, data.accDistance, minSegLength, 1 / cosHalfα,
+
+				// Left vertex, to next segment
+				nextNormal.x, nextNormal.y , data.accDistance, 0, 0,
+			], data.vtx);
+
+			if (!first) {
+				data.typedIdxs.set(
+					[data.vtx, data.vtx + 1, data.vtx + this.centerline + 2],
+					data.idx
+				);
+				data.idx += 3;
+			}
+
+			data.lastRightVtx = data.vtx + firstOffset + this.centerline;
+			data.lastLeftVtx = data.lastRightVtx + 1;
+			data.lastCenterVtx = data.vtx + firstOffset;
+		} else {
+			if (this.#joins === Stroke.OUTBEVEL) {
+				// Outer bevel offset:
+				prevNormal._sub(headingFrom.mult(tgQuarterα));
+				nextNormal._add(headingTo.mult(tgQuarterα));
+			}
+
+			joinNormal._mult(data.width + this.#offset);
+			const joinNormalDelta = joinNormal.sub(joinNormalZeroOffset);
+			prevNormal._mult(data.width)._sub(joinNormalDelta);
+			nextNormal._mult(data.width)._sub(joinNormalDelta);
+
+			const prevVertex = first
+				? []
+				: [-prevNormal.x, -prevNormal.y, data.accDistance, 0, 0];
+
+			// prettier-ignore
+			data.strideExtrude.set([
+				// Left vertex, common to segments
+				joinNormal.x, joinNormal.y, data.accDistance, minSegLength, 1 / cosHalfα,
+
+				// Center vertex
+				...centerVertex,
+
+				// Right vertex, coming from previous segment
+				...prevVertex,
+
+				// Right vertex, to next segment
+				-nextNormal.x, -nextNormal.y , data.accDistance, 0, 0,
+			], data.vtx);
+
+			if (!first) {
+				data.typedIdxs.set(
+					[
+						data.vtx + this.centerline,
+						data.vtx + this.centerline + 1,
+						data.vtx + this.centerline + 2,
+					],
+					data.idx
+				);
+				data.idx += 3;
+			}
+			data.lastRightVtx = data.vtx + 1 + this.centerline + firstOffset;
+			data.lastCenterVtx = data.vtx + 1;
+			data.lastLeftVtx = data.vtx;
+		}
+		data.vtx += 2 + this.centerline + firstOffset;
+	}
+
+	#updateColourDash() {
+		if (!this._inAcetate) {
+			return;
+		}
+
+		const stridedArrays = this._inAcetate._getStridedArrays(
+			this.attrBase + this.attrLength,
+			this.idxBase + this.idxLength
+		);
+		this._setGlobalStrides(...stridedArrays);
+
+		// this._inAcetate._attrs.commit(this.attrBase, this.attrLength);
+		this._inAcetate._commitStridedArrays(
+			this.attrBase,
+			this.attrLength,
+			this.idxBase,
+			this.idxLength
+		);
+		this._inAcetate.dirty = true;
+	}
+
+	_setGlobalStrides(strideDash, perPointStrides) {
+		// Normalize dasharray into an accumulated 4-element array.
+		let dashArray;
+		if (!this.dashArray || this.dashArray.length === 0) {
+			dashArray = Uint8Array.from([1, 1, 1, 1]);
+		} else if (this.dashArray.length === 2) {
+			const [d0, d1] = this.dashArray;
+			// dashArray = Uint8Array.from([d0, d1 + d0, d0 + d1 + d0, d1 + d0 + d1 + d0]);
+			dashArray = Uint8Array.from([d0, d1 + d0, 0, d1 + d0]);
+		} else if (this.dashArray.length === 4) {
+			const [d0, d1, d2, d3] = this.dashArray;
+			dashArray = Uint8Array.from([d0, d1 + d0, d2 + d1 + d0, d3 + d2 + d1 + d0]);
+		} else {
+			throw new Error("Invalid length of dashArray in stroke.");
+		}
+
+		for (let i = this.attrBase, end = this.attrBase + this.attrLength; i < end; i++) {
+			strideDash.set(dashArray, i);
+		}
+
+		/// TODO: get per point strides
+
+		let vtx = this.attrBase;
+		const vtxJoin = this.verticesPerJoin + (this.centerline ? 1 : 0);
+		const vtxEnd = this.verticesPerEnd + (this.centerline ? 1 : 0);
+		const isBevel = this.#joins === Stroke.BEVEL || this.#joins === Stroke.OUTBEVEL;
+
+		this.geometry.mapRings((start, end, length, r) => {
+			if (length === 1) {
+				// Skip degenerate geometries.
+				return;
+			}
+
+			for (let i = start; i < end; i++) {
+				if (i === start || i === end - 1) {
+					// First or last vertex of the stroke
+					if (this.geometry.loops[r]) {
+						this._setPerPointStrides(
+							i,
+							LINEJOIN,
+							vtx,
+							vtxJoin - (isBevel && i === start ? 1 : 0),
+							...perPointStrides
+						);
+						vtx += vtxJoin - (isBevel && i === start ? 1 : 0);
+					} else {
+						this._setPerPointStrides(
+							i,
+							LINECAP,
+							vtx,
+							vtxEnd,
+							...perPointStrides
+						);
+						vtx += vtxEnd;
+					}
+				} else {
+					this._setPerPointStrides(
+						i,
+						LINEJOIN,
+						vtx,
+						vtxJoin,
+						...perPointStrides
+					);
+					vtx += vtxJoin;
+				}
+			}
+		});
+	}
+
+	/**
+	 * @section Acetate Interface
+	 * @uninheritable
+	 * @method _setPerPointStrides(n: Number, pointType: Symbol, vtx: Number, vtxCount: Number ...): this
+	 * As `_setGlobalStrides`, but only affects the n-th point in the symbol's
+	 * geometry.
+	 *
+	 * Takes the following parameters:
+	 * - Index for the `n`th point in the geometry
+	 * - Type of point extrusion: line join, line cap, or bevel-less loop line join
+	 * - Index for the vertex attribute data
+	 * - Number of vertices spawned for this geometry point
+	 * - strided arrays, as per `_getPerPointStridedArrays`.
+	 *
+	 * This method can be overriden or extended by subclasses and/or decorators.
+	 */
+	_setPerPointStrides(n, _pointType, vtx, vtxCount, strideColour, ..._strides) {
+		const pointColour =
+			Array.isArray(this.#colour) && Array.isArray(this.#colour[0])
+				? this.#colour[n]
+				: this.#colour;
+
+		for (let i = 0; i < vtxCount; i++) {
+			strideColour?.set(pointColour, vtx + i);
+		}
+	}
+
+	/**
+	 * @section Acetate Interface
+	 * @uninheritable
+	 * @method _setPerPointGeomStrides(n: Number, pointType: Symbol, vtx: Number, geom: Geometry, vtxCount: Number ...): this
+	 * As `_setPerPointStrides`, but also takes the projected geometry. This gets
+	 * run whenever the grometry is reprojected, as per `_setGeometryStrides`.
+	 */
+	_setPerPointGeomStrides(_n, _pointType, _vtx, _vtxCount, _geom, ..._strides) {
+		// noop
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class AcetateFill
+ * @inherits AcetateVertices
+ *
+ * An `Acetate` that draws a simple (single-colour) fill for polygons.
+ *
+ * This leverages Vladimir Agafonkin's `earcut` library. Polygon triangulation
+ * happens after (every) data (re)projection.
+ *
+ */
+
+class AcetateFill extends AcetateInteractive {
+	/**
+	 * @constructor AcetateFill(target: GliiFactory)
+	 */
+	constructor(target, opts) {
+		super(target, { zIndex: 1000, ...opts });
+
+		// Could be done as a SingleAttribute, but is a InterleavedAttributes for
+		// compatibility with the `intensify` decorator.
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aColour: this._attrs.getBindableAttribute(0),
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+			`,
+			varyings: { vColour: "vec4" },
+			fragmentShaderMain: `gl_FragColor = vColour;`,
+		};
+	}
+
+	_getStridedArrays(maxVtx, _maxIdx) {
+		return [
+			// Indices
+			//...super._getStridedArrays(maxVtx, maxIdx),
+
+			// Colours
+			this._attrs.asStridedArray(0, maxVtx),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, totalVertices, _baseIdx, _totalIndices) {
+		this._attrs.commit(baseVtx, totalVertices);
+		// return super._commitStridedArrays(baseVtx, totalVertices, baseIdx, totalIndices);
+		return this;
+	}
+
+	_getGeometryStridedArrays(_maxVtx, _maxIdx) {
+		return [];
+	}
+
+	_commitGeometryStridedArrays(_baseVtx, _vtxCount, _baseIdx, _idxCount) {
+		// noop
+	}
+
+	multiAdd(syms) {
+		super.multiAdd(syms);
+		return this.multiAllocate(syms);
+	}
+
+	multiAllocate(fills) {
+		// Skip already added symbols
+		fills = fills.filter((f) => isNaN(f.attrBase));
+		if (fills.length === 0) {
+			return;
+		}
+
+		const totalVertices = fills.reduce((acc, fill) => acc + fill.attrLength, 0);
+		let baseVtx = this._attribAllocator.allocateBlock(totalVertices);
+		let vtxAcc = baseVtx;
+
+		let stridedArrays = this._getStridedArrays(
+			baseVtx + totalVertices
+			// baseIdx + totalIndices
+		);
+
+		fills.forEach((fill) => {
+			fill._inAcetate = this;
+			fill.attrBase = vtxAcc;
+			// fill.idxBase = idxAcc;
+			this._knownSymbols[vtxAcc] = fill;
+
+			fill._setGlobalStrides(...stridedArrays);
+
+			vtxAcc += fill.attrLength;
+			// idxAcc += fill.idxLength;
+		});
+
+		this._commitStridedArrays(baseVtx, totalVertices /*, baseIdx, totalIndices*/);
+
+		if (!this._crs) {
+			// Fill symbols have been added before setting a CRS. The CRS of the first
+			// Fill symbol shall be used temporarily.
+			this._oldCrs = this._crs = fills[0].geom.crs;
+		}
+
+		const coordData = this.reproject(baseVtx, totalVertices, fills, true);
+
+		// Once attributes are done (and coordinates have been projected),
+		// do primitive indices.
+		// Triangles are earcut, and the order depends on the specific projection.
+		// That's the reason earcut is done here instead of inside `Fill` functionality:
+		// the data needs to be in the display projection.
+		this.cutFills(fills, coordData, baseVtx);
+
+		super.multiAddIds(fills, baseVtx);
+
+		return this;
+	}
+
+	/**
+	 * Internal. Given an array of `Fill` symbols, and a compact `Float32Array` with
+	 * their projected CRS coordinates, loops through their geometries, and
+	 * runs `earcut` on them.
+	 *
+	 * This is common to both adding `Fill`s and reprojecting.
+	 */
+	cutFills(fills, coordData, baseVtx) {
+		let idxOffset = 0; // Pointer to the item in the coordData typedarray
+
+		const earcuttedFills = fills.map((fill) => {
+			const d = fill.geom.dimension;
+			const stops = [...fill.geom.hulls, fill.geom.coords.length / d];
+			let start = 0;
+
+			return stops
+				.map((stop) => {
+					const vertexCount = stop - start;
+
+					// Get the ring offsets ("hole positions") for the current hull
+					const rings = fill.geom.rings
+						.filter((r) => r > start && r < stop)
+						.map((r) => r - start);
+
+					const idxs = earcut(
+						coordData.slice(idxOffset * d, idxOffset * d + vertexCount * d),
+						rings,
+						d
+					).map((i) => idxOffset + i);
+
+					idxOffset += vertexCount;
+					start = stop;
+
+					return idxs;
+				})
+				.flat();
+		});
+
+		const flatEarcuts = earcuttedFills.flat();
+
+		const totalIndices = flatEarcuts.length;
+
+		// Skip degenerate case of adding fills with 2 or less vertices each,
+		// which generate zero triangles when earcutted, which means zero
+		// indices, which means allocation would error out.
+		if (totalIndices > 0) {
+			let baseIdx = this._indices.allocateSlots(totalIndices);
+
+			// idxOffset changes semantics: now it's the offset in the IndexBuffer
+			// where a `Fill` will start storing its triangle indices data.
+			idxOffset = baseIdx;
+
+			fills.forEach((fill, i) => {
+				const length = earcuttedFills[i].length;
+				fill.updateRefs(this, fill.attrBase, idxOffset);
+				fill.idxLength = length;
+				idxOffset += length;
+			});
+
+			// FillAcetate foregoes the usual strided arrays approach to triangle
+			// indices, and instead does one single set() call to _indices.
+			this._indices.set(
+				baseIdx,
+				flatEarcuts.map((i) => baseVtx + i)
+			);
+		}
+		this.dirty = true;
+	}
+
+	/**
+	 * @method reproject(start: Number, length: Number, skipEarcut?: Boolean, symbols?: Array of Fill): Array of Number
+	 * As `AcetateVertices.reproject()`, but also recalculates the `earcut`
+	 * triangulation for the affected symbols.
+	 */
+	reproject(start, length, symbols, skipEarcut = false) {
+		const coordData = super.reproject(start, length, symbols);
+
+		if (this._crs.name !== this._oldCrs.name && !skipEarcut) {
+			/// This deallocates all triangles in a loop (CPU-bound, not a performance
+			/// issue), then reallocates all of them; effectively removing and
+			/// re-adding the triangle indices from the index buffer.
+			/// This is because it might not be safe to assume that the triangle
+			/// index data is compact for the relevant fills (which are guaranteed
+			/// to be compact regarding their vertex attributes only).
+
+			let relevantSymbols =
+				symbols ??
+				this._knownSymbols.filter((symbol, attrIdx) => {
+					return (
+						attrIdx >= start && attrIdx + symbol.attrLength <= start + length
+					);
+				});
+
+			relevantSymbols.forEach((fill) => {
+				this._indices.deallocateSlots(fill.idxBase, fill.idxLength);
+			});
+
+			//console.time("Earcutting due to reprojection");
+			this.cutFills(relevantSymbols, coordData, start);
+			//console.timeEnd("Earcutting due to reprojection");
+		}
+
+		return coordData;
+	}
+}
+
+/**
+ * @class Fill
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateFill
+ *
+ * Simple (single-colour) fill for polygons.
+ *
+ * The `Geometry` might have any depth:
+ * - Depth 1 is interpreted as a polygon with a single outer ring
+ * - Depth 2 is interpreted as a polygon with an outer ring and inner rings
+ * - Depth 3 is interpreted as a multipolygon
+ *
+ * This leverages [Volodymir Agafonkin's `earcut` library](https://github.com/mapbox/earcut).
+ */
+
+class Fill extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateFill
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateFill;
+
+	/**
+	 * @constructor Fill(geom: Geometry, opts?: Fill Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka Fill Options
+			 * @option colour: Colour = '#3388ff33'
+			 * The colour of the fill symbol.
+			 */
+			colour = [0x33, 0x88, 0xff, 0x33],
+			...opts
+		} = {}
+	) {
+		// Length of each linestring
+		//this._lengths = linestrings.map((ls) => ls.length);
+		super(geom, opts);
+
+		// Amount of vertex attribute slots needed
+		// Attribute slots is *half* of the lenght of the [x1,y2, ...xn,xy] flat array
+		this.attrLength = this.geom.coords.length / this.geom.dimension;
+
+		// Amount of index slots needed (calc'd by earcut)
+		//this.idxLength = (this.attrLength - this._lengths.length) * 2;
+
+		this.#colour = this.constructor._parseColour(colour);
+		if (this.colour === null) {
+			throw new Error("Invalid colour specified for Fill.");
+		}
+	}
+
+	#colour;
+	/**
+	 * @property colour: Colour
+	 * The colour for all the dots. Can be updated.
+	 */
+	get colour() {
+		return this.#colour;
+	}
+	set colour(newColour) {
+		this.#colour = this.constructor._parseColour(newColour);
+		if (!this._inAcetate) {
+			return this;
+		}
+		const stridedColour = this._inAcetate._attrs.asStridedArray(0);
+		let end = this.attrBase + this.attrLength;
+		for (let vtx = this.attrBase; vtx < end; vtx++) {
+			stridedColour.set(this.#colour, vtx);
+		}
+		this._inAcetate._attrs.commit(this.attrBase, this.attrLength);
+		this._inAcetate.dirty = true;
+	}
+
+	get geometry() {
+		return super.geometry;
+	}
+	set geometry(geom) {
+		const ac = this._inAcetate;
+		if (ac) {
+			ac.remove(this);
+			super.geometry = geom;
+			this.attrLength = this.geometry.coords.length / this.geometry.dimension;
+			ac.add(this);
+		} else {
+			super.geometry = geom;
+			this.attrLength = this.geometry.coords.length / this.geometry.dimension;
+		}
+		return this;
+	}
+
+	_setGlobalStrides(strideColour) {
+		const attrMax = this.attrBase + this.attrLength;
+		for (let i = this.attrBase; i < attrMax; i++) {
+			strideColour.set(this.colour, i);
+		}
+		return this;
+	}
+
+	_setGeometryStrides() {
+		// noop - earcut calculations run elsewhere.
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+// KML colour definitions are "aabbggrr", opposite to CSS hex colour defs ("#rrggbbaa")
+// This function works similar to parseCSSColour.
+function parseKMLColour(str) {
+	const iv = parseInt(str, 16);
+	if (!(iv >= 0 && iv <= 0xffffffff)) return null; // Covers NaN.
+	return [
+		iv & 0x000000ff,
+		(iv & 0x0000ff00) >> 8,
+		(iv & 0x00ff0000) >> 16,
+		((iv & 0xff000000) >> 24) & 0xff,
+	];
+}
+
+// Returns an object o the form `{ point: [], line: [], polygon: [] }`,
+// containing symbolizer functions appropriate for points/linestrings/polygons.
+// Parameters are one `<Style>` node from a KML document (either from a named
+// style, or inlined in a `<Placemark>`), and the URL of the KML document
+// (needed for the relative URLs of icons).
+function parseKMLStyle(node, baseUrl) {
+	let symbolizers = { point: [], line: [], polygon: [] };
+
+	let iconStyle = node.querySelector("IconStyle");
+	if (iconStyle) {
+		const imageHref = new URL(iconStyle.querySelector("href").textContent, baseUrl);
+		let anchor = ["50%", "50%"];
+
+		const hotspot = iconStyle.querySelector("hotSpot");
+		if (hotspot) {
+			if ("x" in hotspot.attributes) {
+				const x = Number(hotspot.attributes.x.value);
+				const xunits = hotspot.attributes.xunits.value;
+				if (xunits === "fraction" || !("xunits" in hotspot.attributes)) {
+					anchor[0] = x * 100 + "%";
+				} else if (xunits === "insetPixels") {
+					anchor[0] = -x;
+				} else if (xunits === "pixels") {
+					anchor[0] = x;
+				} else {
+					// This case includes the "insetPixels" mode,
+					// which is pixels counted from the top-right
+					throw new Error("Unimplemented unit for KML icon hotspot");
+				}
+			}
+			if ("y" in hotspot.attributes) {
+				const y = Number(hotspot.attributes.y.value);
+				const yunits = hotspot.attributes.yunits.value;
+				if (yunits === "fraction" || !("yunits" in hotspot.attributes)) {
+					anchor[1] = y * 100 + "%";
+				} else if (yunits === "insetPixels") {
+					anchor[1] = y;
+				} else if (yunits === "pixels") {
+					anchor[1] = -y;
+				} else {
+					throw new Error("Unimplemented unit for KML icon hotspot");
+				}
+			}
+		}
+
+		symbolizers.point.push(function kmlIconStyle(geom) {
+			return new Sprite(geom, {
+				image: imageHref,
+				spriteAnchor: anchor,
+			});
+		});
+	}
+
+	let lineStyle = node.querySelector("LineStyle");
+	if (lineStyle) {
+		let colour = lineStyle.querySelector("color")?.textContent;
+
+		if (colour) {
+			colour = parseKMLColour(colour);
+		} else {
+			colour = [255, 255, 255, 255];
+		}
+
+		let width = Number(lineStyle.querySelector("width")?.textContent ?? 1);
+
+		function kmlLineStyle(geom) {
+			return new Stroke(geom, { colour, width });
+		}
+		symbolizers.line.push(kmlLineStyle);
+		if (node.querySelector("PolyStyle > outline")?.textContent !== "0") {
+			symbolizers.polygon.push(kmlLineStyle);
+		}
+	}
+
+	let polyStyle = node.querySelector("PolyStyle");
+	if (polyStyle) {
+		let colour = polyStyle.querySelector("color")?.textContent;
+		if (colour) {
+			colour = parseKMLColour(colour);
+		} else {
+			colour = [255, 255, 255, 255];
+		}
+
+		function kmlFillStyle(geom) {
+			return new Fill(geom, { colour });
+		}
+
+		if (polyStyle.querySelector("fill")?.textContent !== "0") {
+			symbolizers.polygon.push(kmlFillStyle);
+		}
+
+		/// TODO: If there's an "outline" element with a value of
+		/// zero, there should be no stroke associated.
+	}
+
+	node.querySelector("LabelStyle");
+
+	return symbolizers;
+}
+
+/**
+ * Straight from https://github.com/maplibre/maplibre-gl-js/blob/main/src/style-spec/expression/definitions/interpolate.ts
+ *
+ * Code from Anand Thakker http://anandthakker.net under BSD-3 license.
+ */
+
+function exponentialInterpolation(input, base, lowerValue, upperValue) {
+	const difference = upperValue - lowerValue;
+	const progress = input - lowerValue;
+
+	if (difference === 0) {
+		return 0;
+	} else if (base === 1) {
+		return progress / difference;
+	} else {
+		return (Math.pow(base, progress) - 1) / (Math.pow(base, difference) - 1);
+	}
+}
+
+// For whatever reason, the mapbox-gl-js stylesheet spec doesn't follow
+// CSS colours.
+// Specifically, the RGBA declaration assumes that A is between 0 and 1,
+// instead of between 0 and 255.
+
+function parseColour(c) {
+	if (typeof c === "string" && c.substr(0, 4) === "rgba") {
+		const tmpColour = parseCSSColor(c);
+		const match = c.match(/,\s*([\d\.]+)\s*\)$/);
+		tmpColour[3] = match[1] * 255;
+		return tmpColour;
+	} else {
+		return parseCSSColor(c);
+	}
+}
+
+// import parseColour from "../../3rd-party/css-colour-parser.mjs";
+
+// Aux function for the VectorStylesheetLoader.
+
+// Given an object/array with a mapbox/maplibre stylesheet expression,
+// returns *either* a constant value, or a function that takes
+// feature properties.
+
+// The idea being that every expression **and subexpression** can be mapped
+// to a function.
+
+// See https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
+
+function parseExpression(exp, isColour = false) {
+	if (typeof exp === "number" || typeof exp === "string") {
+		return getConstant(exp, isColour);
+	} else if (exp instanceof Array) {
+		// Expression is an array
+
+		if (exp.every((n) => typeof n === "number")) {
+			return getConstant(exp);
+		}
+
+		if (exp[0] === "literal") {
+			return parseExpression(exp[1], isColour);
+		}
+		if (exp[0] === "match") {
+			return getMatcher(exp, isColour);
+		}
+		if (exp[0] === "get") {
+			return getGetterFunction(exp, isColour);
+		}
+		if (exp[0] === "interpolate") {
+			return getInterpolateFunction(exp, isColour);
+		}
+		if (exp[0] === "step") {
+			return getSteps(exp, isColour);
+		}
+	} else {
+		// Expression is an object
+
+		if (exp.stops) {
+			return getStopsInterpolator(exp, isColour);
+		}
+	}
+
+	throw new Error("Could not parse vector stylesheet expression", exp);
+}
+
+/**
+ * Parses constant expressions
+ */
+function getConstant(exp, isColour) {
+	if (isColour) {
+		return getConstant(parseColour(exp));
+	}
+
+	const fn = function constant() {
+		return exp;
+	};
+	fn.constant = exp;
+	return fn;
+}
+
+/**
+ * Parses "match" expressions
+ */
+function getMatcher(matchData, isColour) {
+	if (matchData[0] !== "match") {
+		throw new Error("getMatcher needs a `match` expression structure");
+	}
+
+	if (matchData[1][0] !== "get") {
+		throw new Error("getMatcher cannot handle this `match` expression structure");
+		// Ideally, this should parse the "get" expression instead.
+		// The current implementation provides a fast path to the most
+		// usual case.
+	}
+
+	let matchMap = {};
+	const attrName = matchData[1][1];
+	const l = matchData.length;
+
+	for (let i = 2; i < l - 2; i += 2) {
+		const value = parseExpression(matchData[i + 1], isColour);
+		if (matchData[i] instanceof Array) {
+			matchData[i].forEach((m) => (matchMap[m] = value));
+		} else {
+			matchMap[matchData[i]] = value;
+		}
+	}
+	const defaultValue = parseExpression(matchData[l - 1], isColour);
+
+	/// TODO: Fast-path alternative when all possible matches are
+	/// **not** a function.
+
+	//console.log(matchMap);
+	return function matcher(attrs) {
+		const match = matchMap[attrs[attrName]];
+		return match?.(attrs) ?? defaultValue(attrs);
+	};
+}
+
+/**
+ * Parses (deprecated) "stops" expressions
+ */
+function getStopsInterpolator(exp, isColour) {
+	const attrName = exp.property ?? "$zoom";
+	const table = exp.stops.map((s) => [s[0], parseExpression(s[1], isColour)]);
+	const l = table.length;
+
+	/// TODO: Use base currently this is always linear interpolation.
+	//const base = exp.base ?? 1;	// Base of exponential interpolation
+
+	return function stopsInterpolator(attrs) {
+		const value = attrs[attrName];
+		if (value <= table[0][0]) {
+			return table[0][1](attrs);
+		}
+
+		for (let i = 1; i < l; i++) {
+			if (value <= table[i][0]) {
+				const range = table[i][0] - table[i - 1][0];
+				const minVal = table[i - 1][1](attrs);
+				const maxVal = table[i][1](attrs);
+				const percentage = (value - table[i - 1][0]) / range;
+				if (minVal instanceof Array) {
+					return minVal.map(
+						(_, j) => minVal[j] * (1 - percentage) + maxVal[j] * percentage
+					);
+				} else {
+					return minVal * (1 - percentage) + maxVal * percentage;
+				}
+			}
+		}
+		return table[l - 1][1](attrs);
+	};
+
+	/// TODO: fast path functions for constant values
+}
+
+function getInterpolateFunction(exp, isColour) {
+	if (exp[0] !== "interpolate") {
+		throw new Error("Malformed interpolate expression");
+	} else if (exp[2].length !== 1) {
+		throw new Error("Unsupported interpolate expression");
+	}
+
+	let attr = exp[2][0];
+	if (attr === "zoom") {
+		/// FIXME: Find where the 'zoom' and '$zoom' fields are documented.
+		attr = "$zoom";
+	}
+
+	const rawTable = exp.slice(3);
+	//const defaultValue = parseExpression(exp[exp.length-1], isColour);
+	let l = rawTable.length;
+	const table = [];
+	for (let i = 0; i < l; i += 2) {
+		table.push([rawTable[i], parseExpression(rawTable[i + 1], isColour)]);
+	}
+	l = table.length;
+
+	if (exp[1][0] === "linear") {
+		return function linearInterpolator(attrs) {
+			const value = attrs[attr];
+			if (value <= table[0][0]) {
+				return table[0][1](attrs);
+			} else if (value >= table[l - 1][0]) {
+				return table[l - 1][1](attrs);
+			} else {
+				for (let i = 1; i < l; i++) {
+					if (value <= table[i][0]) {
+						const range = table[i][0] - table[i - 1][0];
+						const minVal = table[i - 1][1](attrs);
+						const maxVal = table[i][1](attrs);
+						const percentage = (value - table[i - 1][0]) / range;
+						if (minVal instanceof Array) {
+							return minVal.map(
+								(_, j) =>
+									minVal[j] * (1 - percentage) + maxVal[j] * percentage
+							);
+						} else {
+							return minVal * (1 - percentage) + maxVal * percentage;
+						}
+					}
+				}
+			}
+		};
+	} else if (exp[1][0] === "exponential") {
+		const base = exp[1][1];
+
+		return function exponentialInterpolator(attrs) {
+			const value = attrs[attr];
+			if (value <= table[0][0]) {
+				return table[0][1](attrs);
+			} else if (value >= table[l - 1][0]) {
+				return table[l - 1][1](attrs);
+			} else {
+				for (let i = 1; i < l; i++) {
+					if (value <= table[i][0]) {
+						const percentage = exponentialInterpolation(
+							value,
+							base,
+							table[i - 1][0],
+							table[i][0]
+						);
+						const minVal = table[i - 1][1](attrs);
+						const maxVal = table[i][1](attrs);
+						if (minVal instanceof Array) {
+							return minVal.map(
+								(_, j) =>
+									minVal[j] * (1 - percentage) + maxVal[j] * percentage
+							);
+						} else {
+							return minVal * (1 - percentage) + maxVal * percentage;
+						}
+					}
+				}
+			}
+			return defaultValue(attrs);
+		};
+	} else {
+		throw new Error("Unknown/unsupported interpolation type in stylesheet");
+	}
+}
+
+/**
+ * Parses "get" expressions
+ */
+function getGetterFunction(exp, isColour) {
+	if (exp[0] !== "get") {
+		throw new Error('Bad "get" expression');
+	}
+
+	const attrName = exp[1];
+
+	if (isColour) {
+		return function getColourAttrib(attrs) {
+			return parseColour(attrs[attrName]);
+		};
+	} else {
+		return function getAttrib(attrs) {
+			return attrs[attrName];
+		};
+	}
+}
+
+/**
+ * Parses "step" expressions
+ * This expression is assumed to have the step values in strictly ascending order
+ */
+function getSteps(exp, isColour) {
+	if (exp[0] !== "step") {
+		throw new Error("Malformed interpolate expression");
+	}
+
+	let attr = exp[1];
+	if (attr === "zoom") {
+		/// FIXME: Find where the 'zoom' and '$zoom' fields are documented.
+		attr = "$zoom";
+	}
+
+	const rawTable = exp.slice(2);
+	let l = rawTable.length - 1;
+	const table = [];
+	for (let i = 0; i < l; i += 2) {
+		table.push([rawTable[i], parseExpression(rawTable[i + 1], isColour)]);
+	}
+	l = table.length;
+
+	return function step(attrs) {
+		const value = attrs[attr];
+
+		if (value < table[0][0]) {
+			return table[0][1](attrs);
+		}
+		for (let i = 1; i < l; i++) {
+			if (value >= table[i][0]) {
+				return table[i][1](attrs);
+			}
+		}
+	};
+}
+
+// Aux function for the VectorStylesheetLoader.
+
+function fillSymbolizer({ id, layout, paint }, interactive) {
+	let fillColour = parseExpression(paint["fill-color"], true);
+	let fillOpacity = paint["fill-opacity"]
+		? parseExpression(paint["fill-opacity"])
+		: undefined;
+
+	if (fillColour) {
+		return function solidFill(geom, attrs) {
+			const colour = fillColour(attrs);
+			colour[3] *= fillOpacity?.(attrs) ?? 1;
+
+			return [
+				new Fill(geom, {
+					colour,
+					interactive,
+				}),
+			];
+		};
+	}
+}
+
+// Aux function for the VectorStylesheetLoader.
+
+// Filter wrapper functions - returns a `function(geom, attrs)` that runs the filter,
+// and returns a boolean.
+// As per https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/
+function getFilterFunc(filter) {
+	const op = filter[0];
+
+	if (op === "all" && filter.length === 2) {
+		// "all" boolean joiner with just one condition
+		return getFilterFunc(filter[1]);
+	} else if (op === "any" && filter.length === 2) {
+		// "any" boolean joiner with just one condition
+		return getFilterFunc(filter[1]);
+	}
+	if ((op === "all" || op === "any") && filter.length === 1) {
+		// "all"/"any" booleans with zero conditions, assume always true.
+		return function alwaysTrue(geom, attrs) {
+			return true;
+		};
+	} else if (op === "all" && filter.length > 2) {
+		// "all" boolean, run Array.prototype.every
+		filter.splice(0, 2);
+		const fns = filter.map((f) => getFilterFunc(f));
+
+		return function filterEvery(geom, attrs) {
+			return fns.every((f) => f(geom, attrs));
+		};
+	} else if (op === "any" && filter.length > 2) {
+		// "any" boolean, run Array.prototype.some
+		filter.splice(0, 2);
+		const fns = filter.map((f) => getFilterFunc(f));
+
+		return function filterSome(geom, attrs) {
+			return fns.some((f) => f(geom, attrs));
+		};
+	}
+
+	let attr = filter[1];
+	const values = filter.slice(2);
+
+	// The "get" can be found in a filter, too
+	if (attr instanceof Array) {
+		if (attr[0] === "get") {
+			attr = attr[1];
+		} else if (attr[0] === "geometry-type") {
+			attr = "$type";
+		} else {
+			throw new Error(`Unsupported expression inside filter: ${attr}`);
+		}
+	}
+
+	if (op === "!=") {
+		return function filterNotEqual(geom, attrs) {
+			return attrs[attr] != values[0];
+		};
+	} else if (op === "==") {
+		return function filterNotEqual(geom, attrs) {
+			return attrs[attr] == values[0];
+		};
+	} else if (op === "in") {
+		return function filterIn(geom, attrs) {
+			return values.includes(attrs[attr]);
+		};
+	} else if (op === "!in") {
+		return function filterIn(geom, attrs) {
+			return !values.includes(attrs[attr]);
+		};
+	} else if (op === ">") {
+		return function filterGreaterThan(geom, attrs) {
+			return attrs[attr] > values[0];
+		};
+	} else if (op === "<") {
+		return function filterLessThan(geom, attrs) {
+			return attrs[attr] < values[0];
+		};
+	} else if (op === ">=") {
+		return function filterGreaterOrEqualThan(geom, attrs) {
+			return attrs[attr] >= values[0];
+		};
+	} else if (op === "<=") {
+		return function filterLessOrEqualThan(geom, attrs) {
+			return attrs[attr] <= values[0];
+		};
+	} else if (op === "has") {
+		return function filterHas(geom, attrs) {
+			return attr in attrs;
+		};
+	} else if (op === "!has") {
+		return function filterNotHas(geom, attrs) {
+			return !(attr in attrs);
+		};
+	} else if (op === "match" && values.length === 3) {
+		// Somehow 'match' needs an extra wrapping of the attribute name in an expression.
+		const matchable = parseExpression(attr);
+		const candidates = values[0];
+		const onMatch = values[1];
+		const onNoMatch = values[2];
+		return function filterMatch(geom, attrs) {
+			const val = matchable(attrs);
+			return candidates.includes(val)
+				? onMatch
+					? true
+					: false
+				: onNoMatch
+				? true
+				: false;
+		};
+	} else if (op === "!") {
+		return function filterNot(geom, attrs) {
+			return !getFilterFunc(attr)(geom, attrs);
+		};
+	} else {
+		console.info("Unimplemented stylesheet filter", filter);
+		return undefined;
+	}
+}
+
+// Aux function for the VectorStylesheetLoader.
+
+function lineSymbolizer({ id, layout, paint }, interactive) {
+	let strokeColour = parseExpression(paint["line-color"], true);
+	let strokeDash = paint["line-dasharray"]
+		? parseExpression(paint["line-dasharray"])
+		: undefined;
+	let strokeWidth = paint["line-width"]
+		? parseExpression(paint["line-width"])
+		: undefined;
+	let strokeOpacity = paint["line-opacity"]
+		? parseExpression(paint["line-opacity"])
+		: undefined;
+
+	if (strokeColour) {
+		return function stroke(geom, attrs) {
+			const colour = strokeColour(attrs);
+			colour[3] *= strokeOpacity?.(attrs) ?? 1;
+
+			return [
+				new Stroke(geom, {
+					colour,
+					dashArray: strokeDash ? strokeDash(attrs) : undefined,
+					width: strokeWidth ? strokeWidth(attrs) : undefined,
+					interactive,
+				}),
+			];
+		};
+	}
+}
+
+/**
+ * @class AbstractRaster
+ *
+ * Intended for internal use only.
+ *
+ * Abstract wrapper over image/raster files/datasets. Implements a common wrapper
+ * over `HTMLImageElement` (native to the browser), GeoTIFFs (not native to the
+ * browser).
+ *
+ * This class worries *only* about the raster data and how to fit it into a Glii
+ * `Texture`. It does **not** worry abour the geographical component.
+ */
+class AbstractRaster {
+	/// @function canWrap(obj: Object): Boolean
+	/// Must return `true`if the object can be wrapped into this class
+	static canWrap(obj) {
+		return false;
+	}
+
+	/// @function fromUrl(url: String)
+	/// Must return (a Promise to) an instance of this class. The promise might fail
+	/// if the URL is not a raster of this type.
+	static async fromUrl(url) {
+		return false;
+	}
+
+	/// @method asTexture(glii: GliiFactory): Texture
+	/// Dumps the raster object into a new glii texture
+	asTexture(glii) {
+		return false;
+	}
+
+	/// @property width
+	/// The width of the raster, in pixels. Read-only.
+	get width() {
+		return 0;
+	}
+
+	/// @property height
+	// Returns the height of the raster, in pixels.
+	get height() {
+		return 0;
+	}
+
+	/// @property bandCount
+	// Returns the number of channels/bands
+	get bandCount() {
+		return 0;
+	}
+
+	/// @property bitDepth
+	// Returns the number of bits per channel/band
+	get bitDepth() {
+		return 0;
+	}
+}
+
+// import { known } from './factory.mjs';
+
+/// TODO: Detect if we're running in a browser. If not, export a dummy raster format
+/// that never fits.
+
+/**
+ * @class HTMLImages
+ * An `AbstractRaster` format that fits images natively understood by the
+ * browser, including PNG, JPG, WebP, etc.
+ *
+ */
+class HTMLImages extends AbstractRaster {
+	#img;
+
+	constructor(img) {
+		super();
+		this.#img = img;
+	}
+
+	static canWrap(obj) {
+		return (
+			obj instanceof HTMLImageElement ||
+			obj instanceof HTMLCanvasElement ||
+			obj instanceof ImageData ||
+			obj instanceof ImageData
+		);
+	}
+
+	static async fromUrl(url) {
+		// Explicitly fail GeoTIFFs without trying to load them
+		if (url.match(/\.(geo)?tif?f/i)) {
+			return Promise.reject();
+		}
+
+		return await new Promise((res, rej) => {
+			const img = new Image();
+			img.addEventListener("load", (ev) => res(new HTMLImages(ev.target)));
+			img.addEventListener("error", rej);
+			img.addEventListener("abort", rej);
+			img.crossOrigin = true;
+			img.src = url;
+		});
+	}
+
+	// Must dump the raster object into a new glii texture
+	asTexture(glii) {
+		return new glii.Texture({}).texImage2D(this.#img);
+	}
+
+	// Returns the width of the raster, in pixels.
+	get width() {
+		return this.#img.naturalWidth;
+	}
+
+	// Returns the height of the raster, in pixels.
+	get height() {
+		return this.#img.naturalHeight;
+	}
+
+	// Returns the number of channels/bands
+	get bandCount() {
+		return 4; // RGBA
+	}
+
+	// Returns the number of bits per channel/band
+	get bitDepth() {
+		return 8;
+	}
+}
+
+// known.push(HTMLImages);
+
+// Singleton store of known raster formats
+let known = [HTMLImages];
+
+// if (window) {
+// 	import("./HTMLImages.mjs");
+// }
+
+function rasterFromWrappable(obj) {
+	const fit = known.find((format) => format.canWrap(obj));
+	return fit && new fit(obj);
+}
+
+function factory(r) {
+	if (r instanceof AbstractRaster) {
+		return r;
+	}
+	const wrapped = rasterFromWrappable(r);
+	if (wrapped) {
+		return wrapped;
+	} else if (typeof r === "string") {
+		r = new URL(r, document.URL);
+	} else if (!(r instanceof URL)) {
+		throw new Error(
+			"Bad parameter to raster factory: must be a URL or a raster/image object"
+		);
+	}
+
+	const urlStr = r.toString();
+
+	return Promise.any(known.map((format) => format.fromUrl(urlStr)));
+}
+
+// From https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl/17897228#17897228 :
+
+const hsv2rgb = `
+const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+
+vec3 hsv2rgb(vec3 c)
+{
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+`;
+
+/**
+ * @namespace Util
+ * @function getBlendEquationConstant(glii: GliiFactory, mode: String): Number
+ * Given a Glii context and a blend equation string (`"ADD"`, `"SUBTRACT"`,
+ * `"MIN"`, `"MAX"`), returns the appropriate numeric GL constant.
+ */
+function getBlendEquationConstant(glii, mode) {
+	if (mode === "ADD") {
+		return glii.FUNC_ADD;
+	} else if (mode === "SUBTRACT") {
+		return glii.FUNC_SUBTRACT;
+	}
+	const isWebGL2 = glii.isWebGL2();
+
+	if (isWebGL2) {
+		if (mode === "MIN") {
+			return glii.MIN;
+		} else if (mode === "MAX") {
+			return glii.MAX;
+		}
+	} else {
+		let ext;
+		try {
+			ext = glii.loadExtension("EXT_blend_minmax");
+		} catch (ex) {
+			throw new Error(
+				"Cannot use min/max blend equation: context is not WebGL2, and does not support the EXT_blend_minmax extension"
+			);
+		}
+		if (mode === "MIN") {
+			return ext.MIN_EXT;
+		} else if (mode === "MAX") {
+			return ext.MAX_EXT;
+		}
+	}
+	throw new Error(
+		`Unknown blend equation mode "${mode}". Should be one of: ADD, SUBTRACT, MIN or MAX.`
+	);
+}
+
+/**
+ * @namespace Util
+ *
+ * @function abortableImagePromise(url: String, controller?: AbortController): Promise
+ *
+ * Returns a `Promise` to an `HTMLImageElement`, given a URL for the image.
+ *
+ * If an `AbortController` is given, the `Promise` will reject whenever its
+ * signal is activated.
+ *
+ * @alternative
+ * @function abortableImagePromise(url: URL, controller?: AbortController): Promise
+ * As before, but can take an instance of `URL` instead of a `String`.
+ */
+
+/// TODO: Does using `fetch` offer any benefit?? The logic could be changed.
+
+function abortableImagePromise(url, controller) {
+	if (!controller) {
+		controller = new AbortController();
+	}
+
+	const img = new Image();
+	return new Promise((res, rej) => {
+		img.addEventListener("load", (ev) => res(ev.target));
+		img.addEventListener("error", rej);
+		img.addEventListener("abort", rej);
+		controller.signal.addEventListener("abort", (reason) => {
+			img.src = "";
+			rej(reason);
+		});
+
+		img.crossOrigin = true;
+		img.src = url;
+	});
+}
+
+/**
+ * @namespace Util
+ * @function glslFloatify(n: Number): String
+ *
+ * Turns a `Number` into a `String` which is a valid GLSL float representation
+ * for that number.
+ */
+
+function glslFloatify(number) {
+	const str = number.toString();
+	if (str.includes(".")) {
+		return str;
+	} else {
+		return `${str}.`;
+	}
+}
+
+/**
+ * @namespace Util
+ * @function glslVecNify(a: Array of Number): String
+ *
+ * Turns an `Array` of two/three/four `Number`s into a `String` which
+ * is a valid `vec2`/`vec3`/`vec4` GLSL representation for that array.
+ */
+
+function glslVecNify(arr) {
+	const l = arr.length;
+	if (l < 2 || l > 4) {
+		throw new Error(
+			"Cannot turn array into vec2/vec3/vec4 representation: wrong length"
+		);
+	}
+	return `vec${l}( ${arr.map(glslFloatify).join(",")} )`;
+}
+
+// Parts of this ripped from https://github.com/mapbox/vector-tile-js/blob/master/lib/vectortilefeature.js
+
+/**
+ * @namespace Util
+ * @function loadProtobufferRawGeometry(crs: BaseCRS, feat: VectorTileFeature, bbox: Array of Number, extent): RawGeometry
+ *
+ * Alternative way of fetching geometries from protobuffer vectot tile
+ * features (from https://github.com/mapbox/vector-tile-js ). The only
+ * foreseen usage of this function is as part of `ProtobufVectorTileLoader`.
+ *
+ * The aim is similar to the `loadGeometry()` method of a `vector-tile-js`'s
+ * `VectorTileFeature`, with a few following differences:
+ * - Skips array nesting
+ * - Returns a Gleo `RawGeometry` instead of an array of arrays of coordinates
+ * - Normalizes in-tile coordinates to absolute CRS coordinates, given the
+ *   bbox and extent of the tile.
+ */
+
+function loadProtobufferRawGeometry(crs, feat, bbox, extent) {
+	const pbf = feat._pbf;
+	pbf.pos = feat._geometry;
+
+	const x1 = bbox[0],
+		y1 = bbox[1],
+		w = (bbox[2] - bbox[0]) / extent,
+		h = (bbox[3] - bbox[1]) / extent;
+
+	let end = pbf.readVarint() + pbf.pos,
+		cmd = 1,
+		length = 0,
+		x = 0,
+		y = 0,
+		i = 0,
+		coords = [],
+		rings = [],
+		hulls = [],
+		lastRingStart = 0,
+		winding = true;
+
+	while (pbf.pos < end) {
+		if (length <= 0) {
+			const cmdLen = pbf.readVarint();
+			cmd = cmdLen & 0x7;
+			length = cmdLen >> 3;
+		}
+
+		length--;
+
+		switch (cmd) {
+			case 1:
+				if (i && feat.type === 2) {
+					rings.push(i);
+				}
+			case 2:
+				x += pbf.readSVarint();
+				y += pbf.readSVarint();
+
+				coords.push(x1 + x * w, y1 + y * h);
+				i++;
+				break;
+			case 7:
+				coords.push(coords[lastRingStart * 2], coords[lastRingStart * 2 + 1]);
+				i++;
+
+				// On the `closePolygon` command,, calculate the signed area -
+				// the ring will be an outer or inner ring
+				// depending on the sign of its signed area.
+				const area = signedArea$1(coords, lastRingStart, i);
+				winding = area < 0;
+
+				if (lastRingStart) {
+					if (winding) {
+						rings.push(lastRingStart);
+					} else {
+						hulls.push(lastRingStart);
+					}
+				}
+
+				lastRingStart = i;
+				break;
+			default:
+				throw new Error("unknown command " + cmd);
+		}
+	}
+
+	return new RawGeometry(crs, coords, rings, hulls, { wrap: false });
+}
+
+// Needed to tell apart outer/inner rings in polygons.
+function signedArea$1(coords, start, end) {
+	let sum = 0;
+	for (let i = start * 2, end2 = end * 2 - 2; i < end2; i += 2) {
+		const p1x = coords[i],
+			p1y = coords[i + 1],
+			p2x = coords[i + 2],
+			p2y = coords[i + 3];
+		sum += (p2x - p1x) * (p1y + p2y);
+	}
+
+	const p1x = coords[end * 2 - 2],
+		p1y = coords[end * 2 - 1],
+		p2x = coords[start * 2],
+		p2y = coords[start * 2 + 1];
+
+	sum += (p2x - p1x) * (p1y + p2y);
+	return sum;
+}
+
+// Template regexp and function straight from Leaflet
+
+// @namespace Util
+// @function template(str: String, data: Object): String
+// Simple templating facility, accepts a template string of the form `'Hello {a}, {b}'`
+// and a data object like `{a: 'foo', b: 'bar'}`, returns evaluated string
+// `('Hello foo, bar')`. You can also specify functions instead of strings for
+// data values — they will be evaluated passing `data` as an argument.
+
+const templateRe = /\{ *([\w_ -]+) *\}/g;
+
+function template(str, data) {
+	return str.replace(templateRe, function (str, key) {
+		var value = data[key];
+
+		if (value === undefined) {
+			throw new Error("No value provided for variable " + str);
+		} else if (typeof value === "function") {
+			value = value(data);
+		}
+		return value;
+	});
+}
+
+var SHIFT_LEFT_32 = (1 << 16) * (1 << 16),
+    SHIFT_RIGHT_32 = 1 / SHIFT_LEFT_32;
+
+// Threshold chosen based on both benchmarking and knowledge about browser string
+// data structures (which currently switch structure types at 12 bytes or more)
+var TEXT_DECODER_MIN_LENGTH = 12;
+var utf8TextDecoder = typeof TextDecoder === 'undefined' ? null : new TextDecoder('utf-8');
+
+
+class Pbf{
+	constructor (buf) {
+    this.buf = ArrayBuffer.isView && ArrayBuffer.isView(buf) ? buf : new Uint8Array(buf || 0);
+    this.pos = 0;
+    this.type = 0;
+    this.length = this.buf.length;
+}
+
+static Varint  = 0; // varint: int32, int64, uint32, uint64, sint32, sint64, bool, enum
+static Fixed64 = 1; // 64-bit: double, fixed64, sfixed64
+static Bytes   = 2; // length-delimited: string, bytes, embedded messages, packed repeated fields
+static Fixed32 = 5; // 32-bit: float, fixed32, sfixed32
+
+    destroy() {
+        this.buf = null;
+    }
+
+    // === READING =================================================================
+
+    readFields(readField, result, end) {
+        end = end || this.length;
+
+        while (this.pos < end) {
+            var val = this.readVarint(),
+                tag = val >> 3,
+                startPos = this.pos;
+
+            this.type = val & 0x7;
+            readField(tag, result, this);
+
+            if (this.pos === startPos) this.skip(val);
+        }
+        return result;
+    }
+
+    readMessage(readField, result) {
+        return this.readFields(readField, result, this.readVarint() + this.pos);
+    }
+
+    readFixed32() {
+        var val = readUInt32(this.buf, this.pos);
+        this.pos += 4;
+        return val;
+    }
+
+    readSFixed32() {
+        var val = readInt32(this.buf, this.pos);
+        this.pos += 4;
+        return val;
+    }
+
+    // 64-bit int handling is based on github.com/dpw/node-buffer-more-ints (MIT-licensed)
+
+    readFixed64() {
+        var val = readUInt32(this.buf, this.pos) + readUInt32(this.buf, this.pos + 4) * SHIFT_LEFT_32;
+        this.pos += 8;
+        return val;
+    }
+
+    readSFixed64() {
+        var val = readUInt32(this.buf, this.pos) + readInt32(this.buf, this.pos + 4) * SHIFT_LEFT_32;
+        this.pos += 8;
+        return val;
+    }
+
+    readFloat() {
+        var val = read(this.buf, this.pos, true, 23, 4);
+        this.pos += 4;
+        return val;
+    }
+
+    readDouble() {
+        var val = read(this.buf, this.pos, true, 52, 8);
+        this.pos += 8;
+        return val;
+    }
+
+    readVarint(isSigned) {
+        var buf = this.buf,
+            val, b;
+
+        b = buf[this.pos++]; val  =  b & 0x7f;        if (b < 0x80) return val;
+        b = buf[this.pos++]; val |= (b & 0x7f) << 7;  if (b < 0x80) return val;
+        b = buf[this.pos++]; val |= (b & 0x7f) << 14; if (b < 0x80) return val;
+        b = buf[this.pos++]; val |= (b & 0x7f) << 21; if (b < 0x80) return val;
+        b = buf[this.pos];   val |= (b & 0x0f) << 28;
+
+        return readVarintRemainder(val, isSigned, this);
+    }
+
+    readVarint64() { // for compatibility with v2.0.1
+        return this.readVarint(true);
+    }
+
+    readSVarint() {
+        var num = this.readVarint();
+        return num % 2 === 1 ? (num + 1) / -2 : num / 2; // zigzag encoding
+    }
+
+    readBoolean() {
+        return Boolean(this.readVarint());
+    }
+
+    readString() {
+        var end = this.readVarint() + this.pos;
+        var pos = this.pos;
+        this.pos = end;
+
+        if (end - pos >= TEXT_DECODER_MIN_LENGTH && utf8TextDecoder) {
+            // longer strings are fast with the built-in browser TextDecoder API
+            return readUtf8TextDecoder(this.buf, pos, end);
+        }
+        // short strings are fast with our custom implementation
+        return readUtf8(this.buf, pos, end);
+    }
+
+    readBytes() {
+        var end = this.readVarint() + this.pos,
+            buffer = this.buf.subarray(this.pos, end);
+        this.pos = end;
+        return buffer;
+    }
+
+    // verbose for performance reasons; doesn't affect gzipped size
+
+    readPackedVarint(arr, isSigned) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readVarint(isSigned));
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readVarint(isSigned));
+        return arr;
+    }
+    readPackedSVarint(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readSVarint());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readSVarint());
+        return arr;
+    }
+    readPackedBoolean(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readBoolean());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readBoolean());
+        return arr;
+    }
+    readPackedFloat(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readFloat());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readFloat());
+        return arr;
+    }
+    readPackedDouble(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readDouble());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readDouble());
+        return arr;
+    }
+    readPackedFixed32(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readFixed32());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readFixed32());
+        return arr;
+    }
+    readPackedSFixed32(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readSFixed32());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readSFixed32());
+        return arr;
+    }
+    readPackedFixed64(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readFixed64());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readFixed64());
+        return arr;
+    }
+    readPackedSFixed64(arr) {
+        if (this.type !== Pbf.Bytes) return arr.push(this.readSFixed64());
+        var end = readPackedEnd(this);
+        arr = arr || [];
+        while (this.pos < end) arr.push(this.readSFixed64());
+        return arr;
+    }
+
+    skip(val) {
+        var type = val & 0x7;
+        if (type === Pbf.Varint) while (this.buf[this.pos++] > 0x7f) {}
+        else if (type === Pbf.Bytes) this.pos = this.readVarint() + this.pos;
+        else if (type === Pbf.Fixed32) this.pos += 4;
+        else if (type === Pbf.Fixed64) this.pos += 8;
+        else throw new Error('Unimplemented type: ' + type);
+    }
+
+    // === WRITING =================================================================
+
+    writeTag(tag, type) {
+        this.writeVarint((tag << 3) | type);
+    }
+
+    realloc(min) {
+        var length = this.length || 16;
+
+        while (length < this.pos + min) length *= 2;
+
+        if (length !== this.length) {
+            var buf = new Uint8Array(length);
+            buf.set(this.buf);
+            this.buf = buf;
+            this.length = length;
+        }
+    }
+
+    finish() {
+        this.length = this.pos;
+        this.pos = 0;
+        return this.buf.subarray(0, this.length);
+    }
+
+    writeFixed32(val) {
+        this.realloc(4);
+        writeInt32(this.buf, val, this.pos);
+        this.pos += 4;
+    }
+
+    writeSFixed32(val) {
+        this.realloc(4);
+        writeInt32(this.buf, val, this.pos);
+        this.pos += 4;
+    }
+
+    writeFixed64(val) {
+        this.realloc(8);
+        writeInt32(this.buf, val & -1, this.pos);
+        writeInt32(this.buf, Math.floor(val * SHIFT_RIGHT_32), this.pos + 4);
+        this.pos += 8;
+    }
+
+    writeSFixed64(val) {
+        this.realloc(8);
+        writeInt32(this.buf, val & -1, this.pos);
+        writeInt32(this.buf, Math.floor(val * SHIFT_RIGHT_32), this.pos + 4);
+        this.pos += 8;
+    }
+
+    writeVarint(val) {
+        val = +val || 0;
+
+        if (val > 0xfffffff || val < 0) {
+            writeBigVarint(val, this);
+            return;
+        }
+
+        this.realloc(4);
+
+        this.buf[this.pos++] =           val & 0x7f  | (val > 0x7f ? 0x80 : 0); if (val <= 0x7f) return;
+        this.buf[this.pos++] = ((val >>>= 7) & 0x7f) | (val > 0x7f ? 0x80 : 0); if (val <= 0x7f) return;
+        this.buf[this.pos++] = ((val >>>= 7) & 0x7f) | (val > 0x7f ? 0x80 : 0); if (val <= 0x7f) return;
+        this.buf[this.pos++] =   (val >>> 7) & 0x7f;
+    }
+
+    writeSVarint(val) {
+        this.writeVarint(val < 0 ? -val * 2 - 1 : val * 2);
+    }
+
+    writeBoolean(val) {
+        this.writeVarint(Boolean(val));
+    }
+
+    writeString(str) {
+        str = String(str);
+        this.realloc(str.length * 4);
+
+        this.pos++; // reserve 1 byte for short string length
+
+        var startPos = this.pos;
+        // write the string directly to the buffer and see how much was written
+        this.pos = writeUtf8(this.buf, str, this.pos);
+        var len = this.pos - startPos;
+
+        if (len >= 0x80) makeRoomForExtraLength(startPos, len, this);
+
+        // finally, write the message length in the reserved place and restore the position
+        this.pos = startPos - 1;
+        this.writeVarint(len);
+        this.pos += len;
+    }
+
+    writeFloat(val) {
+        this.realloc(4);
+        write(this.buf, val, this.pos, true, 23, 4);
+        this.pos += 4;
+    }
+
+    writeDouble(val) {
+        this.realloc(8);
+        write(this.buf, val, this.pos, true, 52, 8);
+        this.pos += 8;
+    }
+
+    writeBytes(buffer) {
+        var len = buffer.length;
+        this.writeVarint(len);
+        this.realloc(len);
+        for (var i = 0; i < len; i++) this.buf[this.pos++] = buffer[i];
+    }
+
+    writeRawMessage(fn, obj) {
+        this.pos++; // reserve 1 byte for short message length
+
+        // write the message directly to the buffer and see how much was written
+        var startPos = this.pos;
+        fn(obj, this);
+        var len = this.pos - startPos;
+
+        if (len >= 0x80) makeRoomForExtraLength(startPos, len, this);
+
+        // finally, write the message length in the reserved place and restore the position
+        this.pos = startPos - 1;
+        this.writeVarint(len);
+        this.pos += len;
+    }
+
+    writeMessage(tag, fn, obj) {
+        this.writeTag(tag, Pbf.Bytes);
+        this.writeRawMessage(fn, obj);
+    }
+
+    writePackedVarint  (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedVarint, arr);   }
+    writePackedSVarint (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedSVarint, arr);  }
+    writePackedBoolean (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedBoolean, arr);  }
+    writePackedFloat   (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedFloat, arr);    }
+    writePackedDouble  (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedDouble, arr);   }
+    writePackedFixed32 (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedFixed32, arr);  }
+    writePackedSFixed32(tag, arr) { if (arr.length) this.writeMessage(tag, writePackedSFixed32, arr); }
+    writePackedFixed64 (tag, arr) { if (arr.length) this.writeMessage(tag, writePackedFixed64, arr);  }
+    writePackedSFixed64(tag, arr) { if (arr.length) this.writeMessage(tag, writePackedSFixed64, arr); }
+
+    writeBytesField(tag, buffer) {
+        this.writeTag(tag, Pbf.Bytes);
+        this.writeBytes(buffer);
+    }
+    writeFixed32Field(tag, val) {
+        this.writeTag(tag, Pbf.Fixed32);
+        this.writeFixed32(val);
+    }
+    writeSFixed32Field(tag, val) {
+        this.writeTag(tag, Pbf.Fixed32);
+        this.writeSFixed32(val);
+    }
+    writeFixed64Field(tag, val) {
+        this.writeTag(tag, Pbf.Fixed64);
+        this.writeFixed64(val);
+    }
+    writeSFixed64Field(tag, val) {
+        this.writeTag(tag, Pbf.Fixed64);
+        this.writeSFixed64(val);
+    }
+    writeVarintField(tag, val) {
+        this.writeTag(tag, Pbf.Varint);
+        this.writeVarint(val);
+    }
+    writeSVarintField(tag, val) {
+        this.writeTag(tag, Pbf.Varint);
+        this.writeSVarint(val);
+    }
+    writeStringField(tag, str) {
+        this.writeTag(tag, Pbf.Bytes);
+        this.writeString(str);
+    }
+    writeFloatField(tag, val) {
+        this.writeTag(tag, Pbf.Fixed32);
+        this.writeFloat(val);
+    }
+    writeDoubleField(tag, val) {
+        this.writeTag(tag, Pbf.Fixed64);
+        this.writeDouble(val);
+    }
+    writeBooleanField(tag, val) {
+        this.writeVarintField(tag, Boolean(val));
+    }
+}
+function readVarintRemainder(l, s, p) {
+    var buf = p.buf,
+        h, b;
+
+    b = buf[p.pos++]; h  = (b & 0x70) >> 4;  if (b < 0x80) return toNum(l, h, s);
+    b = buf[p.pos++]; h |= (b & 0x7f) << 3;  if (b < 0x80) return toNum(l, h, s);
+    b = buf[p.pos++]; h |= (b & 0x7f) << 10; if (b < 0x80) return toNum(l, h, s);
+    b = buf[p.pos++]; h |= (b & 0x7f) << 17; if (b < 0x80) return toNum(l, h, s);
+    b = buf[p.pos++]; h |= (b & 0x7f) << 24; if (b < 0x80) return toNum(l, h, s);
+    b = buf[p.pos++]; h |= (b & 0x01) << 31; if (b < 0x80) return toNum(l, h, s);
+
+    throw new Error('Expected varint not more than 10 bytes');
+}
+
+function readPackedEnd(pbf) {
+    return pbf.type === Pbf.Bytes ?
+        pbf.readVarint() + pbf.pos : pbf.pos + 1;
+}
+
+function toNum(low, high, isSigned) {
+    if (isSigned) {
+        return high * 0x100000000 + (low >>> 0);
+    }
+
+    return ((high >>> 0) * 0x100000000) + (low >>> 0);
+}
+
+function writeBigVarint(val, pbf) {
+    var low, high;
+
+    if (val >= 0) {
+        low  = (val % 0x100000000) | 0;
+        high = (val / 0x100000000) | 0;
+    } else {
+        low  = ~(-val % 0x100000000);
+        high = ~(-val / 0x100000000);
+
+        if (low ^ 0xffffffff) {
+            low = (low + 1) | 0;
+        } else {
+            low = 0;
+            high = (high + 1) | 0;
+        }
+    }
+
+    if (val >= 0x10000000000000000 || val < -18446744073709552e3) {
+        throw new Error('Given varint doesn\'t fit into 10 bytes');
+    }
+
+    pbf.realloc(10);
+
+    writeBigVarintLow(low, high, pbf);
+    writeBigVarintHigh(high, pbf);
+}
+
+function writeBigVarintLow(low, high, pbf) {
+    pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
+    pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
+    pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
+    pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
+    pbf.buf[pbf.pos]   = low & 0x7f;
+}
+
+function writeBigVarintHigh(high, pbf) {
+    var lsb = (high & 0x07) << 4;
+
+    pbf.buf[pbf.pos++] |= lsb         | ((high >>>= 3) ? 0x80 : 0); if (!high) return;
+    pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
+    pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
+    pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
+    pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
+    pbf.buf[pbf.pos++]  = high & 0x7f;
+}
+
+function makeRoomForExtraLength(startPos, len, pbf) {
+    var extraLen =
+        len <= 0x3fff ? 1 :
+        len <= 0x1fffff ? 2 :
+        len <= 0xfffffff ? 3 : Math.floor(Math.log(len) / (Math.LN2 * 7));
+
+    // if 1 byte isn't enough for encoding message length, shift the data to the right
+    pbf.realloc(extraLen);
+    for (var i = pbf.pos - 1; i >= startPos; i--) pbf.buf[i + extraLen] = pbf.buf[i];
+}
+
+function writePackedVarint(arr, pbf)   { for (var i = 0; i < arr.length; i++) pbf.writeVarint(arr[i]);   }
+function writePackedSVarint(arr, pbf)  { for (var i = 0; i < arr.length; i++) pbf.writeSVarint(arr[i]);  }
+function writePackedFloat(arr, pbf)    { for (var i = 0; i < arr.length; i++) pbf.writeFloat(arr[i]);    }
+function writePackedDouble(arr, pbf)   { for (var i = 0; i < arr.length; i++) pbf.writeDouble(arr[i]);   }
+function writePackedBoolean(arr, pbf)  { for (var i = 0; i < arr.length; i++) pbf.writeBoolean(arr[i]);  }
+function writePackedFixed32(arr, pbf)  { for (var i = 0; i < arr.length; i++) pbf.writeFixed32(arr[i]);  }
+function writePackedSFixed32(arr, pbf) { for (var i = 0; i < arr.length; i++) pbf.writeSFixed32(arr[i]); }
+function writePackedFixed64(arr, pbf)  { for (var i = 0; i < arr.length; i++) pbf.writeFixed64(arr[i]);  }
+function writePackedSFixed64(arr, pbf) { for (var i = 0; i < arr.length; i++) pbf.writeSFixed64(arr[i]); }
+
+// Buffer code below from https://github.com/feross/buffer, MIT-licensed
+
+function readUInt32(buf, pos) {
+    return ((buf[pos]) |
+        (buf[pos + 1] << 8) |
+        (buf[pos + 2] << 16)) +
+        (buf[pos + 3] * 0x1000000);
+}
+
+function writeInt32(buf, val, pos) {
+    buf[pos] = val;
+    buf[pos + 1] = (val >>> 8);
+    buf[pos + 2] = (val >>> 16);
+    buf[pos + 3] = (val >>> 24);
+}
+
+function readInt32(buf, pos) {
+    return ((buf[pos]) |
+        (buf[pos + 1] << 8) |
+        (buf[pos + 2] << 16)) +
+        (buf[pos + 3] << 24);
+}
+
+function readUtf8(buf, pos, end) {
+    var str = '';
+    var i = pos;
+
+    while (i < end) {
+        var b0 = buf[i];
+        var c = null; // codepoint
+        var bytesPerSequence =
+            b0 > 0xEF ? 4 :
+            b0 > 0xDF ? 3 :
+            b0 > 0xBF ? 2 : 1;
+
+        if (i + bytesPerSequence > end) break;
+
+        var b1, b2, b3;
+
+        if (bytesPerSequence === 1) {
+            if (b0 < 0x80) {
+                c = b0;
+            }
+        } else if (bytesPerSequence === 2) {
+            b1 = buf[i + 1];
+            if ((b1 & 0xC0) === 0x80) {
+                c = (b0 & 0x1F) << 0x6 | (b1 & 0x3F);
+                if (c <= 0x7F) {
+                    c = null;
+                }
+            }
+        } else if (bytesPerSequence === 3) {
+            b1 = buf[i + 1];
+            b2 = buf[i + 2];
+            if ((b1 & 0xC0) === 0x80 && (b2 & 0xC0) === 0x80) {
+                c = (b0 & 0xF) << 0xC | (b1 & 0x3F) << 0x6 | (b2 & 0x3F);
+                if (c <= 0x7FF || (c >= 0xD800 && c <= 0xDFFF)) {
+                    c = null;
+                }
+            }
+        } else if (bytesPerSequence === 4) {
+            b1 = buf[i + 1];
+            b2 = buf[i + 2];
+            b3 = buf[i + 3];
+            if ((b1 & 0xC0) === 0x80 && (b2 & 0xC0) === 0x80 && (b3 & 0xC0) === 0x80) {
+                c = (b0 & 0xF) << 0x12 | (b1 & 0x3F) << 0xC | (b2 & 0x3F) << 0x6 | (b3 & 0x3F);
+                if (c <= 0xFFFF || c >= 0x110000) {
+                    c = null;
+                }
+            }
+        }
+
+        if (c === null) {
+            c = 0xFFFD;
+            bytesPerSequence = 1;
+
+        } else if (c > 0xFFFF) {
+            c -= 0x10000;
+            str += String.fromCharCode(c >>> 10 & 0x3FF | 0xD800);
+            c = 0xDC00 | c & 0x3FF;
+        }
+
+        str += String.fromCharCode(c);
+        i += bytesPerSequence;
+    }
+
+    return str;
+}
+
+function readUtf8TextDecoder(buf, pos, end) {
+    return utf8TextDecoder.decode(buf.subarray(pos, end));
+}
+
+function writeUtf8(buf, str, pos) {
+    for (var i = 0, c, lead; i < str.length; i++) {
+        c = str.charCodeAt(i); // code point
+
+        if (c > 0xD7FF && c < 0xE000) {
+            if (lead) {
+                if (c < 0xDC00) {
+                    buf[pos++] = 0xEF;
+                    buf[pos++] = 0xBF;
+                    buf[pos++] = 0xBD;
+                    lead = c;
+                    continue;
+                } else {
+                    c = lead - 0xD800 << 10 | c - 0xDC00 | 0x10000;
+                    lead = null;
+                }
+            } else {
+                if (c > 0xDBFF || (i + 1 === str.length)) {
+                    buf[pos++] = 0xEF;
+                    buf[pos++] = 0xBF;
+                    buf[pos++] = 0xBD;
+                } else {
+                    lead = c;
+                }
+                continue;
+            }
+        } else if (lead) {
+            buf[pos++] = 0xEF;
+            buf[pos++] = 0xBF;
+            buf[pos++] = 0xBD;
+            lead = null;
+        }
+
+        if (c < 0x80) {
+            buf[pos++] = c;
+        } else {
+            if (c < 0x800) {
+                buf[pos++] = c >> 0x6 | 0xC0;
+            } else {
+                if (c < 0x10000) {
+                    buf[pos++] = c >> 0xC | 0xE0;
+                } else {
+                    buf[pos++] = c >> 0x12 | 0xF0;
+                    buf[pos++] = c >> 0xC & 0x3F | 0x80;
+                }
+                buf[pos++] = c >> 0x6 & 0x3F | 0x80;
+            }
+            buf[pos++] = c & 0x3F | 0x80;
+        }
+    }
+    return pos;
+}
+
+/**
+ * MIT License
+ *
+ * Copyright (c) 2016 Vladimir Agafonkin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+class RBush {
+    constructor(maxEntries = 9) {
+        // max entries in a node is 9 by default; min node fill is 40% for best performance
+        this._maxEntries = Math.max(4, maxEntries);
+        this._minEntries = Math.max(2, Math.ceil(this._maxEntries * 0.4));
+        this.clear();
+    }
+
+    all() {
+        return this._all(this.data, []);
+    }
+
+    search(bbox) {
+        let node = this.data;
+        const result = [];
+
+        if (!intersects(bbox, node)) return result;
+
+        const toBBox = this.toBBox;
+        const nodesToSearch = [];
+
+        while (node) {
+            for (let i = 0; i < node.children.length; i++) {
+                const child = node.children[i];
+                const childBBox = node.leaf ? toBBox(child) : child;
+
+                if (intersects(bbox, childBBox)) {
+                    if (node.leaf) result.push(child);
+                    else if (contains(bbox, childBBox)) this._all(child, result);
+                    else nodesToSearch.push(child);
+                }
+            }
+            node = nodesToSearch.pop();
+        }
+
+        return result;
+    }
+
+    collides(bbox) {
+        let node = this.data;
+
+        if (!intersects(bbox, node)) return false;
+
+        const nodesToSearch = [];
+        while (node) {
+            for (let i = 0; i < node.children.length; i++) {
+                const child = node.children[i];
+                const childBBox = node.leaf ? this.toBBox(child) : child;
+
+                if (intersects(bbox, childBBox)) {
+                    if (node.leaf || contains(bbox, childBBox)) return true;
+                    nodesToSearch.push(child);
+                }
+            }
+            node = nodesToSearch.pop();
+        }
+
+        return false;
+    }
+
+    load(data) {
+        if (!(data && data.length)) return this;
+
+        if (data.length < this._minEntries) {
+            for (let i = 0; i < data.length; i++) {
+                this.insert(data[i]);
+            }
+            return this;
+        }
+
+        // recursively build the tree with the given data from scratch using OMT algorithm
+        let node = this._build(data.slice(), 0, data.length - 1, 0);
+
+        if (!this.data.children.length) {
+            // save as is if tree is empty
+            this.data = node;
+
+        } else if (this.data.height === node.height) {
+            // split root if trees have the same height
+            this._splitRoot(this.data, node);
+
+        } else {
+            if (this.data.height < node.height) {
+                // swap trees if inserted one is bigger
+                const tmpNode = this.data;
+                this.data = node;
+                node = tmpNode;
+            }
+
+            // insert the small tree into the large tree at appropriate level
+            this._insert(node, this.data.height - node.height - 1, true);
+        }
+
+        return this;
+    }
+
+    insert(item) {
+        if (item) this._insert(item, this.data.height - 1);
+        return this;
+    }
+
+    clear() {
+        this.data = createNode([]);
+        return this;
+    }
+
+    remove(item, equalsFn) {
+        if (!item) return this;
+
+        let node = this.data;
+        const bbox = this.toBBox(item);
+        const path = [];
+        const indexes = [];
+        let i, parent, goingUp;
+
+        // depth-first iterative tree traversal
+        while (node || path.length) {
+
+            if (!node) { // go up
+                node = path.pop();
+                parent = path[path.length - 1];
+                i = indexes.pop();
+                goingUp = true;
+            }
+
+            if (node.leaf) { // check current node
+                const index = findItem(item, node.children, equalsFn);
+
+                if (index !== -1) {
+                    // item found, remove the item and condense tree upwards
+                    node.children.splice(index, 1);
+                    path.push(node);
+                    this._condense(path);
+                    return this;
+                }
+            }
+
+            if (!goingUp && !node.leaf && contains(node, bbox)) { // go down
+                path.push(node);
+                indexes.push(i);
+                i = 0;
+                parent = node;
+                node = node.children[0];
+
+            } else if (parent) { // go right
+                i++;
+                node = parent.children[i];
+                goingUp = false;
+
+            } else node = null; // nothing found
+        }
+
+        return this;
+    }
+
+    toBBox(item) { return item; }
+
+    compareMinX(a, b) { return a.minX - b.minX; }
+    compareMinY(a, b) { return a.minY - b.minY; }
+
+    toJSON() { return this.data; }
+
+    fromJSON(data) {
+        this.data = data;
+        return this;
+    }
+
+    _all(node, result) {
+        const nodesToSearch = [];
+        while (node) {
+            if (node.leaf) result.push(...node.children);
+            else nodesToSearch.push(...node.children);
+
+            node = nodesToSearch.pop();
+        }
+        return result;
+    }
+
+    _build(items, left, right, height) {
+
+        const N = right - left + 1;
+        let M = this._maxEntries;
+        let node;
+
+        if (N <= M) {
+            // reached leaf level; return leaf
+            node = createNode(items.slice(left, right + 1));
+            calcBBox(node, this.toBBox);
+            return node;
+        }
+
+        if (!height) {
+            // target height of the bulk-loaded tree
+            height = Math.ceil(Math.log(N) / Math.log(M));
+
+            // target number of root entries to maximize storage utilization
+            M = Math.ceil(N / Math.pow(M, height - 1));
+        }
+
+        node = createNode([]);
+        node.leaf = false;
+        node.height = height;
+
+        // split the items into M mostly square tiles
+
+        const N2 = Math.ceil(N / M);
+        const N1 = N2 * Math.ceil(Math.sqrt(M));
+
+        multiSelect(items, left, right, N1, this.compareMinX);
+
+        for (let i = left; i <= right; i += N1) {
+
+            const right2 = Math.min(i + N1 - 1, right);
+
+            multiSelect(items, i, right2, N2, this.compareMinY);
+
+            for (let j = i; j <= right2; j += N2) {
+
+                const right3 = Math.min(j + N2 - 1, right2);
+
+                // pack each entry recursively
+                node.children.push(this._build(items, j, right3, height - 1));
+            }
+        }
+
+        calcBBox(node, this.toBBox);
+
+        return node;
+    }
+
+    _chooseSubtree(bbox, node, level, path) {
+        while (true) {
+            path.push(node);
+
+            if (node.leaf || path.length - 1 === level) break;
+
+            let minArea = Infinity;
+            let minEnlargement = Infinity;
+            let targetNode;
+
+            for (let i = 0; i < node.children.length; i++) {
+                const child = node.children[i];
+                const area = bboxArea(child);
+                const enlargement = enlargedArea(bbox, child) - area;
+
+                // choose entry with the least area enlargement
+                if (enlargement < minEnlargement) {
+                    minEnlargement = enlargement;
+                    minArea = area < minArea ? area : minArea;
+                    targetNode = child;
+
+                } else if (enlargement === minEnlargement) {
+                    // otherwise choose one with the smallest area
+                    if (area < minArea) {
+                        minArea = area;
+                        targetNode = child;
+                    }
+                }
+            }
+
+            node = targetNode || node.children[0];
+        }
+
+        return node;
+    }
+
+    _insert(item, level, isNode) {
+        const bbox = isNode ? item : this.toBBox(item);
+        const insertPath = [];
+
+        // find the best node for accommodating the item, saving all nodes along the path too
+        const node = this._chooseSubtree(bbox, this.data, level, insertPath);
+
+        // put the item into the node
+        node.children.push(item);
+        extend(node, bbox);
+
+        // split on node overflow; propagate upwards if necessary
+        while (level >= 0) {
+            if (insertPath[level].children.length > this._maxEntries) {
+                this._split(insertPath, level);
+                level--;
+            } else break;
+        }
+
+        // adjust bboxes along the insertion path
+        this._adjustParentBBoxes(bbox, insertPath, level);
+    }
+
+    // split overflowed node into two
+    _split(insertPath, level) {
+        const node = insertPath[level];
+        const M = node.children.length;
+        const m = this._minEntries;
+
+        this._chooseSplitAxis(node, m, M);
+
+        const splitIndex = this._chooseSplitIndex(node, m, M);
+
+        const newNode = createNode(node.children.splice(splitIndex, node.children.length - splitIndex));
+        newNode.height = node.height;
+        newNode.leaf = node.leaf;
+
+        calcBBox(node, this.toBBox);
+        calcBBox(newNode, this.toBBox);
+
+        if (level) insertPath[level - 1].children.push(newNode);
+        else this._splitRoot(node, newNode);
+    }
+
+    _splitRoot(node, newNode) {
+        // split root node
+        this.data = createNode([node, newNode]);
+        this.data.height = node.height + 1;
+        this.data.leaf = false;
+        calcBBox(this.data, this.toBBox);
+    }
+
+    _chooseSplitIndex(node, m, M) {
+        let index;
+        let minOverlap = Infinity;
+        let minArea = Infinity;
+
+        for (let i = m; i <= M - m; i++) {
+            const bbox1 = distBBox(node, 0, i, this.toBBox);
+            const bbox2 = distBBox(node, i, M, this.toBBox);
+
+            const overlap = intersectionArea(bbox1, bbox2);
+            const area = bboxArea(bbox1) + bboxArea(bbox2);
+
+            // choose distribution with minimum overlap
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+                index = i;
+
+                minArea = area < minArea ? area : minArea;
+
+            } else if (overlap === minOverlap) {
+                // otherwise choose distribution with minimum area
+                if (area < minArea) {
+                    minArea = area;
+                    index = i;
+                }
+            }
+        }
+
+        return index || M - m;
+    }
+
+    // sorts node children by the best axis for split
+    _chooseSplitAxis(node, m, M) {
+        const compareMinX = node.leaf ? this.compareMinX : compareNodeMinX;
+        const compareMinY = node.leaf ? this.compareMinY : compareNodeMinY;
+        const xMargin = this._allDistMargin(node, m, M, compareMinX);
+        const yMargin = this._allDistMargin(node, m, M, compareMinY);
+
+        // if total distributions margin value is minimal for x, sort by minX,
+        // otherwise it's already sorted by minY
+        if (xMargin < yMargin) node.children.sort(compareMinX);
+    }
+
+    // total margin of all possible split distributions where each node is at least m full
+    _allDistMargin(node, m, M, compare) {
+        node.children.sort(compare);
+
+        const toBBox = this.toBBox;
+        const leftBBox = distBBox(node, 0, m, toBBox);
+        const rightBBox = distBBox(node, M - m, M, toBBox);
+        let margin = bboxMargin(leftBBox) + bboxMargin(rightBBox);
+
+        for (let i = m; i < M - m; i++) {
+            const child = node.children[i];
+            extend(leftBBox, node.leaf ? toBBox(child) : child);
+            margin += bboxMargin(leftBBox);
+        }
+
+        for (let i = M - m - 1; i >= m; i--) {
+            const child = node.children[i];
+            extend(rightBBox, node.leaf ? toBBox(child) : child);
+            margin += bboxMargin(rightBBox);
+        }
+
+        return margin;
+    }
+
+    _adjustParentBBoxes(bbox, path, level) {
+        // adjust bboxes along the given tree path
+        for (let i = level; i >= 0; i--) {
+            extend(path[i], bbox);
+        }
+    }
+
+    _condense(path) {
+        // go through the path, removing empty nodes and updating bboxes
+        for (let i = path.length - 1, siblings; i >= 0; i--) {
+            if (path[i].children.length === 0) {
+                if (i > 0) {
+                    siblings = path[i - 1].children;
+                    siblings.splice(siblings.indexOf(path[i]), 1);
+
+                } else this.clear();
+
+            } else calcBBox(path[i], this.toBBox);
+        }
+    }
+}
+
+function findItem(item, items, equalsFn) {
+    if (!equalsFn) return items.indexOf(item);
+
+    for (let i = 0; i < items.length; i++) {
+        if (equalsFn(item, items[i])) return i;
+    }
+    return -1;
+}
+
+// calculate node's bbox from bboxes of its children
+function calcBBox(node, toBBox) {
+    distBBox(node, 0, node.children.length, toBBox, node);
+}
+
+// min bounding rectangle of node children from k to p-1
+function distBBox(node, k, p, toBBox, destNode) {
+    if (!destNode) destNode = createNode(null);
+    destNode.minX = Infinity;
+    destNode.minY = Infinity;
+    destNode.maxX = -Infinity;
+    destNode.maxY = -Infinity;
+
+    for (let i = k; i < p; i++) {
+        const child = node.children[i];
+        extend(destNode, node.leaf ? toBBox(child) : child);
+    }
+
+    return destNode;
+}
+
+function extend(a, b) {
+    a.minX = Math.min(a.minX, b.minX);
+    a.minY = Math.min(a.minY, b.minY);
+    a.maxX = Math.max(a.maxX, b.maxX);
+    a.maxY = Math.max(a.maxY, b.maxY);
+    return a;
+}
+
+function compareNodeMinX(a, b) { return a.minX - b.minX; }
+function compareNodeMinY(a, b) { return a.minY - b.minY; }
+
+function bboxArea(a)   { return (a.maxX - a.minX) * (a.maxY - a.minY); }
+function bboxMargin(a) { return (a.maxX - a.minX) + (a.maxY - a.minY); }
+
+function enlargedArea(a, b) {
+    return (Math.max(b.maxX, a.maxX) - Math.min(b.minX, a.minX)) *
+           (Math.max(b.maxY, a.maxY) - Math.min(b.minY, a.minY));
+}
+
+function intersectionArea(a, b) {
+    const minX = Math.max(a.minX, b.minX);
+    const minY = Math.max(a.minY, b.minY);
+    const maxX = Math.min(a.maxX, b.maxX);
+    const maxY = Math.min(a.maxY, b.maxY);
+
+    return Math.max(0, maxX - minX) *
+           Math.max(0, maxY - minY);
+}
+
+function contains(a, b) {
+    return a.minX <= b.minX &&
+           a.minY <= b.minY &&
+           b.maxX <= a.maxX &&
+           b.maxY <= a.maxY;
+}
+
+function intersects(a, b) {
+    return b.minX <= a.maxX &&
+           b.minY <= a.maxY &&
+           b.maxX >= a.minX &&
+           b.maxY >= a.minY;
+}
+
+function createNode(children) {
+    return {
+        children,
+        height: 1,
+        leaf: true,
+        minX: Infinity,
+        minY: Infinity,
+        maxX: -Infinity,
+        maxY: -Infinity
+    };
+}
+
+// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
+// combines selection algorithm with binary divide & conquer approach
+
+function multiSelect(arr, left, right, n, compare) {
+    const stack = [left, right];
+
+    while (stack.length) {
+        right = stack.pop();
+        left = stack.pop();
+
+        if (right - left <= n) continue;
+
+        const mid = left + Math.ceil((right - left) / n / 2) * n;
+        quickselect(arr, mid, left, right, compare);
+
+        stack.push(left, mid, mid, right);
+    }
+}
+
+function readFeature(tag, feature, pbf) {
+	if (tag == 1) feature.id = pbf.readVarint();
+	else if (tag == 2) readTag(pbf, feature);
+	else if (tag == 3) feature.type = pbf.readVarint();
+	else if (tag == 4) feature._geometry = pbf.pos;
+}
+
+function readTag(pbf, feature) {
+	var end = pbf.readVarint() + pbf.pos;
+
+	while (pbf.pos < end) {
+		var key = feature._keys[pbf.readVarint()],
+			value = feature._values[pbf.readVarint()];
+		feature.properties[key] = value;
+	}
+}
+
+class VectorTileFeature {
+	constructor(pbf, end, extent, keys, values) {
+		// Public
+		this.properties = {};
+		this.extent = extent;
+		this.type = 0;
+
+		// Private
+		this._pbf = pbf;
+		this._geometry = -1;
+		this._keys = keys;
+		this._values = values;
+
+		pbf.readFields(readFeature, this, end);
+	}
+
+	static types = ["Unknown", "Point", "LineString", "Polygon"];
+
+	loadGeometry() {
+		var pbf = this._pbf;
+		pbf.pos = this._geometry;
+
+		var end = pbf.readVarint() + pbf.pos,
+			cmd = 1,
+			length = 0,
+			x = 0,
+			y = 0,
+			lines = [],
+			line;
+
+		while (pbf.pos < end) {
+			if (length <= 0) {
+				var cmdLen = pbf.readVarint();
+				cmd = cmdLen & 0x7;
+				length = cmdLen >> 3;
+			}
+
+			length--;
+
+			if (cmd === 1 || cmd === 2) {
+				x += pbf.readSVarint();
+				y += pbf.readSVarint();
+
+				if (cmd === 1) {
+					// moveTo
+					if (line) lines.push(line);
+					line = [];
+				}
+
+				line.push(new Point(x, y));
+			} else if (cmd === 7) {
+				// Workaround for https://github.com/mapbox/mapnik-vector-tile/issues/90
+				if (line) {
+					line.push(line[0].clone()); // closePolygon
+				}
+			} else {
+				throw new Error("unknown command " + cmd);
+			}
+		}
+
+		if (line) lines.push(line);
+
+		return lines;
+	}
+
+	bbox() {
+		var pbf = this._pbf;
+		pbf.pos = this._geometry;
+
+		var end = pbf.readVarint() + pbf.pos,
+			cmd = 1,
+			length = 0,
+			x = 0,
+			y = 0,
+			x1 = Infinity,
+			x2 = -Infinity,
+			y1 = Infinity,
+			y2 = -Infinity;
+
+		while (pbf.pos < end) {
+			if (length <= 0) {
+				var cmdLen = pbf.readVarint();
+				cmd = cmdLen & 0x7;
+				length = cmdLen >> 3;
+			}
+
+			length--;
+
+			if (cmd === 1 || cmd === 2) {
+				x += pbf.readSVarint();
+				y += pbf.readSVarint();
+				if (x < x1) x1 = x;
+				if (x > x2) x2 = x;
+				if (y < y1) y1 = y;
+				if (y > y2) y2 = y;
+			} else if (cmd !== 7) {
+				throw new Error("unknown command " + cmd);
+			}
+		}
+
+		return [x1, y1, x2, y2];
+	}
+
+	toGeoJSON(x, y, z) {
+		var size = this.extent * Math.pow(2, z),
+			x0 = this.extent * x,
+			y0 = this.extent * y,
+			coords = this.loadGeometry(),
+			type = VectorTileFeature.types[this.type],
+			i,
+			j;
+
+		function project(line) {
+			for (var j = 0; j < line.length; j++) {
+				var p = line[j],
+					y2 = 180 - ((p.y + y0) * 360) / size;
+				line[j] = [
+					((p.x + x0) * 360) / size - 180,
+					(360 / Math.PI) * Math.atan(Math.exp((y2 * Math.PI) / 180)) - 90,
+				];
+			}
+		}
+
+		switch (this.type) {
+			case 1:
+				var points = [];
+				for (i = 0; i < coords.length; i++) {
+					points[i] = coords[i][0];
+				}
+				coords = points;
+				project(coords);
+				break;
+
+			case 2:
+				for (i = 0; i < coords.length; i++) {
+					project(coords[i]);
+				}
+				break;
+
+			case 3:
+				coords = classifyRings(coords);
+				for (i = 0; i < coords.length; i++) {
+					for (j = 0; j < coords[i].length; j++) {
+						project(coords[i][j]);
+					}
+				}
+				break;
+		}
+
+		if (coords.length === 1) {
+			coords = coords[0];
+		} else {
+			type = "Multi" + type;
+		}
+
+		var result = {
+			type: "Feature",
+			geometry: {
+				type: type,
+				coordinates: coords,
+			},
+			properties: this.properties,
+		};
+
+		if ("id" in this) {
+			result.id = this.id;
+		}
+
+		return result;
+	}
+}
+
+// classifies an array of rings into polygons with outer rings and holes
+
+function classifyRings(rings) {
+	var len = rings.length;
+
+	if (len <= 1) return [rings];
+
+	var polygons = [],
+		polygon,
+		ccw;
+
+	for (var i = 0; i < len; i++) {
+		var area = signedArea(rings[i]);
+		if (area === 0) continue;
+
+		if (ccw === undefined) ccw = area < 0;
+
+		if (ccw === area < 0) {
+			if (polygon) polygons.push(polygon);
+			polygon = [rings[i]];
+		} else {
+			polygon.push(rings[i]);
+		}
+	}
+	if (polygon) polygons.push(polygon);
+
+	return polygons;
+}
+
+function signedArea(ring) {
+	var sum = 0;
+	for (var i = 0, len = ring.length, j = len - 1, p1, p2; i < len; j = i++) {
+		p1 = ring[i];
+		p2 = ring[j];
+		sum += (p2.x - p1.x) * (p1.y + p2.y);
+	}
+	return sum;
+}
+
+class VectorTileLayer {
+	constructor(pbf, end) {
+		// Public
+		this.version = 1;
+		this.name = null;
+		this.extent = 4096;
+		this.length = 0;
+
+		// Private
+		this._pbf = pbf;
+		this._keys = [];
+		this._values = [];
+		this._features = [];
+
+		pbf.readFields(readLayer, this, end);
+
+		this.length = this._features.length;
+	}
+
+	// return feature `i` from this layer as a `VectorTileFeature`
+	feature(i) {
+		if (i < 0 || i >= this._features.length)
+			throw new Error("feature index out of bounds");
+
+		this._pbf.pos = this._features[i];
+
+		var end = this._pbf.readVarint() + this._pbf.pos;
+		return new VectorTileFeature(
+			this._pbf,
+			end,
+			this.extent,
+			this._keys,
+			this._values
+		);
+	}
+}
+
+function readLayer(tag, layer, pbf) {
+	if (tag === 15) layer.version = pbf.readVarint();
+	else if (tag === 1) layer.name = pbf.readString();
+	else if (tag === 5) layer.extent = pbf.readVarint();
+	else if (tag === 2) layer._features.push(pbf.pos);
+	else if (tag === 3) layer._keys.push(pbf.readString());
+	else if (tag === 4) layer._values.push(readValueMessage(pbf));
+}
+
+function readValueMessage(pbf) {
+	var value = null,
+		end = pbf.readVarint() + pbf.pos;
+
+	while (pbf.pos < end) {
+		var tag = pbf.readVarint() >> 3;
+
+		value =
+			tag === 1
+				? pbf.readString()
+				: tag === 2
+				? pbf.readFloat()
+				: tag === 3
+				? pbf.readDouble()
+				: tag === 4
+				? pbf.readVarint64()
+				: tag === 5
+				? pbf.readVarint()
+				: tag === 6
+				? pbf.readSVarint()
+				: tag === 7
+				? pbf.readBoolean()
+				: null;
+	}
+
+	return value;
+}
+
+class VectorTile{
+	constructor (pbf, end) {
+	this.layers = pbf.readFields(readTile, {}, end);
+}
+}
+
+function readTile(tag, layers, pbf) {
+	if (tag === 3) {
+		var layer = new VectorTileLayer(pbf, pbf.readVarint() + pbf.pos);
+		if (layer.length) layers[layer.name] = layer;
+	}
+}
+
+css(`
+.gleo-control {
+	display: block;
+}
+`);
+
+/**
+ * @class Control
+ * @inherits Evented
+ *
+ * Abstract UI control.
+ */
+
+class Control extends Evented {
+	/**
+	 * @constructor Control(opts: Control options)
+	 */
+	constructor({ position = "tl" } = {}) {
+		/**
+		 * @option position: String
+		 * One of `tl`, `tr`, `bl`, `br`. Indicates which corner of the map the
+		 * control should be added to.
+		 * @alternative
+		 * @option position: HTMLElement
+		 * Indicates that the `Control` should be added to the given HTML element.
+		 * This allows for controls outside of the map interface itself.
+		 */
+		super();
+		this.position = position;
+
+		this.spawnElement();
+	}
+
+	/**
+	 * @section Internal methods
+	 * @method spawnElement(): HTMLElement
+	 * Sets `this.element` to the appropriate value. Should be overriden by
+	 * subclasses.
+	 */
+	spawnElement() {
+		/**
+		 * @section GleoMap interface
+		 * @property element: HTMLElement
+		 * The `HTMLElement` for the whole control. Should be treated as read-only.
+		 */
+		this.element = document.createElement("div");
+		this.element.className = "gleo-control";
+	}
+
+	/**
+	 * @section
+	 * @method addTo(map: GleoMap): this
+	 * Attaches the `Control` to the map, and appends the control's HTML element
+	 * to the appropriate container.
+	 */
+	addTo(map) {
+		if (this.position instanceof HTMLElement) {
+			this.parent = this.position;
+		} else {
+			this.parent = map.controlPositions.get(this.position);
+			if (!this.parent) {
+				throw new Error("The gleo map control has no valid position/container");
+			}
+		}
+		this.parent.appendChild(this.element);
+		this._map = map;
+		return this;
+	}
+
+	/**
+	 * @method remove(): this
+	 * Detaches the control from the map, and removes the HTML element from the DOM.
+	 */
+	remove() {
+		this.parent.removeChild(this.element);
+		this.parent = undefined;
+		this._map = undefined;
+	}
+}
+
+css(`
+.gleo-buttongroup {
+	display: flex;
+	min-width: 3em;
+	min-height: 3em;
+}
+.gleo-buttongroup.vertical { flex-direction: column }
+.gleo-buttongroup.horizontal { flex-direction: row }
+.gleo-controlcorner > .gleo-buttongroup {
+	margin: 0.5em;
+}
+.gleo-buttongroup.vertical > button.gleo-control,
+.gleo-buttongroup.vertical > div.gleo-control > button.gleo-control
+{
+	border-bottom-width: 0.1875em;
+	border-top-width: 0.1875em;
+	border-radius: 0;
+}
+.gleo-buttongroup.vertical > button.gleo-control:first-child,
+.gleo-buttongroup.vertical > div.gleo-control:first-child > button
+{
+	border-top-right-radius: 0.75em;
+	border-top-left-radius: 0.75em;
+	border-top-width: 0.375em;
+}
+.gleo-buttongroup.vertical > button.gleo-control:last-child,
+.gleo-buttongroup.vertical > div.gleo-control:last-child > button {
+	border-bottom-right-radius: 0.75em;
+	border-bottom-left-radius: 0.75em;
+	border-bottom-width: 0.375em;
+}
+.gleo-buttongroup.horizontal > button.gleo-control {
+	border-left-width: 0.1875em;
+	border-right-width: 0.1875em;
+	border-radius: 0;
+}
+.gleo-buttongroup.horizontal > button.gleo-control:first-child {
+	border-top-left-radius: 0.75em;
+	border-bottom-left-radius: 0.75em;
+	border-left-width: 0.375em;
+}
+.gleo-buttongroup.horizontal > button.gleo-control:last-child {
+	border-top-right-radius: 0.75em;
+	border-bottom-right-radius: 0.75em;
+	border-right-width: 0.375em;
+}
+`);
+
+/**
+ * @class ButtonGroup
+ * @inherits Control
+ * @relationship compositionOf Button, 0..1, 0..n
+ *
+ * A control for nesting `Button` controls inside.
+ */
+class ButtonGroup extends Control {
+	constructor({
+		// @option direction: String = 'vertical'
+		// Whether the nested buttons align horizontally or vertically. Valid
+		// values are `"horizontal"` and `"vertical"`.
+		direction = "vertical",
+		// @option buttons: Array of Button = []
+		// The initial set of `Button` controls to be in this group.
+		buttons = [],
+		...opts
+	}) {
+		super(opts);
+
+		this.buttons = buttons;
+		this.element.classList.add("gleo-buttongroup");
+		if (direction === "vertical") {
+			this.element.classList.add("vertical");
+		} else {
+			this.element.classList.add("horizontal");
+		}
+	}
+
+	addTo(map) {
+		this.buttons.forEach((button) => {
+			button.position = this.element;
+			button.addTo(map);
+		});
+		super.addTo(map);
+	}
+
+	remove() {
+		this.buttons.forEach((button) => button.remove());
+	}
+}
+
+css(`
+button.gleo-control {
+	display: block;
+	width: 3em;
+	height: 3em;
+	border-radius: 0.75em;
+	border: #888 solid 0.375em;
+	padding: 0;
+}
+.gleo-controlcorner > button.gleo-control {
+	margin: 0.5em;
+}
+
+button.gleo-control > svg {
+	vertical-align: middle;
+}
+
+button.gleo-control:active {
+	inset 0 0px 7px 3px #1b74ff;
+}
+`);
+
+/**
+ * @class Button
+ * @inherits Control
+ * A single UI button.
+ */
+class Button extends Control {
+	constructor({
+		/**
+		 * @option string: String
+		 * The (text) label to be shown inside the button.
+		 */
+		string,
+
+		/**
+		 * @option svgString: String
+		 * The icon for the button, as a string containing a SVG document.
+		 * Mutually exclusive with `string`.
+		 */
+		svgString,
+
+		/**
+		 * @option title: String
+		 * The text for the [`title` HTML attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/title)
+		 * of the button.
+		 */
+		title,
+		...opts
+	} = {}) {
+		super(opts);
+		if (string) {
+			this.button.innerText = string;
+		}
+
+		if (svgString) {
+			this.button.innerHTML = svgString;
+		}
+
+		if (title) {
+			this.button.title = title;
+		}
+	}
+	spawnElement() {
+		this.element = this.button = document.createElement("button");
+		this.button.className = "gleo-control";
+
+		// TODO: ARIA stuff.
+	}
+
+	/**
+	 * @section Button event handlers
+	 * @method on(eventName: String, handler: Function): this
+	 * Alias to `addEventListener`.
+	 * @method off(eventName: String, handler: Function): this
+	 * Alias to `removeEventListener`.
+	 */
+	on() {
+		return this.addEventListener.apply(this, arguments);
+	}
+	off() {
+		return this.removeEventListener.apply(this, arguments);
+	}
+
+	/**
+	 * @method addEventListener(eventName: String, handler: Function): this
+	 * Attaches an event handler to a DOM event of the `HTMLButtonElement` for
+	 * the control.
+	 */
+	addEventListener(eventName, handler) {
+		this.button.addEventListener(eventName, handler);
+		return this;
+	}
+
+	/**
+	 * @method addEventListener(eventName: String, handler: Function): this
+	 * Detaches an event handler to a DOM event from the `HTMLButtonElement` for
+	 * the control.
+	 */
+	removeEventListener(eventName, handler) {
+		this.button.removeEventListener(eventName, handler);
+		return this;
+	}
+
+	// TODO: disable, enable.
+	// TODO: focus, blur
+	// TODO: keyboard accesibility (keydown/up for space & enter)
+	// TODO: Wrap keyboard & pointer events (i.e. fire "pressstart", "pressend")
+}
+
+/**
+ * @class ZoomButton
+ * @inherits Button
+ * Common "Zoom In"/"Zoom Out" button functionality.
+ */
+
+class ZoomButton extends Button {
+	constructor(opts) {
+		super(opts);
+
+		this._boundOnPointerDown = this._onPointerDown.bind(this);
+		this._boundOnPointerUp = this._onPointerUp.bind(this);
+		this._boundOnFrame = this._onFrame.bind(this);
+		this.animFrame = undefined;
+		this.lastTimestamp = undefined;
+		this.initialScale = undefined;
+	}
+
+	addTo(map) {
+		super.addTo(map);
+		this.on("pointerdown", this._boundOnPointerDown);
+		this.on("pointerup", this._boundOnPointerUp);
+		this.on("pointercancel", this._boundOnPointerUp);
+		// 		this.on('pointerleave', this._boundOnPointerUp);
+	}
+
+	remove() {
+		this.off("pointerdown", this._boundOnPointerDown);
+		this.off("pointerup", this._boundOnPointerUp);
+		this.off("pointercancel", this._boundOnPointerUp);
+		// 		this.off('pointerleave', this._boundOnPointerUp);
+	}
+
+	_onPointerDown(ev) {
+		this.lastTimestamp = performance.now();
+		this.initialScale = this._map.scale;
+		this.animFrame = window.requestAnimationFrame(this._boundOnFrame);
+		this.element.setPointerCapture(ev.pointerId);
+	}
+	_onPointerUp(ev) {
+		const millisecs = Math.max(performance.now() - this.lastTimestamp, 500);
+		const factor = Math.pow(this.scaleFactorPerSecond, millisecs / 1000);
+		this._map.setView({
+			scale: this.initialScale * factor,
+			duration: Math.max(1000 - millisecs, 100),
+			center: this._map.center,
+		});
+		window.cancelAnimationFrame(this.animFrame);
+		this.element.releasePointerCapture(ev.pointerId);
+	}
+	_onFrame() {
+		const now = performance.now();
+		const secs = (now - this.lastTimestamp) / 1000;
+
+		const factor = Math.pow(this.scaleFactorPerSecond, secs);
+
+		this._map.setView({
+			scale: this.initialScale * factor,
+			duration: 100,
+			zoomSnap: false,
+		});
+		this.animFrame = window.requestAnimationFrame(this._boundOnFrame);
+	}
+}
+
+/**
+ * @class ZoomIn
+ * @inherits ZoomButton
+ * A "Zoom In" button.
+ */
+
+class ZoomIn extends ZoomButton {
+	constructor(opts) {
+		super({
+			svgString: `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path style="fill:#464646;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1" d="M11 2h2v9h9v2h-9v9h-2v-9H2v-2h9z"/></svg>`,
+			title: "Zoom in",
+			...opts,
+		});
+
+		this.scaleFactorPerSecond = 1 / 4;
+	}
+}
+
+/**
+ * @class ZoomOut
+ * @inherits ZoomButton
+ * A "Zoom Out" button.
+ */
+
+class ZoomOut extends ZoomButton {
+	constructor(opts) {
+		super({
+			svgString: `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path style="fill:none;stroke:#464646;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-dasharray:none" d="M2 12h20"/></svg>`,
+			title: "Zoom out",
+			...opts,
+		});
+
+		this.scaleFactorPerSecond = 4;
+	}
+}
+
+/**
+ * @class ZoomInOut
+ * @inherits ButtonGroup
+ * @relationship compositionOf ZoomIn, 0..1, 1..1
+ * @relationship compositionOf ZoomOut, 0..1, 1..1
+ *
+ * A group of two `Button`s: one for zooming in, one for zooming out.
+ */
+class ZoomInOut extends ButtonGroup {
+	constructor({ direction = "vertical", ...opts } = {}) {
+		super({
+			direction,
+			buttons: [new ZoomIn(), new ZoomOut()],
+			...opts,
+		});
+	}
+}
+
+css(`
+.gleo-control-attribution {
+	background: #ccc;
+	padding: 0.25em;
+}
+`);
+
+/**
+ * @class Attribution
+ * @inherits Control
+ * An informative attribution control. It shall display HTML text (with links)
+ * based on the `attribution` option of `GleoSymbol`s added to the map.
+ */
+class Attribution extends Control {
+	/**
+	 * @constructor Attribution(opts: Attribution Options)
+	 */
+	constructor({
+		/**
+		 * @section Attribution Options
+		 * @option separator: String = ' | '
+		 * A string to separate different attributions
+		 */
+		separator = " | ",
+		/**
+		 * @option prefix: String = 'Gleo'
+		 * A prefixed attribution that shall always be present irrespective of
+		 * symbols in the map.
+		 */
+		prefix = "<a href='https://gitlab.com/IvanSanchez/gleo/' target=_blank>Gleo</a>",
+		position = "br",
+		...opts
+	} = {}) {
+		super({ position, ...opts });
+
+		this._separator = separator;
+		this._prefix = prefix;
+
+		this._boundOnAcetateAdd = this._onAcetateAdd.bind(this);
+		this._boundOnSymbolAdd = this._onSymbolAdd.bind(this);
+		this._boundOnSymbolRemove = this._onSymbolRemove.bind(this);
+		this._boundOnLoaderAdd = this._onLoaderAdd.bind(this);
+		this._boundOnLoaderRemove = this._onLoaderRemove.bind(this);
+
+		this.counter = new Map();
+	}
+
+	spawnElement() {
+		this.element = document.createElement("div");
+		this.element.className = "gleo-control gleo-control-attribution";
+	}
+
+	addTo(map) {
+		super.addTo(map);
+		map.on("acetateadded", this._boundOnAcetateAdd);
+		map.on("symbolsadded", this._boundOnSymbolAdd);
+		map.on("symbolsremoved", this._boundOnSymbolRemove);
+		map.on("loaderadded", this._boundOnLoaderAdd);
+		map.on("loaderremoved", this._boundOnLoaderRemove);
+
+		/// TODO: Should fetch all of the map's loaders and symbols
+		/// and calculate the initial attribution
+	}
+
+	remove() {
+		super.remove();
+		this._map.off("acetateadded", this._boundOnAcetateAdd);
+		this._map.off("symbolsadded", this._boundOnSymbolAdd);
+		this._map.off("symbolsremoved", this._boundOnSymbolRemoved);
+		this._map.off("loaderadded", this._boundOnLoaderAdd);
+		this._map.off("loaderremoved", this._boundOnLoaderRemove);
+	}
+
+	_onAcetateAdd(ev) {
+		// this._onAdd(ev.detail.symbols.map((s) => s.attribution));
+		// console.log("Attribution acetateadded", ev.detail.constructor.name, ev.detail.attribution);
+		ev.detail.attribution && this._onAdd([ev.detail.attribution]);
+	}
+	_onSymbolAdd(ev) {
+		this._onAdd(ev.detail.symbols.map((s) => s.attribution));
+	}
+	_onSymbolRemove(ev) {
+		this._onRemove(ev.detail.symbols.map((s) => s.attribution));
+	}
+	_onLoaderAdd(ev) {
+		this._onAdd([ev.detail.loader.attribution]);
+	}
+	_onLoaderRemove(ev) {
+		this._onRemove([ev.detail.loader.attribution]);
+	}
+
+	_onAdd(attributions) {
+		let mustUpdate = false;
+
+		attributions
+			.filter((a) => !!a)
+			.forEach((a) => {
+				const c = this.counter.get(a) || 0;
+				if (!c) {
+					mustUpdate = true;
+				}
+				this.counter.set(a, c + 1);
+			});
+
+		if (mustUpdate) {
+			this._update();
+		}
+	}
+
+	_onRemove(attributions) {
+		let mustUpdate = false;
+
+		attributions
+			.filter((a) => !!a)
+			.forEach((a) => {
+				const c = this.counter.get(a);
+				// Might fail if a symbol/loader updates its attribution without notifying it
+				if (!c) {
+					// throw new Error("Removed an unknown attribution");
+					console.warn("Removed an unknown attribution", a);
+				}
+				if (c === 1) {
+					this.counter.delete(a);
+					mustUpdate = true;
+				} else {
+					this.counter.set(a, c - 1);
+				}
+			});
+
+		if (mustUpdate) {
+			this._update();
+		}
+	}
+
+	_update() {
+		this.element.innerHTML = [this._prefix]
+			.concat(Array.from(this.counter.keys()))
+			.join(this._separator);
+	}
+}
+
+/**
+ * @class CartesianMap
+ * @inherits GleoMap
+ *
+ * As `MercatorMap`, but:
+ * - Uses the `cartesian` CRS instead of the EPSG:3857 Mercator CRS.
+ * - All methods that take `Geometry`s as input can take arrays of the form
+ *   `[x, y]` instead.
+ *
+ * When using the `cartesian` CRS, all coordinates are in abstract, unit-less
+ * cartesian units in X-Y form.
+ *
+ * @example
+ *
+ * ```
+ * <div id='gleomap' style='height:500px; width:500px;'></div>
+ * <script type='module'>
+ * // Import the Gleo files - the paths depend on your importmaps and/or installation
+ * import CartesianMap from 'gleo/src/CartesianMap.mjs';
+ *
+ * const myGleoMap = new CartesianMap('gleomap');
+ *
+ * // The map center can be specified as a plain array in [x, y] form
+ * myGleoMap.center = [1000, 1500];
+ *
+ * // Initial scale ("zoom"): 1 map unit per CSS pixel
+ * myGleoMap.scale = 1;
+ * </script>
+ * ```
+ */
+
+class CartesianMap extends GleoMap {
+	/**
+	 * @constructor CartesianMap(div: HTMLDivElement, options: GleoMap Options)
+	 * @alternative
+	 * @constructor CartesianMap(divID: string, options: GleoMap Options)
+	 */
+	constructor(container, options) {
+		super(container, { crs: cartesian, ...options });
+
+		new ZoomInOut().addTo(this);
+		//new ScaleBar().addTo(this);
+		new Attribution().addTo(this);
+	}
+}
+
+setFactory(function cartesianize(coords, opts) {
+	return new Geometry(cartesian, coords, opts);
+});
+
+const invSqrt2 = 0.5 / Math.sqrt(2);
+
+css(`
+.gleo-control-scalebar {
+	background: #ccc;
+	padding: 0.25em;
+}
+
+.gleo-control-scalebar .gleo-scale {
+	border-bottom: 0.2em solid black;
+	border-left: 0.2em solid black;
+	border-right: 0.2em solid black;
+	text-align: center;
+	box-sizing: border-box;
+}
+`);
+
+/**
+ * @class ScaleBar
+ * @inherits Control
+ * An informative scale bar control.
+ */
+class ScaleBar extends Control {
+	/**
+	 * @constructor ScaleBar(opts: Scalebar Options)
+	 */
+	constructor({
+		/**
+		 * @section Scalebar Options
+		 * @option maxSize: Number = 100
+		 * Maximum size, in CSS pixels, of the scalebar line.
+		 */
+		maxSize = 200,
+		position = "bl",
+		...opts
+	} = {}) {
+		super({ position, ...opts });
+
+		/// TODO: init options:
+		/// - units of measurement (meters, nautical, unitless, etc)
+
+		this._boundOnViewChange = this.onViewChange.bind(this);
+		this._maxSize = maxSize;
+	}
+
+	spawnElement() {
+		this.element = document.createElement("div");
+		this.element.className = "gleo-control gleo-control-scalebar";
+
+		this._scaleElement = document.createElement("div");
+		this._scaleElement.className = "gleo-scale";
+		this.element.appendChild(this._scaleElement);
+	}
+
+	addTo(map) {
+		super.addTo(map);
+		map.on("viewchanged", this._boundOnViewChange);
+	}
+
+	remove() {
+		super.remove();
+		this._map.off("viewchanged", this._boundOnViewChange);
+	}
+
+	onViewChange(ev) {
+		const p = this._map.platina;
+		const [w, h] = p.pxSize;
+		const w2 = w / 2,
+			h2 = h / 2;
+
+		// The idea is to measure not the distance from a pixel to the next,
+		// but rather the length of a line as long as the maximum scalebar size,
+		// around the platina's center.
+		// This is a best-effort approach to providing a reliable measure at
+		// low scales. There'll be artifacts with specific projections at yaw 45°,
+		// but hopefully won't be much of a problem.
+		const offset = this._maxSize * invSqrt2;
+		const geom1 = p.pxToGeom([w2 - offset, h2 - offset]);
+		const geom2 = p.pxToGeom([w2 + offset, h2 + offset]);
+
+		let pxDistance = p.crs.distance(geom1, geom2);
+
+		let unit = "m";
+		if (pxDistance >= 1e3) {
+			unit = "km";
+			pxDistance /= 1e3;
+		}
+
+		let clampedDistance = Math.pow(10, Math.floor(Math.log10(pxDistance)));
+		if (clampedDistance * 5 < pxDistance) {
+			clampedDistance *= 5;
+		} else if (clampedDistance * 2 < pxDistance) {
+			clampedDistance *= 2;
+		}
+
+		if (Number.isFinite(clampedDistance)) {
+			this._scaleElement.innerText = `${clampedDistance}${unit}`;
+			this._scaleElement.style.width =
+				(this._maxSize * clampedDistance) / pxDistance + "px";
+		} else {
+			this._scaleElement.innerText = `N/A`;
+			this._scaleElement.style.width = this._maxSize + "px";
+		}
+	}
+}
+
+/**
+ * @class LngLat
+ * @inherits Geometry
+ * @relationship dependsOn epsg4326, 0..n, 1..1
+ *
+ * A `Geometry` of longitude-latitude coordinates, assuming EPSG:4326.
+ *
+ * Note that the order of the axis is longitude-latitude, or x-y: `new LngLat([180, 90])`
+ * is equivalent to `new Coord(epsg4326, [180, 90])`.
+ *
+ * The issue of the order of the axis might be confusing. See also `LatLng` and
+ * https://macwright.com/lonlat/ .
+ */
+
+class LngLat extends Geometry {
+	/**
+	 * @constructor LngLat(xy: Array of Number)
+	 */
+	constructor(xy, opts) {
+		super(epsg4326$1, xy, opts);
+	}
+}
+
+/**
+ * @class LatLng
+ * @inherits LngLat
+ *
+ * A `Geometry` of latitude-longitude coordinates, assuming EPSG:4326.
+ *
+ * Note that the order of the axis is inverted: `new LatLng([90, 180])`
+ * is equivalent to `new Geometry(epsg4326, [180, 90])`.
+ *
+ * The issue of the order of the axis might be confusing. See also `LatLng` and
+ * https://macwright.com/lonlat/ .
+ */
+
+class LatLng extends LngLat {
+	/**
+	 * @constructor LatLng(xy: Array of Number, opts?: Geometry Options)
+	 */
+	constructor(yx, opts) {
+		const xy = flip(yx);
+		super(xy, opts);
+	}
+}
+
+function flip(arr) {
+	if (typeof arr[0] === "number") {
+		return [arr[1], arr[0]];
+	} else {
+		return arr.map(flip);
+	}
+}
+
+/**
+ * @class MercatorMap
+ * @inherits GleoMap
+ *
+ * A `GleoMap` with some useful defaults:
+ * - Defaults to Web Mercator CRS (`epsg3857`)
+ * - Sets a `maxSpan` of 45 million (mainly to prevent users zooming out far
+ *   enough to see horizontal bands above 85° / below -85° when zooming), can
+ *   be overridden
+ * - Enables some actuators by default:
+ *   - `DragActuator` to move the map with a drag-and-drop interaction.
+ *   - `PinchActuator` to zoom/rotate the map with two-finger gestures.
+ *   - `InertiaActuator` to perform animations on view change.
+ *   - `WheelActuator` to zoom in/out with a mouse wheel.
+ *   - `ZoomYawSnapActuator` to lock onto the "zoom levels" of the map tiles.
+ *   - `SpanClampActuator` to prevent the user from zooming too far in or too far out.
+ *   - `BoundsClampActuator` to prevent the user from moving too far north or too far south.
+ * - Adds some controls to the map:
+ *   - `ZoomInOut` buttons
+ *   - `ScaleBar`
+ *   - `Attribution`
+ * - All methods that take `Geometry`s as input can take arrays of the form
+ *   `[lat, lng]` instead, as per `LatLng` (via `DefaultGeometry`).
+ *
+ * In order to have a map without these defaults, use `GleoMap` instead, add
+ * CRS, actuators, and controls as desired; and use `DefaultGeometry` functionality
+ * to define how to handle geometry inputs.
+ *
+ * @example
+ *
+ * ```
+ * <div id='gleomap' style='height:500px; width:500px;'></div>
+ * <script type='module'>
+ * // Import the Gleo files - the paths depend on your importmaps and/or installation
+ * import MercatorMap from 'gleo/src/MercatorMap.mjs';
+ * import MercatorTiles from 'gleo/src/loaders/MercatorTiles.mjs';
+ *
+ * // Instantiate the MercatorMap instance, given the ID of the <div>
+ * const myGleoMap = new MercatorMap('gleomap');
+ *
+ * // Load some default OpenStreetMap tiles in the map
+ * new MercatorTiles("https://tile.osm.org/{z}/{y}/{x}.png", {maxZoom: 10}).addTo(myGleoMap);
+ *
+ * // The map center can be specified as a plain array in [latitude, longitude] form
+ * myGleoMap.center = [40, -3];
+ *
+ * // The map span is the length of the map's diagonal in "meters"
+ * myGleoMap.span = 1000000;
+ * </script>
+ * ```
+ */
+
+class MercatorMap extends GleoMap {
+	/**
+	 * @constructor MercatorMap(div: HTMLDivElement, options: GleoMap Options)
+	 * @alternative
+	 * @constructor MercatorMap(divID: string, options: GleoMap Options)
+	 */
+	constructor(container, { ...options } = {}) {
+		super(container, { crs: epsg3857, ...options });
+
+		new ZoomInOut().addTo(this);
+		new ScaleBar().addTo(this);
+		new Attribution().addTo(this);
+	}
+}
+
+setFactory(function latLngize(coords, opts) {
+	return new LatLng(coords, opts);
+});
+
+/**
+ * @class AcetateFuelPoint
+ * @inherits AcetateExtrudedPoint
+ * @relationship drawnOn ScalarField
+ *
+ * An `Acetate` to place `FuelPoint`s into a scalar field.
+ *
+ * The `AcetateFuelPoint` defines the "ramp factor": the speed at which the
+ * field increases/decreases, in terms of field units per CRS unit.
+ *
+ */
+
+class AcetateFuelPoint extends AcetateInteractive {
+	#blendEquation;
+	#radius;
+	#rampFactor;
+
+	// Absolute possible minimum and maximum intensity values, based on
+	// min/max of all known points
+	#min = Infinity;
+	#max = -Infinity;
+
+	/**
+	 * @constructor AcetateFuelPoint(target: GliiFactory, opts: AcetateFuelPoint Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option rampFactor: Number = 1
+			 * Defines how fast the intensity fades out outwards, in
+			 * scalar field units per CRS distance units ("units per metre").
+			 *
+			 * If the ramp factor is positive, then the calculated value into
+			 * the field will be the minimum of the possible values; if it's
+			 * positive, then maximum.
+			 */
+			rampFactor = 1,
+			/// TODO: The sign of the ramp factor should be enough to choose
+			/// the blend equation to use.
+
+			/**
+			 * @option radius: Number = 10000
+			 * The radius of all FuelPoints, in CRS distance units
+			 */
+			radius = 10000,
+
+			/// TODO: Refactor the whole thing so instead of a radius, a maximum
+			/// value can be given. Each symbol would calculate its size based on the max value.
+			/// This would, hopefully, enable early triangle depth culling and
+			/// improve performance.
+
+			...opts
+		} = {}
+	) {
+		super(target, {
+			zIndex: 2000,
+			...opts,
+		});
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 1,
+				growFactor: 1.2,
+			},
+			[
+				{
+					// Field intensity
+					glslType: "float",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Distance to center (CRS distance units, AKA meters)
+					glslType: "float",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this.#blendEquation = rampFactor >= 0 ? this.glii.MIN : this.glii.MAX;
+		this.#radius = radius;
+		this.#rampFactor = rampFactor;
+	}
+
+	/**
+	 * @property PostAcetate: ScalarField
+	 * Signals that this `Acetate` isn't rendered as a RGBA8 texture,
+	 * but instead uses a scalar field.
+	 */
+	static get PostAcetate() {
+		return ScalarField;
+	}
+
+	// This is the definition for the program turning HeatFuel
+	// symbols into a float32 texture (AKA "scalar field")
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aIntensity: this._attrs.getBindableAttribute(0),
+				aDistance: this._attrs.getBindableAttribute(1),
+			},
+			uniforms: {
+				// uPixelSize: "vec2",
+				uRampFactor: "float",
+				uMin: "float",
+				uMax: "float",
+				uRange: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vIntensity = aIntensity + aDistance * uRampFactor;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix
+					, 1.0);
+
+				gl_Position.z = (vIntensity - uMin) / uRange;
+			`,
+			varyings: {
+				vIntensity: "float",
+			},
+			fragmentShaderMain: `gl_FragColor.r = vIntensity;`,
+			// fragmentShaderMain: `gl_FragColor.r = gl_FragCoord.z;`,
+			target: this._inAcetate.framebuffer,
+			// depth: this.glii.LEQUAL,
+			depth: this.glii.LESS,
+			// depth: this.glii.GREATER,
+			blend: {
+				equationRGB: this.#blendEquation,
+				// equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.#blendEquation,
+
+				/**
+				 * NOTE: When using blend modes that multiply the src RGB
+				 * components by the scr alpha, then the fragment shader
+				 * needs to set the alpha component. i.e. there's a need to
+				 * set `gl_FragColor.a = 1.;`.
+				 *
+				 * This is counter-intuitive, since the R32F texture has no
+				 * alpha component. **BUT**, the alpha component of
+				 * gl_FragColor lives until the blend operation.
+				 *
+				 * By setting the srcRGB blend parameter to `ONE`, the output
+				 * is unaffected by the alpha component.
+				 */
+				srcRGB: this.glii.ONE,
+				srcAlpha: this.glii.ZERO,
+				dstRGB: this.glii.ONE,
+				dstAlpha: this.glii.ZERO,
+			},
+		};
+	}
+
+	glIdProgramDefinition() {
+		const def = super.glIdProgramDefinition();
+
+		return {
+			...def,
+			blend: {
+				equationRGB: this.glii.MAX,
+				equationAlpha: this.glii.MAX,
+
+				srcRGB: this.glii.ONE,
+				srcAlpha: this.glii.ONE,
+				dstRGB: this.glii.ZERO,
+				dstAlpha: this.glii.ZERO,
+			},
+		};
+	}
+
+	resize(x, y) {
+		super.resize(x, y);
+		this._program._target = this._inAcetate.framebuffer;
+		// this._program.setUniform("uPixelSize", [2 / x, 2 / y]);
+		this._programs.setUniform("uRampFactor", this.#rampFactor);
+		this._programs.setUniform("uMin", this.#min);
+		// this._programs.setUniform("uMax", this.#max);
+		this._programs.setUniform("uRange", Math.ceil(this.#max - this.#min));
+	}
+
+	/**
+	 * @property rampFactor: Number
+	 * Gets or sets the current ramp factor.
+	 *
+	 * Note that changing the sign of the ramp factor will **not** behave properly.
+	 */
+	get rampFactor() {
+		return this.#rampFactor;
+	}
+
+	set rampFactor(r) {
+		this._programs.setUniform("uRampFactor", (this.#rampFactor = r));
+
+		if (this._knownSymbols.length) {
+			const intensities = this._knownSymbols.map((fp) => fp.intensity);
+
+			const [minValue, maxValue] = intensities.reduce(
+				(acc, val) => {
+					return [
+						Math.min(val, acc[0]),
+						Math.max(val, acc[1] + this.#rampFactor * this.#radius),
+					];
+				},
+				[Infinity, -Infinity]
+			);
+
+			// const minValue = Math.min(...intensities);
+			this.#min = Math.min(this.#min, minValue);
+			// const maxValue = Math.max(...intensities) + this.#rampFactor * this.#radius;
+			this.#max = Math.max(this.#max, maxValue);
+			this._programs.setUniform("uMin", this.#min);
+			// this._programs.setUniform("uMax", this.#max);
+			this._programs.setUniform("uRange", Math.ceil(this.#max - this.#min));
+		}
+
+		this.dirty = true;
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Field intensity
+			this._attrs.asStridedArray(0, maxVtx),
+			// Distance to center
+			this._attrs.asStridedArray(1),
+			// Triangle indices
+			this._indices.asTypedArray(maxIdx),
+			// Static extrusion radius (CRS distance units)
+			this.#radius,
+		];
+	}
+
+	/**
+	 * @section
+	 * @method multiAdd(fuelpoints : Array of FuelPoint): this
+	 * Adds the `FuelPoint`s to the acetate.
+	 */
+	multiAdd(fuelpoints) {
+		// Skip already added symbols
+		fuelpoints = fuelpoints.filter((e) => !e._inAcetate);
+		if (fuelpoints.length === 0) {
+			return;
+		}
+
+		// Sort the fuelpoints by their intensity in an effort to minimize
+		// fragment passes
+		if (this.#blendEquation == this.glii.MIN) {
+			fuelpoints = fuelpoints.sort((a, b) => a.intensity - b.intensity);
+		} else if (this.#blendEquation == this.glii.MAX) {
+			fuelpoints = fuelpoints.sort((a, b) => b.intensity - a.intensity);
+		}
+
+		const totalIndices = fuelpoints.reduce((acc, fp) => acc + fp.idxLength, 0);
+		const totalVertices = fuelpoints.reduce((acc, fp) => acc + fp.attrLength, 0);
+
+		let baseVtx = this._attribAllocator.allocateBlock(totalVertices);
+		let baseIdx = this._indices.allocateSlots(totalIndices);
+		const maxVtx = baseVtx + totalVertices;
+
+		let stridedArrays = this._getStridedArrays(maxVtx, baseIdx + totalIndices);
+
+		let vtxAcc = baseVtx;
+		let idxAcc = baseIdx;
+
+		fuelpoints.map((fp) => {
+			fp.updateRefs(this, vtxAcc, idxAcc);
+			this._knownSymbols[vtxAcc] = fp;
+
+			fp._setGlobalStrides(...stridedArrays);
+
+			vtxAcc += fp.attrLength;
+			idxAcc += fp.idxLength;
+		});
+
+		// this._commitStridedArrays(baseVtx, totalVertices);
+		this._attrs.commit(baseVtx, totalVertices);
+
+		this._indices.commit(baseIdx, totalIndices);
+
+		if (this._crs) {
+			this.reproject(baseVtx, totalVertices, fuelpoints);
+		}
+
+		// The AcetateInteractive will assign IDs to symbol vertices.
+		super.multiAddIds(fuelpoints, baseVtx);
+
+		const intensities = fuelpoints.map((fp) => fp.intensity);
+
+		const [minValue, maxValue] = intensities.reduce(
+			(acc, val) => {
+				return [
+					Math.min(val, acc[0]),
+					Math.max(val, acc[1] + this.#rampFactor * this.#radius),
+				];
+			},
+			[this.#min, this.#max]
+		);
+
+		// const minValue = Math.min(...intensities);
+		this.#min = Math.min(this.#min, minValue);
+		// const maxValue = Math.max(...intensities) + this.#rampFactor * this.#radius;
+		this.#max = Math.max(this.#max, maxValue);
+		this._programs.setUniform("uMin", this.#min);
+		// this._programs.setUniform("uMax", this.#max);
+		this._programs.setUniform("uRange", this.#max - this.#min);
+
+		console.log(this.#min, this.#max, this.#max - this.#min);
+
+		this.dirty = true;
+
+		return super.multiAdd(fuelpoints);
+	}
+
+	/**
+	 * @section Internal Methods
+	 * @uninheritable
+	 *
+	 * @method reproject(start: Number, length: Number, symbols: Array of GleoSymbol): Array of Number
+	 * Dumps a new set of values to the `this._coords` attribute buffer, based on the known
+	 * set of symbols added to the acetate (only those which have their attribute offsets
+	 * between `start` and `start+length`. Each symbol will spawn as many
+	 * coordinate `vec2`s as their `attrLength` property.
+	 *
+	 * Returns the data set into the attribute buffer: a plain array of coordinates
+	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
+	 */
+	reproject(start, length, symbols) {
+		let relevantSymbols =
+			symbols ??
+			this._knownSymbols.filter((symbol, attrIdx) => {
+				return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
+			});
+
+		let addr = 0;
+		const ρ = this.#radius;
+
+		// In most cases, it's safe to assume that relevant symbols in the same
+		// attribute allocation block have their vertex attributes in a
+		// compacted manner.
+
+		const coordData = new Float64Array(length * 2);
+
+		relevantSymbols.forEach((symbol) => {
+			const projected = symbol.geometry.toCRS(this.platina.crs).coords;
+
+			// Center point
+			coordData.set(projected, addr);
+			addr += 2;
+
+			let θ = 0;
+			const ɛ = (Math.PI * 2) / symbol.steps;
+
+			// for (let i = 0; i < symbol.attrLength; i++) {
+			for (let i = 0; i < symbol.steps; i++) {
+				/// TODO: Use a geodetic method instead of a CRS-planar method.
+				/// i.e. this calculation should use meters, not EPSG:3857 units
+
+				coordData.set(
+					[projected[0] + Math.sin(θ) * ρ, projected[1] + Math.cos(θ) * ρ],
+					addr
+				);
+				addr += 2;
+				θ += ɛ;
+			}
+		});
+
+		//console.log("Symbol reprojected:", coordData);
+		this.multiSetCoords(start, coordData);
+
+		this.dirty = true;
+
+		return coordData;
+	}
+}
+
+/**
+ * @class AcetateHeadingTriangle
+ * @inherits AcetateExtrudedPoint
+ *
+ * An `Acetate` for rendering heading triangles. Much like `AcetateSolidExtrusion`,
+ * but handles two colours and a feathering between them.
+ */
+class AcetateHeadingTriangle extends AcetateExtrudedPoint {
+	constructor(target, opts) {
+		super(target, { zIndex: 2500, opts });
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 1,
+				growFactor: 1.2,
+			},
+			[
+				{
+					// Fill RGBA colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Border RGBA colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Per-triangle border width and feather width
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Per-vertex distance from edge. Each vertex in a triangle
+					// will have values like N-0-0, 0-N-0, 0-0-N. Units should
+					// be CSS pixels.
+					glslType: "vec3",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+
+		// Yaws are stored as ( cos(yaw), sin(yaw) ) tuples, and we'll assume
+		// they might be updated fairly often.
+		// this._yaws = new this.glii.SingleAttribute({
+		// 	usage: this.glii.DYNAMIC_DRAW,
+		// 	size: 1,
+		// 	growFactor: 1.2,
+		//
+		// 	glslType: "vec2",
+		// 	type: Float32Array,
+		// 	normalized: false,
+		// });
+	}
+
+	// _commitStridedArrays(baseVtx, vtxCount) {
+	// 	this._extrusions.commit(baseVtx, vtxCount);
+	// 	this._attrs.commit(baseVtx, vtxCount);
+	// 	this._yaws.commit(baseVtx, vtxCount);
+	// }
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				aFillColour: this._attrs.getBindableAttribute(0),
+				aBorderColour: this._attrs.getBindableAttribute(1),
+
+				// Per-triangle border and feather width
+				aBorder: this._attrs.getBindableAttribute(2),
+
+				// Per-vertex distance to edge
+				aEdge: this._attrs.getBindableAttribute(3),
+
+				...opts.attributes,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vFillColour = aFillColour;
+				vBorderColour = aBorderColour;
+				vBorder = aBorder;
+				vEdge = aEdge;
+
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix +
+					vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vFillColour: "vec4",
+				vBorderColour: "vec4",
+				vBorder: "vec2",
+				vEdge: "vec3",
+			},
+			fragmentShaderMain: `
+				float edgeDistance = min(min(vEdge.x, vEdge.y), vEdge.z);
+
+				if (edgeDistance < vBorder.x) {
+					gl_FragColor = vBorderColour;
+					gl_FragColor.a *= min(1., edgeDistance / vBorder.y);
+				} else {
+					// gl_FragColor = vFillColour /** edgeDistance / 16.*/;
+					gl_FragColor = mix(vBorderColour, vFillColour, (edgeDistance - vBorder.x) / vBorder.y);
+				}
+
+				// gl_FragColor.rgb = vEdge / 16.;
+				// gl_FragColor.a = 1.;
+			`,
+		};
+	}
+
+	// glIdProgramDefinition() {
+	// 	const opts = super.glIdProgramDefinition();
+	// 	return {
+	// 		...opts,
+	// 		fragmentShaderSource: `
+	// 			void main() {
+	// 				if (vId.a > 0.0 && vColour.a > 0.0) {
+	// 					gl_FragColor = vId;
+	// 				} else {
+	// 					discard;
+	// 				}
+	// 			}
+	// 		`,
+	// 	};
+	// }
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Extrusion
+			this._extrusions.asStridedArray(maxVtx),
+			// Fill colour
+			this._attrs.asStridedArray(0, maxVtx),
+			// Border colour
+			this._attrs.asStridedArray(1),
+			// Border+feather
+			this._attrs.asStridedArray(2),
+			// Distance to edge
+			this._attrs.asStridedArray(3),
+			// Triangle indices
+			this._indices.asTypedArray(maxIdx),
+		];
+	}
+
+	// The map will call resize() on acetates when needed - besides redoing the
+	// framebuffer with the new size, this needs to reset the uniform uPixelSize.
+	resize(w, h) {
+		super.resize(w, h);
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
+	}
+}
+
+/**
+ * @class AcetateSolidExtrusion
+ * @inherits AcetateExtrudedPoint
+ *
+ * An `Acetate` for rendering solid colors on extrusions of point geometries;
+ * this is common for `Pie`, `CircleFill` and `CircleStroke` symbols.
+ */
+
+class AcetateSolidExtrusion extends AcetateExtrudedPoint {
+	/**
+	 * @constructor AcetateSolidExtrusion(target: Platina, opts?: AcetateSolidExtrusion Options)
+	 */
+	constructor(
+		target,
+		{
+			/// @option feather: Number = 1.5
+			/// The feather distance (in CSS pixels)
+			feather = 1.5,
+
+			...opts
+		} = {}
+	) {
+		super(target, { zIndex: 2500, ...opts });
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 1,
+				growFactor: 1.2,
+			},
+			[
+				{
+					// RGBA colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Feathering value (extrusion distance) plus feather limit
+					// (max absolute value of extrusion), as 1/256ths of CSS pixel
+					glslType: "vec2",
+					type: Int16Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this.#feather = feather;
+	}
+
+	// Width of feathering, in pixels
+	#feather = 0.5;
+
+	/**
+	 * @property feather: Number
+	 * Read-only getter for the value given to the `feather` option at instantiation time.
+	 */
+	get feather() {
+		return this.#feather;
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				aColour: this._attrs.getBindableAttribute(0),
+				aFeather: this._attrs.getBindableAttribute(1),
+				...opts.attributes,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				uFeatherAmount: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				vFeather = aFeather;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix +
+					vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: { vColour: "vec4", vFeather: "vec2" },
+			fragmentShaderMain: `
+				gl_FragColor = vColour;
+				float alpha = smoothstep(
+					vFeather.y,
+					vFeather.y - uFeatherAmount,
+					abs(vFeather.x)
+				);
+				gl_FragColor.a *= alpha;
+			`,
+		};
+	}
+
+	glIdProgramDefinition() {
+		const opts = super.glIdProgramDefinition();
+		return {
+			...opts,
+			fragmentShaderMain: `
+				if (vColour.a > 0.0) {
+					${opts.fragmentShaderMain};
+				} else {
+					discard;
+				}
+			`,
+		};
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Extrusion
+			this._extrusions.asStridedArray(maxVtx),
+			// Colour
+			this._attrs.asStridedArray(0, maxVtx),
+			// Feather
+			this._attrs.asStridedArray(1),
+			// Triangle indices
+			this._indices.asTypedArray(maxIdx),
+			// // Feather constant
+			// this.#feather,
+		];
+	}
+
+	_commitStridedArrays(baseVtx, vtxCount, baseIdx, idxCount) {
+		this._extrusions.commit(baseVtx, vtxCount);
+		this._attrs.commit(baseVtx, vtxCount);
+		this._indices.commit(baseIdx, idxCount);
+	}
+
+	// The map will call resize() on acetates when needed - besides redoing the
+	// framebuffer with the new size, this needs to reset the uniform uPixelSize.
+	resize(w, h) {
+		super.resize(w, h);
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
+		// 		this._programs.setUniform("uFeatherAmount", .5 * 256);	// Half a pixel
+		this._programs.setUniform("uFeatherAmount", this.#feather * 256);
+	}
+}
+
+/**
+ * @class AcetateRotatingExtrusion
+ * @inherits AcetateSolidExtrusion
+ *
+ * An `Acetate` for rendering solid extrusions that rotate around the
+ * point geometry.
+ *
+ */
+
+class AcetateRotatingExtrusion extends AcetateSolidExtrusion {
+	constructor(target, opts) {
+		super(target, { zIndex: 2800, opts });
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 1,
+				growFactor: 1.2,
+			},
+			[
+				{
+					// Dynamic extrusion amount
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// RGBA colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Feathering value (extrusion distance) plus feather limit
+					// (max absolute value of extrusion), as 1/256ths of CSS pixel
+					glslType: "vec2",
+					type: Int16Array,
+					normalized: false,
+				},
+				{
+					// Rotation speed (revolutions per second)
+					glslType: "float",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aRotateExtrude: this._attrs.getBindableAttribute(0),
+				aColour: this._attrs.getBindableAttribute(1),
+				aFeather: this._attrs.getBindableAttribute(2),
+				aSpeed: this._attrs.getBindableAttribute(3),
+			},
+			uniforms: {
+				uNow: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				vFeather = aFeather;
+				float angle = aSpeed * uNow / (1000. / 3.14159);
+				float sinA = sin(angle);
+				float cosA = cos(angle);
+				mat2 rotationMatrix = mat2(sinA, -cosA, cosA, sinA);
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix +
+					vec3(
+						((rotationMatrix * aRotateExtrude) + aExtrude)
+						* uPixelSize, 0.0)
+					, 1.0);
+			`,
+		};
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Static extrusion (offset)
+			this._extrusions.asStridedArray(maxVtx),
+			// Rotating extrusion
+			this._attrs.asStridedArray(0, maxVtx),
+			// Colour
+			this._attrs.asStridedArray(1),
+			// Feather
+			this._attrs.asStridedArray(2),
+			// Speed
+			this._attrs.asStridedArray(3),
+			// Triangle indices
+			this._indices.asTypedArray(maxIdx),
+			// Feather constant
+			this.feather,
+		];
+	}
+
+	redraw() {
+		this._programs.setUniform("uNow", performance.now());
+		return super.redraw.apply(this, arguments);
+	}
+
+	// An animated Acetate is always dirty, meaning it wants to render at every
+	// frame.
+	get dirty() {
+		return true;
+	}
+	set dirty(_) {}
+}
+
+/**
+ * @class AcetateSolidBorder
+ * @inherits AcetateExtrudedPoint
+ *
+ * An `Acetate` for solid extrusions with two colours: fill and border.
+ *
+ * Used in `HeadingTriangle` and `Circle`.
+ *
+ */
+class AcetateSolidBorder extends AcetateExtrudedPoint {
+	constructor(target, opts) {
+		super(target, { zIndex: 2500, opts });
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 1,
+				growFactor: 1.2,
+			},
+			[
+				{
+					// Fill RGBA colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Border RGBA colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Border width and feather width (in CSS pixels)
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Per-vertex distance from farthest edge. In a HeadingTriangle,
+					// each vertex will have values like N-0-0, 0-N-0, 0-0-N.
+					// In a Circle, all values are the same.
+					// Units should be CSS pixels.
+					glslType: "vec3",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				aFillColour: this._attrs.getBindableAttribute(0),
+				aBorderColour: this._attrs.getBindableAttribute(1),
+
+				// Per-triangle border and feather width
+				aBorder: this._attrs.getBindableAttribute(2),
+
+				// Per-vertex distance to edge
+				aEdge: this._attrs.getBindableAttribute(3),
+
+				...opts.attributes,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vFillColour = aFillColour;
+				vBorderColour = aBorderColour;
+				vBorder = aBorder;
+				vEdge = aEdge;
+
+				gl_Position = vec4(
+						vec3(aCoords, 1.0) * uTransformMatrix +
+						vec3(aExtrude * uPixelSize, 0.0)
+						, 1.0);
+
+			`,
+			varyings: {
+				vFillColour: "vec4",
+				vBorderColour: "vec4",
+				vBorder: "vec2",
+				vEdge: "vec3",
+			},
+			fragmentShaderMain: `
+				float edgeDistance = min(min(vEdge.x, vEdge.y), vEdge.z);
+
+				if (edgeDistance < vBorder.x) {
+					gl_FragColor = vBorderColour;
+					gl_FragColor.a *= min(1., edgeDistance / vBorder.y);
+				} else {
+					// gl_FragColor = vFillColour /** edgeDistance / 16.*/;
+					gl_FragColor = mix(vBorderColour, vFillColour, min(edgeDistance - vBorder.y / vBorder.x, 1.0));
+				}
+
+				// gl_FragColor.rgb = vEdge / 16.;
+				// gl_FragColor.a = 1.;
+			`,
+		};
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Extrusion
+			this._extrusions.asStridedArray(maxVtx),
+			// Fill colour
+			this._attrs.asStridedArray(0, maxVtx),
+			// Border colour
+			this._attrs.asStridedArray(1),
+			// Border+feather
+			this._attrs.asStridedArray(2),
+			// Distance to edge
+			this._attrs.asStridedArray(3),
+			// Triangle indices
+			this._indices.asTypedArray(maxIdx),
+		];
+	}
+
+	// The map will call resize() on acetates when needed - besides redoing the
+	// framebuffer with the new size, this needs to reset the uniform uPixelSize.
+	resize(w, h) {
+		super.resize(w, h);
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
+	}
+}
+
+// import { registerDefaultAcetate } from "../Platina.mjs";
+// import Allocator from "../glii/src/Allocator.mjs";
+
+/**
+ * @class AcetateStitchedTiles
+ * @inherits AcetateVertices
+ *
+ * @relationship compositionOf TilePyramid, 0..n, 1..1
+ *
+ * An `Acetate` that draws rectangular conformal (i.e. matching the display CRS)
+ * RGB(A) raster images, all of which fit together inside a Glii texture (and
+ * so they share it). Users should not use this acetate directly; look at
+ * `MercatorTiles` and `RasterTileLoader` and instead.
+ *
+ * This acetate will **not** hold an indefinite number of tiles; rather,
+ * a tile might overwrite an existing tile. The (maximum) number of tiles at
+ * any given moment depends on the size of the WebGL texture used.
+ */
+
+class AcetateStitchedTiles extends AcetateVertices {
+	#MRULevels; // Most Recently Used levels
+	#texFilter; // Either glii.NEAREST or glii.LINEAR
+
+	/**
+	 * Info about tile pyramid levels. Looks like:
+	 * "8": {
+	 * 	scale: 9.26,
+	 * 	resX: 256,	// size of tiles in raster px
+	 * 	resY: 256,	// size of tiles in raster px
+	 * 	wrapX: 16,	// amount of tiles fitting in the texture
+	 * 	wrapY: 16,	// amount of tiles fitting in the texture
+	 * 	texSizeX: 4096,	// (desired) Size of texture
+	 * 	texSizeY: 4096,	// (desired) Size of texture
+	 * 	baseVtx: 348	// Index of the first vertex attribute for the level
+	 * 	valid: true,	// Whether should be drawn or not
+	 * }
+	 */
+	#levels = {};
+	#levelNames = [];
+
+	#uvAttr;
+	#timestampAttr;
+	#fadeInDuration;
+
+	constructor(
+		glii,
+		{
+			/**
+			 * @section AcetateStitchedTiles Options
+			 * @option pyramid: TilePyramid
+			 * The tile pyramid to use
+			 * @option tileResX: Number = 256; Horizontal size, in pixels, of each tile.
+			 * @option tileResY: Number = 256; Vertical size, in pixels, of each tile.
+			 * @option minTextureSize: Number = 2048
+			 * Minimum size of the textures used to cache tile data. This should
+			 * be set to the maximum expected size of the map (`RasterTileLoader`
+			 * does so).
+			 *
+			 * Lower values might save some GPU memory, but will cause tiles to
+			 * be culled prematurely.
+			 *
+			 * Higher values will keep more tiles cached in GPU textures, but
+			 * will use more GPU memory and can cause browsers (notably
+			 * chrome/chromium) to spend more time allocating the textures. Texture
+			 * size is ultimately bound by the WebGL capabilities of the
+			 * browser/OS/GPU, which usually can support textures 8192 or 16384
+			 * pixels wide/high.
+			 * @option interpolate: Boolean = false
+			 * Whether to use bilinear pixel interpolation or not.
+			 *
+			 * In other words: `false` means pixellated, `true` means smoother.
+			 * @option fadeInDuration: Number = 250
+			 * Duration, in milliseconds, of the tile fade-in animation.
+			 * @option maxLoadedLevels: Number = 3
+			 * Number of maximum tile levels to keep loaded in their textures.
+			 * Higher values can provide a slightly better experience when
+			 * zooming in and out, but will use more GPU RAM.
+			 * @option resizablePlatina: Boolean = true
+			 * Whether the platina can be expected to be resized up to the size
+			 * of the screen. When `false`, less GPU RAM is used for the textures.
+			 */
+			pyramid,
+			tileResX = 256,
+			tileResY = 256,
+			minTextureSize = 2048,
+			// minTextureSize = 1024,
+			interpolate = false,
+			fadeInDuration = 250,
+			maxLoadedLevels = 4,
+			...opts
+		} = {}
+	) {
+		super(glii, opts);
+
+		// this._texture = new glii.Texture();
+		this._pyramid = pyramid;
+		this.#levelNames = pyramid.mapLevels((name) => name);
+
+		this.#MRULevels = new Array(maxLoadedLevels);
+
+		this.#fadeInDuration = fadeInDuration;
+
+		// Timestamp when the fade-in animation must stop.
+		this._fadeTimeout = undefined;
+
+		this._textures = {};
+
+		this._crs = pyramid.crs;
+
+		this._indices = new glii.LoDIndices({
+			type: glii.UNSIGNED_INT,
+			size: 0,
+			growFactor: 1,
+		});
+
+		this.#texFilter = !!interpolate ? this.glii.LINEAR : this.glii.NEAREST;
+		// const attrs = new Float32Array(levelCount * this._tilesPerLevel * 3);
+		const uvs = [];
+		const idxs = [];
+		let vtx = 0;
+
+		this._scales = {};
+
+		const maxTexSize = glii.Texture.getMaxSize();
+
+		this.#levelNames.forEach((levelName) => {
+			const level = this._pyramid.getLevelDef(levelName);
+
+			const resX = isFinite(tileResX) ? tileResX : tileResX[levelName];
+			const resY = isFinite(tileResY) ? tileResY : tileResY[levelName];
+
+			if (resX > maxTexSize || resY > maxTexSize) {
+				throw new Error(
+					`Resolution of tiles (${resX}, ${resY}) cannot be greater than the maximum size of textures (${maxTexSize})`
+				);
+			}
+			if (resX < 0 || resY < 0) {
+				throw new Error(
+					`Resolution of tiles (${resX}, ${resY}) cannot be negative`
+				);
+			}
+
+			// Scale is used as an sttribute to prevent z-fighting, so their
+			// log2s work just as well and prevent float precision issues
+			const scale = Math.log2(this._pyramid.getLevelDef(levelName).scale);
+			this._scales[levelName] = scale;
+
+			/// FIXME: What happens with maps with a yaw rotation of 45°??? Might need
+			/// to multiply by sqrt(2).
+
+			// Ideally, the size of a StitchedTiles texture would be the
+			// maximum that the GPU allows - that's easily 8k x 8k pixels or
+			// 16k x 16k.
+			// Unfortunately, big framebuffers hog GPU RAM and cause browsers
+			// (chromium/chrome in particular) to hang up during framebuffer
+			// initialization.
+
+			// The final size of the textures used will be:
+			// - A power of 2 (hardcoded, in order to wrap textures across the
+			//   antimeridian)
+			// - Enough to fit tiles worth `minTextureSize` pixels, plus one
+			//   extra tile.
+
+			// Furthermore, since AcetateStitchedTiles allocates several textures
+			// (one per pyramid level), big texture sizes can mean *a lot* of memory.
+			// This is a problem for some old-ish or mobile GPUs, where allocating
+			// more than ~128MiB of GPU RAM is a problem.
+			/// FIXME: The X/Y tile span of each level must be a multiple of
+			/// _tileWrapX/Y. Otherwise, loading tiles around the antimeridian will
+			/// glitch (tiles ask to be stored in an offset modulo _tileWrapX/Y,
+			/// and the last tile doesn't map to _tileWrapX/Y - 1, leading to
+			/// tiles overwritting visible tiles). This might mean upping the textures
+			/// to 4k :-/
+
+			let tilesFitX = Math.min(level.spanX, Math.ceil(minTextureSize / resX));
+			let tilesFitY = Math.min(level.spanY, Math.ceil(minTextureSize / resY));
+			let texSizeX = tilesFitX * resX;
+			let texSizeY = tilesFitY * resY;
+
+			/// TODO: Fix non-power-of-two textures. Somehow disabling the p-o-2
+			/// logic scrambles tiles around.
+
+			// const forcePowerOfTwo = (this.interpolate || !this.glii instanceof WebGL2RenderingContext);
+			// if (forcePowerOfTwo || isFinite(pyramid.crs.wrapPeriodX)) {
+			texSizeX = 1 << Math.ceil(Math.log2(texSizeX));
+			tilesFitX = Math.floor(texSizeX / resX);
+			// }
+			// if (forcePowerOfTwo || isFinite(pyramid.crs.wrapPeriodY)) {
+			texSizeY = 1 << Math.ceil(Math.log2(texSizeY));
+			tilesFitY = Math.floor(texSizeY / resY);
+			// }
+
+			texSizeX = Math.min(texSizeX, resX * level.spanX);
+			texSizeY = Math.min(texSizeY, resY * level.spanY);
+
+			// console.log(levelName, tilesFitX, tilesFitY );
+
+			this.#levels[levelName] = {
+				scale: scale,
+				resX: resX,
+				resY: resY,
+				wrapX: tilesFitX,
+				wrapY: tilesFitY,
+				texSizeX: texSizeX,
+				texSizeY: texSizeY,
+				baseVtx: vtx,
+				valid: false,
+			};
+
+			// console.log("level", levelName, this.#levels[levelName]);
+
+			for (let y = 0; y < tilesFitY; y++) {
+				for (let x = 0; x < tilesFitX; x++) {
+					// Fill up the **static** values for the UV attribute, and the triangle indices
+					// TODO: Consider using strided arrays??
+
+					//prettier-ignore
+					uvs.push(...[
+						// UV map
+						x/tilesFitX      , y/tilesFitY,
+						(x + 1)/tilesFitX, y/tilesFitY,
+						(x + 1)/tilesFitX, (y + 1)/tilesFitY,
+						x/tilesFitX      , (y + 1)/tilesFitY,
+					]/*, i * 3*/);
+
+					// prettier-ignore
+					idxs.push(
+						vtx, vtx+1, vtx+2,
+						vtx, vtx+2, vtx+3
+					);
+
+					vtx += 4;
+				}
+			}
+
+			this._indices.allocateSet(levelName, idxs);
+
+			idxs.splice(0); // Truncate idxs.
+		});
+
+		// UV attribute
+		this.#uvAttr = new glii.SingleAttribute({
+			usage: glii.STATIC_DRAW,
+			size: vtx,
+			growFactor: false,
+
+			// UV map
+			glslType: "vec2",
+			type: Float32Array,
+			// normalized: false,
+		});
+		this.#uvAttr.setBytes(0, 0, Float32Array.from(uvs));
+
+		// Attribute to hold timestamps for the fade-in animation
+		this.#timestampAttr = new this.glii.SingleAttribute({
+			usage: glii.DYNAMIC_DRAW,
+			size: vtx,
+			growFactor: false,
+
+			glslType: "float",
+			type: Float32Array,
+		});
+
+		// Setting the coordinates for the last vertex will allocate and
+		// fill in with zeroes all previous ones
+		this._coords.setArray(vtx - 1, [0, 0]);
+	}
+
+	// Similar to AcetateConformalRaster
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aUV: this.#uvAttr,
+				aTimestamp: this.#timestampAttr,
+			},
+			uniforms: {
+				uNow: "float", // Current timestamp
+				...opts.uniforms,
+			},
+			textures: {
+				uRasterTexture: undefined,
+			},
+			vertexShaderMain: `
+				vUV = aUV;
+				vAlpha = min(1., ((uNow - aTimestamp) / ${this.#fadeInDuration}.));
+				gl_Position = vec4(vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+			`,
+			varyings: { vUV: "vec2", vAlpha: "float" },
+			fragmentShaderMain: `
+				gl_FragColor = texture2D(uRasterTexture, vUV);
+				gl_FragColor.a *= vAlpha;
+			`,
+			blend: {
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+
+				srcRGB: this.glii.SRC_ALPHA,
+				dstRGB: this.glii.ONE_MINUS_SRC_ALPHA,
+				srcAlpha: this.glii.ONE,
+				dstAlpha: this.glii.ONE_MINUS_SRC_ALPHA,
+			},
+		};
+	}
+
+	/**
+	 * @section
+	 * @method multiAdd(tiles: Array of Tile): this
+	 * Adds the tiles to this acetate (so they're drawn on the next refresh).
+	 *
+	 * The images for the tiles are dumped into the acetate's texture.
+	 *
+	 * Unlike most other acetates, tiles are added on an individual basis and
+	 * their data might not be stored adjacently in the attribute/primitive
+	 * buffers.
+	 */
+	multiAdd(tiles) {
+		/// TODO: Keep track of loaded tiles, in order to fire the `symbolsremoved`
+		/// event whenever tiles are overwritten.
+
+		// tiles.forEach(this.allocate.bind(this));
+		tiles.forEach((t) => {
+			this.allocate(t);
+		});
+
+		return super.multiAdd(tiles);
+	}
+
+	/**
+	 * @method add(tile: Tile): this
+	 *
+	 * Adds a single tile. The tile will be slotted in a specific portion
+	 * of the available space, depending on its X and Y coordinates within its pyramid level.
+	 */
+	allocate(tile) {
+		const levelInfo = this.#levels[tile.level];
+		const x = tile.tileX % levelInfo.wrapX;
+		const y = tile.tileY % levelInfo.wrapY;
+
+		// console.log("allocate tile:", tile.level, x, y);
+
+		const baseVtx = levelInfo.baseVtx + (y * levelInfo.wrapY + x) * 4;
+		const baseIdx = baseVtx * 1.5; // ratio is 4 vertices to 6 primitive slots
+
+		tile.updateRefs(this, baseVtx, baseIdx);
+
+		this._knownSymbols[baseVtx] = tile;
+
+		this.reproject(baseVtx, 4);
+
+		/// Perform MRU/LRU logic
+		this.#loadLevelTexture(tile.level);
+
+		this._textures[tile.level].texSubImage2D(
+			tile.image,
+			x * levelInfo.resX,
+			y * levelInfo.resY
+		);
+
+		this._fadeTimeout = performance.now() + this.#fadeInDuration;
+		// this._fadeTime.multiSet(baseVtx, new Array(4).fill(this._fadeTimeout));
+		this.#timestampAttr.multiSet(baseVtx, new Array(4).fill(performance.now()));
+
+		// console.log("Allocated", tile.level, tile.tileX, tile.tileY, performance.now());
+
+		this.#levels[tile.level].valid = true;
+		this.dirty = true;
+		return this;
+	}
+
+	/**
+	 * Redefinition of the default. Render must happen once per level, in order
+	 * to load the appropriate textures. This leverages Glii's LoDIndices, by
+	 * using a LoD per level of the pyramid.
+	 */
+	runProgram() {
+		//this._clear();
+		const now = performance.now();
+		const platinaScale = Math.log2(this._platina.scale);
+		this._programs.setUniform("uNow", now);
+
+		// console.log("drawing levels", 		this.#levelNames .filter((name) => this.isLevelAvailable(name)).join (" , "))
+
+		this.#levelNames
+			.filter((name) => this.isLevelAvailable(name))
+			.sort(
+				(a, b) =>
+					Math.abs(this._scales[b] - platinaScale) -
+					Math.abs(this._scales[a] - platinaScale)
+			)
+			.forEach((name) => {
+				this._programs.setTexture("uRasterTexture", this._textures[name]);
+				this._programs.run(name);
+			});
+
+		if (now < this._fadeTimeout) {
+			this.dirty = true;
+		}
+	}
+
+	/**
+	 * @method reproject(start: Number, length: Number): Array of Number
+	 * Dumps a new set of values to the `this._coords` attribute buffer, based on the known
+	 * set of symbols added to the acetate (only those which have their attribute offsets
+	 * between `start` and `start+length`.
+	 *
+	 * Returns the data set into the attribute buffer: a plain array of coordinates
+	 * in the form `[x1,y1, x2,y2, ... xn,yn]`.
+	 *
+	 * This implementation does not assume that the attribute allocation block
+	 * contains a compact set of symbols (since tiles are statically allocated at
+	 * instantiation time, then overwritten at runtime).
+	 */
+	reproject(start, length) {
+		/// FIXME: Filtering needs optimization. Bisect search?
+		/// Optimization only applies to chrome/chromium.
+		let relevantSymbols = this._knownSymbols.filter((symbol, attrIdx) => {
+			return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
+		});
+
+		let idx = start;
+
+		const coordData = relevantSymbols
+			.map((symbol) => {
+				const gapLength = (symbol.attrBase - idx) * 2;
+				const gap = new Array(gapLength).fill(0);
+				idx = symbol.attrBase + symbol.attrLength;
+				return gap.concat(symbol.geometry.toCRS(this._crs).coords);
+			})
+			.flat();
+
+		//console.log("Symbol reprojected:", coordData);
+		this.multiSetCoords(start, coordData);
+
+		return coordData;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method getLevelsInfo(): Object of Object
+	 * Returns a data structure containing information about tile levels:
+	 * tile resolution, expected texture size, number of tiles fitting in the
+	 * texture, etc.
+	 *
+	 * Meant for debugging and communication with a `RasterTileLoader` only.
+	 */
+	getLevelsInfo() {
+		return this.#levels;
+	}
+
+	// Ensures that the texture for given level is available.
+	// If not, expels the LRU level from the MRU list, and reuses that texture;
+	// or initializes a texture if the level expelled was `undefined`.
+	#loadLevelTexture(levelName) {
+		if (!this._textures[levelName]) {
+			// console.log("load texture at level", levelName);
+			const expel = this.#MRULevels.shift();
+			this.#MRULevels.push(levelName);
+
+			const sizeX = this.#levels[levelName].texSizeX;
+			const sizeY = this.#levels[levelName].texSizeY;
+
+			let currentX, currentY;
+
+			if (expel !== undefined) {
+				/**
+				 * @section Acetate interface
+				 * @event levelexpelled: Event
+				 * Fired whenever a texture for a level of tiles is expelled, and
+				 * thus all tiles from that level should be marked as unusable.
+				 * The event's `detail` contains the name of the expelled level.
+				 */
+				this.fire("levelexpelled", { levelName: expel });
+				currentX = this._textures[expel]?.width;
+				currentY = this._textures[expel]?.height;
+			}
+
+			if (currentX == sizeX && currentY == sizeY) {
+				// Texture from expelled level can be reused.
+				this._textures[levelName] = this._textures[expel];
+			} else {
+				// Texture must be allocated.
+				this._textures[levelName] = new this.glii.Texture({
+					minFilter: this.#texFilter,
+					magFilter: this.#texFilter,
+					wrapS: this.glii.REPEAT,
+					wrapT: this.glii.REPEAT,
+				});
+				if (expel !== undefined) {
+					this._textures[expel]?.destroy();
+				}
+			}
+
+			if (expel !== undefined) {
+				delete this._textures[expel];
+			}
+
+			// No matter if the texture is reused or newly allocated,
+			// it has to be zeroed out.
+			this._textures[levelName].texArray(
+				sizeX,
+				sizeY,
+				new Uint8Array(sizeX * sizeY * 4)
+			);
+		}
+
+		return this._textures[levelName];
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method isLevelAvailable(levelName: String): Boolean
+	 * Returns whether the texture for the given level name is available.
+	 * In other words: when the given level has never been loaded, or it has
+	 * been expelled from the MRU list, this returns `false`.
+	 */
+	isLevelAvailable(levelName) {
+		return this.#levels[levelName].valid && !!this._textures[levelName];
+	}
+
+	/**
+	 * @method destroyHigherScaleLevels(levelName: String): Boolean
+	 * Searches all levels with a scale lower than the given one (i.e. those with
+	 * "higher zoom levels") and marks them as invalid; will not be re-rendered
+	 * until a tile for that level is allocated.
+	 */
+	destroyHigherScaleLevels(levelName) {
+		const scale = this.#levels[levelName].scale;
+		// const str = Object.values(this.#levels).map(l=>l.valid?"1":"0").join("");
+
+		Object.entries(this.#levels).forEach(([name, level]) => {
+			if (level.scale < scale && level.valid) {
+				// console.log("invalidate", level);
+				level.valid = false;
+
+				const sizeX = level.texSizeX;
+				const sizeY = level.texSizeY;
+
+				this._textures[name]?.texArray(
+					sizeX,
+					sizeY,
+					new Uint8Array(sizeX * sizeY * 4)
+				);
+			}
+		});
+		// console.log(str + "\n" + Object.values(this.#levels).map(l=>l.valid?"1":"0").join(""));
+	}
+
+	destroy() {
+		// Ignore missing/incomplete tile symbols that do exist as
+		// empty slots in _knownSymbols
+		// this._knownSymbols = this._knownSymbols.filter((s) => !!s);
+		Object.values(this._textures).forEach((t) => t.destroy());
+		return super.destroy();
+	}
+
+	reprojectAll() {
+		// This acetate does not use an attribute allocator like most others,
+		// and must rely on the available tile levels to reproject existing
+		// tiles
+		for (const level of Object.values(this.#levels)) {
+			this.reproject(level.baseVtx, level.wrapX * level.wrapY * 4);
+		}
+	}
+}
+
+/**
+ * This file is a trivial rename of tinyqueue.
+ *
+ * See https://github.com/mourner/tinyqueue
+ *
+ * ---
+ *
+ * ISC License
+ *
+ * Copyright (c) 2017, Vladimir Agafonkin
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ *
+ */
+
+class TinyQueue {
+	constructor(data = [], compare = defaultCompare) {
+		this.data = data;
+		this.length = this.data.length;
+		this.compare = compare;
+
+		if (this.length > 0) {
+			for (let i = (this.length >> 1) - 1; i >= 0; i--) this._down(i);
+		}
+	}
+
+	push(item) {
+		this.data.push(item);
+		this.length++;
+		this._up(this.length - 1);
+	}
+
+	pop() {
+		if (this.length === 0) return undefined;
+
+		const top = this.data[0];
+		const bottom = this.data.pop();
+		this.length--;
+
+		if (this.length > 0) {
+			this.data[0] = bottom;
+			this._down(0);
+		}
+
+		return top;
+	}
+
+	peek() {
+		return this.data[0];
+	}
+
+	_up(pos) {
+		const { data, compare } = this;
+		const item = data[pos];
+
+		while (pos > 0) {
+			const parent = (pos - 1) >> 1;
+			const current = data[parent];
+			if (compare(item, current) >= 0) break;
+			data[pos] = current;
+			pos = parent;
+		}
+
+		data[pos] = item;
+	}
+
+	_down(pos) {
+		const { data, compare } = this;
+		const halfLength = this.length >> 1;
+		const item = data[pos];
+
+		while (pos < halfLength) {
+			let left = (pos << 1) + 1;
+			let best = data[left];
+			const right = left + 1;
+
+			if (right < this.length && compare(data[right], best) < 0) {
+				left = right;
+				best = data[right];
+			}
+			if (compare(best, item) >= 0) break;
+
+			data[pos] = best;
+			pos = left;
+		}
+
+		data[pos] = item;
+	}
+}
+
+function defaultCompare(a, b) {
+	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+class Arrugator {
+	constructor(projector, verts, uv, trigs) {
+		// The projector function. Must be able to take
+		// an array of two numbers [x,y] and return an array of
+		// two numbers.
+		// The typical use case is a proj4(from,to).forward function.
+		this._projector = projector;
+
+		// A two-dimensional array of vertex coordinates. Each vertex is a
+		// two-element [x,y] array.
+		this._verts = verts;
+
+		// A two-dimensional array of UV-map coordinates. These are intended to
+		// represent the [0,0]-[1-1] coordinate space of WebGL textures. Each
+		// n-th element is the UV coordinates of the n-th vertex. These shall
+		// be linearly interpolated when splitting segments.
+		this._uv = uv;
+
+		// A two-dimensional array of vertex coordinates, projected. Each
+		// vertex is a two-element [x,y] array.
+		this._projVerts = verts.map(projector);
+
+		// A two-dimensional array of triangle vertex IDs. Each triangle is a
+		// three-element [v1,v2,v3] array.
+		// The mesh is **expected** to be compact, planar, non-overlapping.
+		this._trigs = trigs;
+
+		// A map of segments to vertices. Key is the segment index (generated inside
+		// arrugator), value is an array of two vertex indices.
+		this._segs = [];
+
+		this._segCount = 0;
+
+		// A map of segments to triangles. Key is the segment index (generated inside
+		// arrugator), value is an array of triangle indices (all segments should
+		// have either 1 or 2 triangles associated)
+		this._segTrigs = [];
+
+		// A priority queue of segments, ordered by their epsilons, in descending order.
+		this._queue = new TinyQueue([], function (a, b) {
+			return b.epsilon - a.epsilon;
+		});
+
+		// A map of vertex indices to segment indices.
+		this._vertToSeg = new Array(verts.length);
+		for (let i in this._verts) {
+			this._vertToSeg[i] = [];
+		}
+		/// NOTE: Not using .fill([]), because that would use a reference to the *same*
+		/// empty array for every element.
+
+		for (let t in this._trigs) {
+			let trig = this._trigs[t];
+			let v0 = trig[0];
+			let v1 = trig[1];
+			let v2 = trig[2];
+			this._segment(v0, v1, t);
+			this._segment(v1, v2, t);
+			this._segment(v2, v0, t);
+		}
+	}
+
+	// Returns the segment index linking the two given vertex indices;
+	// Must be passed a triangle index to use as context.
+	// Might create a new segment index (as well as segment data structure and
+	// entry in the priority queue).
+	_segment(v1, v2, t, maxEpsilon = Infinity) {
+		if (this._vertToSeg[v1] && this._vertToSeg[v1][v2] !== undefined) {
+			const found = this._vertToSeg[v1][v2];
+
+			if (!this._segTrigs[found].includes(t)) {
+				this._segTrigs[found].push(t);
+			}
+
+			return found;
+		}
+
+		const segIdx = this._segCount++;
+
+		this._segs[segIdx] = [v1, v2];
+		this._vertToSeg[v1][v2] = segIdx;
+		this._vertToSeg[v2][v1] = segIdx;
+		this._segTrigs[segIdx] = [t];
+
+		// Calculate segment epsilon
+
+		// The "epsilon" of a segment is the square of the midpoint projection distance:
+		// i.e. the square of the distance between:
+		//  - the projected midpoint of the two vertices, and
+		//  - the midpoint of the two projected vertices,
+		// the distance function being euclidean distance in the "destination"
+		// projection, squared.
+
+		const midpoint = [
+			(this._verts[v1][0] + this._verts[v2][0]) / 2,
+			(this._verts[v1][1] + this._verts[v2][1]) / 2,
+		];
+		const projectedMid = this._projector(midpoint);
+		const midProjected = [
+			(this._projVerts[v1][0] + this._projVerts[v2][0]) / 2,
+			(this._projVerts[v1][1] + this._projVerts[v2][1]) / 2,
+		];
+
+		const epsilon =
+			(projectedMid[0] - midProjected[0]) ** 2 +
+			(projectedMid[1] - midProjected[1]) ** 2;
+
+		if (Number.isFinite(epsilon) && epsilon < maxEpsilon) {
+			this._queue.push({
+				v1: v1,
+				v2: v2,
+				epsilon: epsilon,
+				midpoint: midpoint,
+				projectedMid: projectedMid,
+			});
+		}
+
+		return segIdx;
+	}
+
+	// Outputs shallow copies of some data structures at the current step.
+	output() {
+		// Most data structs are 2-dimensional arrays, and doing a shallow copy
+		// of the first level *should* just work.
+		return {
+			unprojected: Array.from(this._verts),
+			projected: Array.from(this._projVerts),
+			uv: Array.from(this._uv),
+			trigs: Array.from(this._trigs),
+		};
+	}
+
+	#stepsWithSameEpsilon = 0;
+
+	// Subdivides the mesh until the maximum segment epsilon is below the
+	// given threshold.
+	// The `targetEpsilon` parameter must be in the same units as the
+	// internal epsilons: units of the projected CRS, **squared**.
+	lowerEpsilon(targetEpsilon) {
+		let currentEpsilon = this._queue.peek().epsilon;
+		let lastEpsilon = currentEpsilon;
+		while ( currentEpsilon >= targetEpsilon) {
+			this.step();
+
+			currentEpsilon = this._queue.peek().epsilon;
+			if (currentEpsilon === lastEpsilon) {
+				this.#stepsWithSameEpsilon++;
+				if (this.#stepsWithSameEpsilon < 500) {
+					console.warn("Arrugator stopped due to epsilon stall. Raster may need hints for proper arrugation.");
+					break;
+				}
+			} else {
+				this.#stepsWithSameEpsilon = 0;
+				lastEpsilon = currentEpsilon;
+			}
+		}
+	}
+
+	get epsilon() {
+		return this._queue.peek().epsilon;
+	}
+
+	set epsilon(ep) {
+		return this.lowerEpsilon(ep);
+	}
+
+	// Triggers subdivision of the segment with the largest epsilon.
+	step() {
+		const seg = this._queue.pop();
+		return this.#splitSegment(seg, seg.epsilon);
+	}
+
+	// Triggers *one* subdivision of *all* segments in the queue.
+	// Can be useful to run this prior to stepping, in order to overcome
+	// artefacts
+	force() {
+		const segments = this._queue.data;
+		this._queue.data = [];	// Empties the queue
+		this._queue.length = 0;
+		segments.forEach(seg=>this.#splitSegment(seg, Infinity));
+	}
+
+	// Splits the given segment.
+	// This deletes the segment, spawns a new vertex at the midpoint, and
+	// for each triangle the segment was originally a part of (either 1 or 2),
+	// the triangle is divided into two.
+	#splitSegment(seg, maxEpsilon) {
+		// Which are the two vertices affected by the popped segment?
+		const v1 = seg.v1;
+		const v2 = seg.v2;
+		const s = this._vertToSeg[v1] && this._vertToSeg[v1][v2];
+
+		// Which triangle(s) are affected by the popped segment?
+		const trigs = this._segTrigs[s];
+
+		// Sanity check
+		if (trigs.length >= 3) {
+			throw new Error("Somehow a segment is shared by three triangles");
+		}
+
+		// Clean up refs
+		delete this._segTrigs[s];
+		delete this._segs[s];
+		delete this._vertToSeg[v1][v2];
+		delete this._vertToSeg[v2][v1];
+
+		// What is the vertex ID of the new midpoint vertex?
+		const vm = this._verts.length;
+
+		this._projVerts[vm] = seg.projectedMid;
+		this._verts[vm] = seg.midpoint;
+		this._vertToSeg[vm] = [];
+		this._uv[vm] = [
+			(this._uv[v1][0] + this._uv[v2][0]) / 2,
+			(this._uv[v1][1] + this._uv[v2][1]) / 2,
+		];
+
+		for (let t of trigs) {
+			this._splitTriangle(v1, v2, vm, t, maxEpsilon);
+		}
+	}
+
+
+	// Split a triangle in two.
+	// Must be given vertex indices of the segment being splitted, the index of the new
+	// midpoint vertex, and the triangle index.
+	// Shall silently drop any new segments with an epsilon larger than the
+	// given one. This means that the segment shall be in the triangle mesh,
+	// but will not be queued and therefore not subdivided ever.
+	_splitTriangle(v1, v2, vm, t, epsilon = Infinity) {
+		const tvs = this._trigs[t];
+
+		let v3;
+		let winding = false;
+		// Fetch the ID of the 3rd vertex in the original triangle, and the winding order
+		if (tvs[0] === v1 && tvs[1] === v2) {
+			v3 = tvs[2];
+			winding = true; // A-B-C
+		} else if (tvs[1] === v1 && tvs[2] === v2) {
+			v3 = tvs[0];
+			winding = true; // C-A-B
+		} else if (tvs[2] === v1 && tvs[0] === v2) {
+			v3 = tvs[1];
+			winding = true; // B-C-A
+		} else if (tvs[1] === v1 && tvs[0] === v2) {
+			v3 = tvs[2];
+			winding = false; // B-A-C
+		} else if (tvs[2] === v1 && tvs[1] === v2) {
+			v3 = tvs[0];
+			winding = false; // C-B-A
+		} else if (tvs[0] === v1 && tvs[2] === v2) {
+			v3 = tvs[1];
+			winding = false; // A-C-B
+		} else {
+			throw new Error(
+				"Data structure mishap: could not fetch 3rd vertex used in triangle"
+			);
+		}
+
+		// Index of the first "half" triangle will be the reused index of the original triangle
+		// Index of the second "half" triangle must be allocated at the end of the triangles structure
+		const t2 = this._trigs.length;
+
+		if (winding) {
+			this._trigs[t] = [v1, vm, v3];
+			this._trigs[t2] = [vm, v2, v3];
+		} else {
+			this._trigs[t] = [vm, v1, v3];
+			this._trigs[t2] = [v2, vm, v3];
+		}
+
+		// Clean up references from old segments
+		const s1 = this._vertToSeg[v1] && this._vertToSeg[v1][v2];
+		const s2 = this._vertToSeg[v2] && this._vertToSeg[v2][v3];
+		const s3 = this._vertToSeg[v3] && this._vertToSeg[v3][v1];
+
+		function filterTrig(i) {
+			return i !== t;
+		}
+
+		if (s1 !== undefined) {
+			this._segTrigs[s1] = this._segTrigs[s1].filter(filterTrig);
+		}
+		if (s2 !== undefined) {
+			this._segTrigs[s2] = this._segTrigs[s2].filter(filterTrig);
+		}
+		if (s3 !== undefined) {
+			this._segTrigs[s3] = this._segTrigs[s3].filter(filterTrig);
+		}
+
+		this._segment(v1, vm, t, epsilon);
+		this._segment(vm, v3, t, epsilon);
+		this._segment(v3, v1, t, epsilon);
+
+		this._segment(v2, vm, t2, epsilon);
+		this._segment(vm, v3, t2, epsilon);
+		this._segment(v3, v2, t2, epsilon);
+	}
+}
+
+// A variant of Arrugator that works with segment strings (AKA "lines") instead
+// of triangle meshes.
+class LineArrugator {
+	// #projector;
+	// #verts;
+
+	constructor(projector, verts) {
+		// The projector function. Must be able to take
+		// an array of two numbers [x,y] and return an array of
+		// two numbers.
+		// The typical use case is a proj4(from,to).forward function.
+		this._projector = projector;
+
+		// A two-dimensional array of vertex coordinates. Each vertex is a
+		// two-element [x,y] array.
+		this._verts = verts;
+
+		// A two-dimensional array of vertex coordinates, projected. Each
+		// vertex is a two-element [x,y] array.
+		this._projVerts = verts.map(projector);
+
+		// A priority queue of segments, ordered by their epsilons, in descending order.
+		this._queue = new TinyQueue([], function (a, b) {
+			return b.epsilon - a.epsilon;
+		});
+
+		for (let i=0, l=this._verts.length - 1; i<l; i++) {
+			this._calcSegment(i, i+1);
+		}
+
+		// Keeps the indices of the vertices, in connectivity order
+		this._order = Array.from({length: this._verts.length}, (v,i)=>i);
+
+	}
+
+	// Calculates data for a segment and pushes it to the priority queue.
+	_calcSegment(v1, v2) {
+		const midpoint = [
+			(this._verts[v1][0] + this._verts[v2][0]) / 2,
+			(this._verts[v1][1] + this._verts[v2][1]) / 2,
+		];
+		const projectedMid = this._projector(midpoint);
+		const midProjected = [
+			(this._projVerts[v1][0] + this._projVerts[v2][0]) / 2,
+			(this._projVerts[v1][1] + this._projVerts[v2][1]) / 2,
+		];
+
+		const epsilon =
+			(projectedMid[0] - midProjected[0]) ** 2 +
+			(projectedMid[1] - midProjected[1]) ** 2;
+
+		this._queue.push({
+			v1: v1,
+			v2: v2,
+			epsilon: epsilon,
+			midpoint: midpoint,
+			projectedMid: projectedMid,
+		});
+
+	}
+
+
+	step() {
+		const top = this._queue.pop();
+
+		const v1 = top.v1;
+		const v2 = top.v2;
+
+		const vm = this._verts.length;
+		this._verts[vm] = top.midpoint;
+		this._projVerts[vm] = top.projectedMid;
+		this._order.splice(this._order.indexOf(v2), 0, vm);
+
+		this._calcSegment(v1, vm);
+		this._calcSegment(vm, v2);
+	}
+
+
+	// Outputs a copy of the coordinates for the linestring.
+	output() {
+
+		return this._order.map(i=>this._projVerts[i]);
+	}
+
+	// Subdivides the mesh until the maximum segment epsilon is below the
+	// given threshold.
+	// The `targetEpsilon` parameter must be in the same units as the
+	// internal epsilons: units of the projected CRS, **squared**.
+	lowerEpsilon(targetEpsilon) {
+		while (this._queue.peek().epsilon > targetEpsilon) {
+			this.step();
+		}
+	}
+
+	get epsilon() {
+		return this._queue.peek().epsilon;
+	}
+
+	set epsilon(ep) {
+		return this.lowerEpsilon(ep);
+	}
+
+}
+
+css(`
+.gleo-ribbon-wrapper.active > button.gleo-control {
+	box-shadow: inset 0 0px 7px 3px #1b74ff;
+}
+
+.gleo-ribbon-wrapper {
+	display: flex;
+	align-items: center;
+}
+
+.gleo-ribbon-wrapper > .gleo-button-ribbon {
+	display: none;
+}
+
+.gleo-ribbon-wrapper.active > .gleo-button-ribbon {
+	display: flex;
+	background: black;
+	color: white;
+	white-space: nowrap;
+	padding: 3px;
+}
+
+.gleo-button-ribbon > button {
+	background: inherit;
+	color: inherit;
+	border: none;
+}
+`);
+
+/**
+ * @class ButtonToggle
+ * @inherits Button
+ * A `Button` which can be toggled active/inactive (or "pressed"/"depressed").
+ *
+ * @example
+ *
+ * ```
+ * let myButton = new ButtonToggle( ...stuff... )
+ * myButton.on('click', ()=>myButton.toggle());
+ * ```
+ */
+class ButtonToggle extends Button {
+	constructor({
+		/**
+		 * @option ribbons: Object of Function
+		 * A plain `Object` containing label `String`s as the keys and
+		 * `Function`s as values.
+		 *
+		 * When the button is toggled, these will show up by the side of the
+		 * button. Clicking on a label will trigger the corresponding function.
+		 */
+		ribbons = {},
+		...opts
+	}) {
+		super(opts);
+		this.element = this.wrapper;
+		this.ribbons = ribbons;
+	}
+
+	spawnElement() {
+		this.button = document.createElement("button");
+		this.button.className = "gleo-control";
+
+		this.wrapper = document.createElement("div");
+		this.wrapper.className = "gleo-control gleo-ribbon-wrapper";
+
+		this.ribbonContainer = document.createElement("div");
+		this.ribbonContainer.className = "gleo-button-ribbon";
+		// this.ribbons.innerText = "TODO: ribbons"
+
+		this.wrapper.appendChild(this.button);
+		this.wrapper.appendChild(this.ribbonContainer);
+
+		this.element = this.wrapper;
+	}
+
+	#active = false;
+	#ribbons = {};
+
+	/// @method toggle(): Boolean
+	/// Toggles the pressed/depressed state of the button.
+	/// Returns `true` when the new state is pressed, `false otherwise.
+	toggle() {
+		this.setPressed(!this.#active);
+	}
+
+	/// @method setActive(active: Boolean): this
+	/// Set the pressed state (when passed `true`) or depressed (when `false`).
+	setActive(a) {
+		if ((this.#active = !!a)) {
+			this.wrapper.classList.add("active");
+		} else {
+			this.wrapper.classList.remove("active");
+		}
+		return this;
+	}
+
+	/// @property ribbons
+	/// Runtime value of the `ribbons` instantiation option. Can be overwritten.
+	get ribbons() {
+		return this.#ribbons;
+	}
+
+	set ribbons(r) {
+		this.#ribbons = r;
+
+		/// FIXME!!!
+		while (this.ribbonContainer.firstChild) {
+			this.ribbonContainer.removeChild(this.ribbonContainer.firstChild);
+		}
+
+		for (const [key, value] of Object.entries(r)) {
+			const ribbonButton = document.createElement("button");
+			ribbonButton.innerText = key;
+			ribbonButton.addEventListener("click", value);
+			this.ribbonContainer.appendChild(ribbonButton);
+		}
+	}
+}
+
+/**
+ * @class MultiSymbol
+ * @inherits GleoSymbol
+ *
+ * @relationship compositionOf GleoSymbol, 0..1, 0..n
+ *
+ * A logical grouping of `GleoSymbol`s, to ease the task of managing them at once.
+ *
+ * Adding/removing it from a map, will add/remove all of the component symbols at once.
+ * Idem for (re-)setting its geometry. Idem for pointer events: events
+ * defined for the `MultiSymbol` will be trigger on any of its components.
+ *
+ * This is meant for static sets of symbols which represent the same geographical
+ * feature, and share the same geometry (or close geometries). Once created,
+ * no new symbols can be added to a `MultiSymbol`.
+ *
+ * For a counterpart where symbols can be added/removed, see the `SymbolGroup` loader.
+ */
+
+/// TODO: Offer an iterator, **if** needed.
+
+class MultiSymbol extends GleoSymbol {
+	#symbols = [];
+
+	/**
+	 * @constructor MultiSymbol(syms: Array of GleoSymbol)
+	 */
+	constructor(syms) {
+		super();
+		this.geometry = syms[0]?.geometry;
+		this.#symbols = syms;
+		syms.forEach((s) => s._eventParents.push(this));
+	}
+
+	get symbols() {
+		return this.#symbols;
+	}
+
+	addTo(target) {
+		target.multiAdd(this.#symbols);
+		return this;
+	}
+
+	remove() {
+		// TODO: Bin into similar acetates, call MultiRemove. Low priority.
+		this.#symbols.forEach((s) => s.remove());
+		return this;
+	}
+
+	/**
+	 * @property bbox
+	 * Returns a bounding box which covers all the geometries of all component
+	 * symbols.
+	 */
+	get bbox() {
+		if (!this.#bbox) {
+			this.#bbox = new ExpandBox();
+			this.#symbols.forEach((s) => {
+				this.#bbox.expandGeometry(s.geometry.toCRS(this.geometry.crs));
+			});
+		}
+		return this.#bbox;
+	}
+	#bbox;
+
+	get geometry() {
+		return super.geometry;
+	}
+	set geometry(geom) {
+		super.geometry = geom;
+		this.#symbols?.forEach((s) => (s.geometry = geom));
+	}
+
+	set cursor(c) {
+		this.#symbols.forEach((s) => (s.cursor = c));
+	}
+	get cursor() {
+		return this.#symbols[0].cursor;
+	}
+
+	isActive() {
+		return this.#symbols.some((s) => s.isActive());
+	}
+}
+
+/**
+ * @class CircleStroke
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateSolidExtrusion
+ *
+ * The "stroke" part of a circle symbol - a line of constant width
+ * (in CSS pixels), going around the circumference of a circle with its center in
+ * the given `Geometry`.
+ *
+ * @example
+ * ```js
+ * new CircleStroke([0, 0], {
+ * 	colour: "red",
+ * 	radius: 40,
+ * 	width: 3
+ * }).addTo(map);
+ * ```
+ */
+
+class CircleStroke extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidExtrusion;
+
+	#radius;
+	#colour;
+	#width;
+
+	/**
+	 * @constructor CircleStroke(geom: Geometry, opts?: CircleStroke Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka CircleStroke Options
+			 * @option radius: Number = 20; Radius of the circle, in CSS pixels
+			 * @option colour: Colour = '#3388ff'; The stroke colour
+			 * @option width: Number = 2; The width of the stroke, in CSS pixels
+			 */
+			radius = 20,
+			colour = "#3388ff",
+			width = 2,
+
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#radius = radius;
+		this.#colour = this.constructor._parseColour(colour);
+		this.#width = width;
+
+		// Length of circumference
+		const length = Math.PI * 2 * this.#radius;
+		// Divide in triangles so there's a triangle per...
+		// 6 pixels of circumference length. That should be enough.
+		this.steps = Math.max(7, Math.ceil(length / 6));
+
+		this.attrLength = this.steps * 2;
+		this.idxLength = this.steps * 6;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(strideExtrusion, strideColour, strideFeather, typedIdxs) {
+		// Radian increment per step
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρ = this.#radius;
+		const w = (this.#width + this._inAcetate.feather) / 2;
+		const f = w * 256; // Feather max
+		const [Δx, Δy] = this.offset;
+
+		let θ = 0;
+		const steps2 = this.steps * 2;
+		let vtx = this.attrBase;
+		let idx = this.idxBase;
+		for (let i = 0; i < steps2; i += 2) {
+			const sinθ = Math.sin(θ);
+			const cosθ = Math.cos(θ);
+
+			// Two vertices per step: inner and outer
+			strideExtrusion.set(
+				[
+					sinθ * (ρ - w) + Δx,
+					cosθ * (ρ - w) + Δy,
+					sinθ * (ρ + w) + Δx,
+					cosθ * (ρ + w) + Δy,
+				],
+				vtx
+			);
+
+			strideColour?.set(this.#colour, vtx);
+			strideFeather?.set([-f, f], vtx);
+			strideColour?.set(this.#colour, vtx + 1);
+			strideFeather?.set([+f, f], vtx + 1);
+
+			// Two triangles per step, forming a quad to the vertices of the
+			// next step.
+			if (i !== steps2 - 2) {
+				// prettier-ignore
+				typedIdxs?.set([
+					vtx+0, vtx+1, vtx+2,
+					vtx+2, vtx+1, vtx+3
+				], idx);
+			} else {
+				// prettier-ignore
+				typedIdxs?.set([
+					vtx, vtx+1, this.attrBase,
+					this.attrBase, vtx+1, this.attrBase + 1
+				], idx);
+			}
+
+			θ += ɛ;
+			vtx += 2;
+			idx += 6;
+		}
+	}
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class CircleFill
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateSolidExtrusion
+ *
+ * The "fill" part of a circle symbol - a circle of constant radius
+ * (measured in CSS pixels), spawning from a point `Geometry` in the circle center.
+ *
+ * @example
+ * ```js
+ * new CircleFill([0, 0], {
+ * 	colour: "red",
+ * 	radius: 40
+ * }).addTo(map);
+ * ```
+ */
+
+class CircleFill extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidExtrusion;
+
+	#radius;
+	#colour;
+
+	/**
+	 * @constructor CircleFill(geom: Geometry, opts?: CircleFill Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka CircleFill Options
+			 * @option radius: Number = 20; Radius of the circle, in CSS pixels
+			 * @option colour: Colour = '#3388ff33'; The fill colour
+			 */
+			radius = 20,
+
+			colour = "#3388ff33",
+
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#radius = radius;
+		this.#colour = this.constructor._parseColour(colour);
+
+		// Length of circumference
+		const length = Math.PI * 2 * this.#radius;
+		// Divide in triangles so there's a triangle per...
+		// 6 pixels of circumference length. That should be enough.
+		this.steps = Math.max(7, Math.ceil(length / 6));
+
+		this.attrLength = this.steps + 1;
+		this.idxLength = this.steps * 3;
+	}
+
+	/**
+	 * @property colour
+	 * The colour of this `CircleFill`. Can be updated.
+	 */
+	get colour() {
+		return this.#colour;
+	}
+
+	set colour(c) {
+		this.#colour = this.constructor._parseColour(c);
+		if (!this._inAcetate) {
+			return;
+		}
+
+		const stridedArrays = this._inAcetate._getStridedArrays(
+			this.attrBase + this.attrLength,
+			this.idxBase + this.idxLength
+		);
+		this._setGlobalStrides(...stridedArrays);
+		this._inAcetate._commitStridedArrays(
+			this.attrBase,
+			this.attrLength,
+			this.idxBase,
+			this.idxLength
+		);
+		this._inAcetate.dirty = true;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(strideExtrusion, strideColour, strideFeather, typedIdxs) {
+		const feather = this._inAcetate.feather;
+
+		// Radian increment per step
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρ = this.#radius + feather / 2;
+		const f = ρ * 256; // Feather max
+		const [Δx, Δy] = this.offset;
+
+		// Attributes start with the center point
+		strideExtrusion.set([Δx, Δy], this.attrBase);
+		strideColour?.set(this.#colour, this.attrBase);
+		strideFeather?.set([0, f], this.attrBase);
+
+		let θ = 0;
+		let vtx = this.attrBase + 1;
+		let idx = this.idxBase;
+		for (let i = 0; i < this.steps; i++) {
+			strideExtrusion.set([Math.sin(θ) * ρ + Δx, Math.cos(θ) * ρ + Δy], vtx);
+			strideColour?.set(this.#colour, vtx);
+			strideFeather?.set([f, f], vtx);
+
+			// Vertices of the i-th triangle are: center, current, next
+			if (i !== this.steps - 1) {
+				typedIdxs?.set([this.attrBase, vtx, vtx + 1], idx);
+			} else {
+				typedIdxs?.set([this.attrBase, vtx, this.attrBase + 1], idx);
+			}
+
+			θ += ɛ;
+			vtx++;
+			idx += 3;
+		}
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+const IDLE = Symbol("IDLE"),
+	NEW_POINT = Symbol("NEW_POINT"),
+	NEW_LINE = Symbol("NEW_LINE"),
+	NEW_POLY = Symbol("NEW_POLY");
+
+function defaultPointSymbolizer$1(geometry) {
+	return [new CircleStroke(geometry), new CircleFill(geometry)];
+}
+function defaultLineSymbolizer(geometry) {
+	return [new Stroke(geometry)];
+}
+function defaultPolygonSymbolizer$1(geometry) {
+	return [
+		new Stroke(geometry),
+		new Fill(geometry, { colour: [0x33, 0x88, 0xff, 0x88] }),
+	];
+}
+function defaultNodeSymbolizer(geometry, interactive) {
+	return [
+		new CircleStroke(geometry, { colour: [255, 0, 0, 255], radius: 10, interactive }),
+		new CircleFill(geometry, { colour: [255, 0, 0, 128], radius: 10, interactive }),
+	];
+}
+
+/**
+ * @class EditBar
+ * @inherits ButtonGroup
+ * @relationship compositionOf ButtonToggle, 0..1, 0..n
+ *
+ * Offers editing tools - creating new points, lines or polygons (properly symbolized),
+ * as well as editing any of those.
+ *
+ */
+
+class EditBar extends ButtonGroup {
+	// Current editbar state: idle, creating point, creating line, creating
+	// polygon, editing point, editing line, editing polygon.
+	#state = IDLE;
+
+	#buttons = [];
+
+	// Symbolizer function for newly created points
+	#pointSymbolizer;
+	#lineSymbolizer;
+	#polygonSymbolizer;
+	#nodeSymbolizer;
+
+	// Transient sets of symbols for use in `pointermove` when drawing
+	#transientPoint;
+	#transientLine;
+	#transientPolygon;
+	#transientNode;
+
+	#dragNodes = [];
+
+	/// TODO: Transient line, polygon. Same as transient point (part of editor loader)
+	/// TODO: Drag points. These are draggabilified circles, and are **NOT** part
+	/// of the editor loader. Their drag events do update the transient line
+	/// geometry.
+
+	constructor({
+		/// @option createPoint: Boolean = true
+		/// Whether to show a "Create point" button.
+		createPoint = true,
+
+		/// @option createLine: Boolean = true
+		/// Whether to show a "Create line" button.
+		createLine = true,
+
+		/// @option createPolygon: Boolean = true
+		/// Whether to show a "Create polygon" button.
+		createPolygon = true,
+
+		/// @option pointSymbolizer: Function = *
+		/// Defines how newly created points are symbolized. This must be a
+		/// function that takes in a `Geometry` and must return an `Array` of
+		/// `GleoSymbol`s.
+		pointSymbolizer = defaultPointSymbolizer$1,
+
+		/// @option pointSymbolizer: Function = *
+		/// Idem, but for newly created lines.
+		lineSymbolizer = defaultLineSymbolizer,
+
+		/// @option pointSymbolizer: Function = *
+		/// Idem, but for newly created polygons.
+		polygonSymbolizer = defaultPolygonSymbolizer$1,
+
+		/// @option nodeSymbolizer: Function = *
+		/// Idem, but for drag nodes, i.e. vertices of lines/polygons being edited.
+		/// This must be a fucntion that takes *two* parameters. The second one
+		/// is a boolean `interactive` flag (it must return interactive symbols
+		/// only when this flag is `true`)
+		nodeSymbolizer = defaultNodeSymbolizer,
+
+		direction = "vertical",
+		...opts
+	} = {}) {
+		const buttons = [];
+		let createPointButton;
+		let createLineButton;
+		let createPolyButton;
+
+		if (createPoint) {
+			createPointButton = new ButtonToggle({
+				svgString:
+					'<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="12" cy="12" r="2"/></svg>',
+				title: "Create point",
+			});
+
+			createPointButton.on("click", (ev) => {
+				this.cancel();
+				this.#state = NEW_POINT;
+				this._map.add(this.#transientPoint);
+				createPointButton.setActive(true);
+				// this.#transientPoint.geometry = ([NaN, NaN]);
+			});
+			buttons.push(createPointButton);
+		}
+
+		if (createLine) {
+			createLineButton = new ButtonToggle({
+				svgString: `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="3" cy="21" r="2"/><circle style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="8" cy="3" r="2"/><circle style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="21" cy="21" r="2"/><path style="fill:none;stroke:#464646;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" d="m3.5 19 4-14m12 14L9.5 5"/></svg>`,
+				title: "Create line",
+			});
+
+			createLineButton.on("click", (ev) => {
+				this.cancel();
+				this.#state = NEW_LINE;
+				this.#transientNode.geometry = [NaN, NaN];
+				this._map.add(this.#transientNode);
+				createLineButton.setActive(true);
+			});
+			buttons.push(createLineButton);
+		}
+
+		if (createPolygon) {
+			createPolyButton = new ButtonToggle({
+				svgString: `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><ellipse style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="3" cy="21" rx="2" ry="2"/><ellipse style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="8" cy="3" rx="2" ry="2"/><ellipse style="fill:none;stroke:#464646;stroke-width:2;stroke-opacity:1" cx="21" cy="21" rx="2" ry="2"/><path style="fill:none;stroke:#464646;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" d="M3.5 19 7.5 5M4.5 21h14.5M19.5 19 9.5 5"/><path style="fill:#464646;fill-opacity:1;stroke:none" d="M5.5 19 9 7.5 17 19Z"/></svg>`,
+				title: "Create polygon",
+			});
+
+			createPolyButton.on("click", (ev) => {
+				this.cancel();
+				this.#state = NEW_POLY;
+				this.#transientNode.geometry = [NaN, NaN];
+				this._map.add(this.#transientNode);
+				createPolyButton.setActive(true);
+			});
+			buttons.push(createPolyButton);
+		}
+
+		super({
+			direction,
+			buttons: buttons,
+			...opts,
+		});
+
+		this.#buttons = buttons;
+
+		if (createPointButton) {
+			createPointButton.ribbons = { Cancel: this.cancel.bind(this) };
+		}
+		if (createLineButton) {
+			createLineButton.ribbons = {
+				Finish: this.#finishNewLine.bind(this),
+				Cancel: this.cancel.bind(this),
+			};
+		}
+		if (createPolyButton) {
+			createPolyButton.ribbons = {
+				Finish: this.#finishNewLine.bind(this),
+				Cancel: this.cancel.bind(this),
+			};
+		}
+
+		this.#pointSymbolizer = pointSymbolizer;
+		this.#lineSymbolizer = lineSymbolizer;
+		this.#polygonSymbolizer = polygonSymbolizer;
+		this.#nodeSymbolizer = nodeSymbolizer;
+		this.#transientPoint = new MultiSymbol(this.#pointSymbolizer([NaN, NaN]));
+		this.#transientLine = new MultiSymbol(this.#lineSymbolizer([NaN, NaN]));
+		this.#transientPolygon = new MultiSymbol(this.#polygonSymbolizer([NaN, NaN]));
+		this.#transientNode = new MultiSymbol(this.#nodeSymbolizer([NaN, NaN], false));
+
+		this.#boundOnMapClick = this.#onMapClick.bind(this);
+		this.#boundOnMapMove = this.#onMapMove.bind(this);
+		this.#boundOnNodeClick = this.#onNodeClick.bind(this);
+	}
+
+	addTo(map) {
+		map.on("click", this.#boundOnMapClick);
+		map.on("pointermove", this.#boundOnMapMove);
+		super.addTo(map);
+	}
+
+	remove() {
+		this.cancel();
+		return super.remove();
+	}
+
+	#boundOnMapClick;
+	#boundOnMapMove;
+	#boundOnNodeClick;
+
+	#onMapClick(ev) {
+		if (this.#state === IDLE) {
+			return;
+		}
+
+		ev.preventDefault();
+
+		if (this.#state === NEW_POINT) {
+			this.cancel();
+
+			const symbols = this.#pointSymbolizer(ev.geometry);
+			map.multiAdd(symbols);
+			// this.register(ev.geometry, symbols);
+
+			/**
+			 * @event createpoint
+			 * Fired whenever a new point is created.
+			 */
+			this.fire("createpoint", { geometry: ev.geometry, symbols: symbols });
+
+			return this;
+		}
+
+		if (this.#state === NEW_LINE) {
+			const node = new MultiSymbol(this.#nodeSymbolizer(ev.geometry, true));
+			node.addTo(this._map).on("click", this.#boundOnNodeClick);
+			this.#dragNodes.push(node);
+			if (this.#dragNodes.length >= 2) {
+				// This is a bit naïve, since geometries from different drag
+				// nodes could have different CRSs - but we'll assume the user
+				// is not changing the map's CRS during a edit operation.
+				const lineGeom = new Geometry(
+					this._map.crs,
+					this.#dragNodes.map((n) => n.geometry.coords)
+				);
+				this.#transientLine.geometry = lineGeom;
+				this.#transientLine.addTo(this._map);
+			}
+		}
+
+		if (this.#state === NEW_POLY) {
+			// Mostly a copy of NEW_LINE handling
+			const node = new MultiSymbol(this.#nodeSymbolizer(ev.geometry, true));
+			node.addTo(this._map);
+			if (this.#dragNodes.length === 0) {
+				// Only the first node shall be interactive, so the polygon closes
+				node.on("click", this.#boundOnNodeClick);
+			}
+			this.#dragNodes.push(node);
+			const polyGeom = new Geometry(
+				this._map.crs,
+				this.#dragNodes.map((n) => n.geometry.coords)
+			);
+			this.#transientPolygon.geometry = polyGeom;
+			this.#transientPolygon.addTo(this._map);
+		}
+	}
+
+	#onMapMove(ev) {
+		if (this.#state === IDLE) {
+			return;
+		}
+
+		ev.preventDefault();
+
+		if (this.#state === NEW_POINT) {
+			this.#transientPoint.geometry = ev.geometry;
+		} else if (this.#state === NEW_LINE || this.#state === NEW_POLY) {
+			this.#transientNode.geometry = ev.geometry;
+
+			if (this.#dragNodes.length >= 1) {
+				const geom = new Geometry(
+					this._map.crs,
+					this.#dragNodes
+						.map((n) => n.geometry.coords)
+						.concat([this.#transientNode.geometry.coords])
+				);
+				if (this.#state === NEW_LINE) {
+					this.#transientLine.geometry = geom;
+					this.#transientLine.addTo(this._map);
+				} else {
+					this.#transientPolygon.geometry = geom;
+					this.#transientLine.addTo(this._map);
+				}
+			}
+		}
+	}
+
+	#onNodeClick(ev) {
+		if (this.#state === NEW_LINE || this.#state === NEW_POLY) {
+			ev.stopPropagation();
+			ev.preventDefault();
+
+			// Set last point of the line geometry to the geometry of the clicked node
+			const geom = new Geometry(
+				this._map.crs,
+				this.#dragNodes
+					.map((n) => n.geometry.coords)
+					.concat([ev.target.geometry.coords])
+			);
+			return this.#coalesceNewLine(geom);
+		}
+	}
+
+	#finishNewLine() {
+		// Called from the ribbon buttons - must ignore last transient node,
+		// and create a closed geometry when creating a polygon
+		let geom;
+		if (this.#state === NEW_LINE) {
+			geom = new Geometry(
+				this._map.crs,
+				this.#dragNodes.map((n) => n.geometry.coords)
+			);
+		} else {
+			geom = new Geometry(
+				this._map.crs,
+				this.#dragNodes.concat(this.#dragNodes[0]).map((n) => n.geometry.coords)
+			);
+		}
+		return this.#coalesceNewLine(geom);
+	}
+
+	#coalesceNewLine(geom) {
+		if (this.#state === NEW_LINE) {
+			this.#transientLine.geometry = geom;
+			/**
+			 * @event createline
+			 * Fired whenever a new line is created.
+			 */
+			this.fire("createline", {
+				geometry: this.#transientLine.geometry,
+				symbol: this.#transientLine,
+			});
+
+			// Leave the current transient line in the map, and create a new one -
+			// effectively sets the previously transient line as "permanent".
+			this.#transientLine = new MultiSymbol(this.#lineSymbolizer([NaN, NaN]));
+		} else {
+			this.#transientPolygon.geometry = geom;
+			/**
+			 * @event createpolygon
+			 * Fired whenever a new polygon is created.
+			 */
+			this.fire("createpolygon", {
+				geometry: this.#transientPolygon.geometry,
+				symbol: this.#transientPolygon,
+			});
+
+			this.#transientPolygon = new MultiSymbol(this.#polygonSymbolizer([NaN, NaN]));
+		}
+		return this.cancel();
+	}
+
+	/**
+	 * @method cancel(): this
+	 * Aborts the current editing action. Geometries being drawn will be destroyed.
+	 */
+	cancel() {
+		/// FIXME
+
+		if (this.#state === NEW_POINT) {
+			this.#transientPoint.remove();
+		}
+		if (this.#state === NEW_LINE || this.#state === NEW_POLY) {
+			this.#transientNode.remove();
+			this.#transientLine.isActive() && this.#transientLine.remove();
+			this.#transientPolygon.isActive() && this.#transientPolygon.remove();
+			this._map.multiRemove(this.#dragNodes);
+			this.#dragNodes = [];
+		}
+
+		this.#buttons.forEach((b) => b.setActive(false));
+
+		this.#state = IDLE;
+		return this;
+	}
+
+	// /**
+	//  * method register(geometry: RawGeometry, symbols: Array of GleoSymbol): this
+	//  * Registers a geometry, and the symbols it's represented as, as editable.
+	//  */
+	// register(geometry, symbols) {
+	// 	this.#knownSymbols.set(geometry, symbols);
+	//
+	// 	/// TODO: Add event handlers
+	//
+	// 	return this;
+	// }
+}
+
+/**
+ *
+ * @class TileEvent
+ * @inherits Event
+ *
+ * A `TileLoader`'s events are of this type, and include information about the tile
+ * in question.
+ *
+ *
+ * @example
+ *
+ * ```js
+ * loader.on('tileload', function(ev) {
+ * 	console.log(ev.tileLevel);
+ * });
+ *
+ * ```
+ *
+ * @property tileLevel: String
+ * The level of the tile pyramid the tile is in.
+ *
+ * @property tileX: Number
+ * The X coordinate of the tile, relative to its level.
+ *
+ * @property tileY: Number
+ * The Y coordinate of the tile, relative to its level.
+ *
+ * @property tile: HTMLImageElement
+ * The image for the tile.
+ *
+ * @property error: String
+ * The cause of a `tileerror` event.
+ *
+ */
+
+class TileEvent extends Event {
+	constructor(type, init) {
+		super(type, init);
+		this.tileLevel = init.tileLevel;
+		this.tileX = init.tileX;
+		this.tileY = init.tileY;
+		this.tile = init.tile;
+		this.error = init.error;
+	}
+}
+
+// import QuadBin from "./QuadBin.mjs";
+
+/**
+ * @class ArrowHeadField
+ * @inherits VectorField
+ *
+ * A low-resolution `VectorField` that displays small arrowheads.
+ *
+ * Similar to `QuadMarginBin`: uses a low-resolution framebuffer,
+ * and uses triangles on a per-cell basis to render.
+ *
+ *
+ *
+ */
+
+class ArrowHeadField extends VectorField {
+	#cellSize;
+	_offset;
+	#pxPerSlopeUnit;
+
+	/**
+	 * @constructor ArrowHeadField(target: GliiFactory, opts?: ArrowHeadField Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option cellSize: Number = 32
+			 * The size of cells, in CSS pixels.
+			 */
+			cellSize = 32,
+
+			/**
+			 * @option pxPerSlopeUnit: Number = 1
+			 * The length (in CSS pixels) of the arrowhead per unit of
+			 * slope. In other words: the scale factor between the slope vector
+			 * (in slope units) and the length of the arrowhead (in CSS pixels)
+			 */
+			pxPerSlopeUnit = 1,
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#cellSize = cellSize;
+		this.#pxPerSlopeUnit = pxPerSlopeUnit;
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 4,
+				growFactor: 1,
+			},
+			[
+				{
+					// Texel coords
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// clipspace coords for the center of the cell
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Vertex extrusion for a [1,0] slope vector
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this._indexBuffer = new this.glii.IndexBuffer({
+			growFactor: 1,
+			type: this.glii.UNSIGNED_INT,
+		});
+	}
+
+	/// @property cellSize: Number
+	/// The cell size, as defined by the homonymous option during instantiation. Read-only.
+	get cellSize() {
+		return this.#cellSize;
+	}
+
+	getFieldValueAt(x, y) {
+		const dpr = devicePixelRatio ?? 1;
+		const floorX = Math.floor((this._offsetX * dpr + x) / this.#cellSize);
+		const floorY = Math.ceil((this._offsetY * dpr + y) / this.#cellSize);
+
+		// console.log("getFieldValueAt", floorX, floorY, x, y);
+
+		if (
+			floorX > this.framebuffer.width ||
+			floorY > this.framebuffer.height ||
+			floorX < 0 ||
+			floorY < 0
+		) {
+			console.error("getFieldValueAt: Cell out of bounds");
+			return NaN;
+		} else {
+			return super.getFieldValueAt(floorX, floorY);
+		}
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			indexBuffer: this._indexBuffer,
+			attributes: {
+				aUV: this._attrs.getBindableAttribute(0),
+				aPos: this._attrs.getBindableAttribute(1),
+				aExtrude: this._attrs.getBindableAttribute(2),
+			},
+			uniforms: {
+				uFactor: "vec2",
+				uPixelSize: "vec2",
+				// uCellSize: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vec2 value = texture2D(uField, aUV).xy;
+
+				gl_Position = vec4((aPos * uFactor) + (
+					((value.x * aExtrude) +	// Horizontal component
+					(value.y * aExtrude.yx * vec2(-1.,1.))) // Vertical component
+					* uPixelSize)
+				, 0., 1.);
+			`,
+			varyings: {
+				vColour: "vec4",
+			},
+			fragmentShaderMain: `
+				// gl_FragColor = vColour;
+				gl_FragColor = vec4(0., 0., 0., 1.);
+			`,
+		};
+	}
+
+	// Mostly copied from QuadMarginBin
+	resize(x_device, y_device, x_css, y_css) {
+		const dpr = devicePixelRatio ?? 1;
+		const dpr2 = dpr * 2;
+
+		// Note this rounds up the size of the scalar field, thus (potentially)
+		// making the cell size slightly smaller than the desired value.
+		const cellX = Math.ceil(x_css / this.#cellSize);
+		const cellY = Math.ceil(y_css / this.#cellSize);
+
+		// This resizes just the vector field; the acetate RGBA output framebuffer
+		// is kept the same size
+		super.resize(cellX, cellY);
+		Acetate.prototype.resize.call(this, x_device, y_device, x_css, y_css);
+
+		// Size, in CSS pixels, of the quadbin's catchment area.
+		const oversizeX = cellX * this.#cellSize;
+		const oversizeY = cellY * this.#cellSize;
+
+		this._factor = [x_css / oversizeX, y_css / oversizeY];
+		const offsetX = (this._offsetX = (oversizeX - x_css) / 2);
+		const offsetY = (this._offsetY = (oversizeY - y_css) / 2);
+		this._offset = [offsetX, offsetY];
+
+		const stride = this._attrs.asStridedArray(0, 3 * cellX * cellY);
+		this._indexBuffer.grow(3 * cellX * cellY);
+		this._indexBuffer._activeIndices = 3 * cellX * cellY; // Truncate indices
+
+		const pxSizeX = dpr2 / x_device; // Size of a pixel in horizontal clipspace units
+		const pxSizeY = dpr2 / y_device; // Size of a pixel in vertical clipspace units
+
+		// const arrLength = this.#pxPerSlopeUnit;
+		const arrLengthThird = this.#pxPerSlopeUnit / 3;
+		const arrLengthThirds = (this.#pxPerSlopeUnit * 2) / 3;
+		const arrWidth = this.#pxPerSlopeUnit / 8;
+
+		let vtx = 0;
+		let idx = 0;
+		const maxX = cellX - 1;
+		const maxY = cellY - 1;
+		for (let i = 0; i < cellX; i++) {
+			const posX = (-offsetX + (i + 0.5) * this.cellSize) * pxSizeX - 1;
+			const texelX = i / maxX;
+
+			for (let j = 0; j < cellY; j++) {
+				const posY = (-offsetY + (j + 0.5) * this.cellSize) * pxSizeY - 1;
+				const texelY = j / maxY;
+
+				// Each trig has three vertices; they have the same texel
+				// coords, same center-of-cell coords, but different roles
+				// prettier-ignore
+				stride.set([
+					texelX, texelY, posX, posY, -arrLengthThird, +arrWidth,
+					texelX, texelY, posX, posY, arrLengthThirds, 0,
+					texelX, texelY, posX, posY, -arrLengthThird, -arrWidth,
+				], vtx);
+
+				// prettier-ignore
+				this._indexBuffer.set(idx, [
+					vtx, vtx+1, vtx+2,
+				]);
+
+				vtx += 3;
+				idx += 3;
+			}
+		}
+
+		this._attrs.commit(0, vtx);
+
+		this._program.setUniform(
+			"uFactor",
+			this._factor.map((n) => 1 / n)
+		);
+
+		// Acetate.prototype.resize.call(this, x, y);
+		this._programs.setUniform("uPixelSize", [pxSizeX, pxSizeY]);
+	}
+
+	redraw(crs, matrix, viewportBbox) {
+		this._clear.run();
+
+		// This will expand the affine transformation matrix and the viewport
+		// bounding box by the quadbin's factor, in order to aggregate data
+		// outside the visible bounds.
+		// i.e. even if a data point falls just outside the visible bounds, *but*
+		// inside a cell's catchment area, it has to be drawn into the scalar field.
+
+		let box = viewportBbox
+			.clone()
+			.expandPercentages(this._factor[0] - 1, this._factor[1] - 1);
+
+		let expandMatrix = scale(new Array(9), matrix, this._factor);
+
+		return super.redraw(crs, expandMatrix, box);
+	}
+}
+
+/**
+ * @class BlurField
+ * @inherits ScalarField
+ * @relationship compositionOf Acetate, 1..1, 1..1
+ *
+ * Blurs another acetate based on the intensity of the scalar field.
+ *
+ * @example
+ *
+ * An `BlurField` needs another `Acetate` or `Loader` to be added to
+ * itself, like:
+ *
+ * ```
+ * const blur = new BlurField(...);
+ * const tiles = new MercatorTiles(tilesUrl).addTo(blur);
+ *
+ * new HeatPoint(...).addTo(blur);
+ * ```
+ *
+ */
+
+class BlurField extends ScalarField {
+	#blurredAcetate;
+	#minIntensity;
+	#maxIntensity;
+	#maxBlur;
+
+	constructor(
+		target,
+		{
+			/**
+			 * @option minIntensity: Number = 0
+			 * The intensity of the field corresponding to no blur at all.
+			 * Any intensity at or below this value will produce no blur.
+			 */
+			minIntensity = 0,
+
+			/**
+			 * @option maxIntensity: Number = 1
+			 * The intensity of the field corresponding to full blur.
+			 * Any intensity at or above this value will produce maximum blur.
+			 */
+			maxIntensity = 1,
+
+			/**
+			 * @option maxBlur: Number = 4
+			 * The maximum amplitude of the blur, in CSS pixels.
+			 */
+			maxBlur = 2,
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#minIntensity = minIntensity;
+		this.#maxIntensity = maxIntensity;
+		this.#maxBlur = maxBlur;
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			textures: {
+				uBase: undefined,
+				...opts.textures,
+			},
+			uniforms: {
+				uIntensityRange: "vec3",
+				uMaxBlur: "vec2",
+				...opts.uniforms,
+			},
+			// vertexShaderSource: `void main() {
+			// 	gl_Position = vec4(aPos, 0., 1.);
+			// 	vUV = aUV;
+			// }`,
+			// varyings: { vUV: "vec2" },
+			fragmentShaderMain: `
+				float value = texture2D(uField, vUV).x;
+
+				vec2 blur = uMaxBlur * clamp(
+					(value - uIntensityRange.x) / uIntensityRange.z
+					, 0.0, 1.0);
+
+				vec4 sample0 = texture2D(uBase, vUV);
+
+				vec4 sample1 = texture2D(uBase, vUV + vec2(blur.x, 0.));
+				vec4 sample2 = texture2D(uBase, vUV + vec2(0., blur.y));
+				vec4 sample3 = texture2D(uBase, vUV - vec2(blur.x, 0.));
+				vec4 sample4 = texture2D(uBase, vUV - vec2(0., blur.y));
+
+				vec4 sample5 = texture2D(uBase, vUV + vec2(+blur.x, +blur.y));
+				vec4 sample6 = texture2D(uBase, vUV + vec2(+blur.x, -blur.y));
+				vec4 sample7 = texture2D(uBase, vUV + vec2(-blur.x, -blur.y));
+				vec4 sample8 = texture2D(uBase, vUV + vec2(-blur.x, +blur.y));
+
+				gl_FragColor = (sample0 +
+					            sample1 + sample2 + sample3 + sample4 +
+				                sample5 + sample6 + sample7 + sample8) / 9.;
+			`,
+		};
+	}
+
+	resize(w, h) {
+		super.resize(w, h);
+		// this._programs.setUniform("uAmplitudeRatio", this.#amplitudeRatio);
+		// this._programs.setUniform("uPixelSize", [2 / w, 2 / h]);
+		this._programs.setUniform("uIntensityRange", [
+			this.#minIntensity,
+			this.#maxIntensity,
+			this.#maxIntensity - this.#minIntensity,
+		]);
+		this._programs.setUniform("uMaxBlur", [
+			(this.#maxBlur * 2) / w,
+			(this.#maxBlur * 2) / h,
+		]);
+
+		if (this.#blurredAcetate) {
+			this.#blurredAcetate.resize(w, h);
+			this._programs.setTexture("uBase", this.#blurredAcetate.asTexture());
+		}
+	}
+
+	addAcetate(ac) {
+		if (ac.constructor.PostAcetate) {
+			super.addAcetate(ac);
+		} else {
+			if (this.#blurredAcetate) {
+				throw new Error("Blur already has a subordinate RGBA acetate");
+			}
+			this.#blurredAcetate = ac;
+			this._programs.setTexture("uBase", ac.asTexture());
+		}
+	}
+
+	redraw() {
+		if (!this.dirty) {
+			return;
+		}
+		if (this.#blurredAcetate) {
+			this.#blurredAcetate.redraw(...arguments);
+		}
+		return super.redraw.apply(this, arguments);
+	}
+
+	destroy() {
+		super.destroy();
+		this.#blurredAcetate.destroy();
+	}
+
+	set dirty(d) {
+		super.dirty = d;
+		if (this.#blurredAcetate) {
+			this.#blurredAcetate.dirty = d;
+		}
+	}
+	get dirty() {
+		return super.dirty || this.#blurredAcetate.dirty;
+	}
+}
+
+/**
+ * @class GreyscaleField
+ * @inherits ScalarField
+ *
+ * A `ScalarField` which displays as a simple 2-colour ramp.
+ * By default, uses black for `0` and white for `1` with
+ * greyscale in-between.
+ *
+ * Accepts `HeatPoint`s, `HeatStroke`s, etc as symbols.
+ *
+ * @example
+ *
+ * ```
+ * const field = new GreyscaleField(map);
+ *
+ * new HeatPoint(geometry, {intensity: 1}).addTo(field);
+ * ```
+ */
+
+let GreyScaleField$1 = class GreyScaleField extends ScalarField {
+	#minValue;
+	#maxValue;
+	#minColour;
+	#maxColour;
+
+	constructor(
+		target,
+		{
+			/**
+			 * @section GreyScaleField Options
+			 * @option minValue: Number = 0
+			 * Minimum value of the scalar field taken into consideration
+			 *
+			 * @option minColour: Colour = [0, 0, 0, 255]
+			 * Colour given to the minimum (or below-minimum) scalar values
+			 *
+			 * @option maxValue: Number = 1
+			 * Maximum value of the scalar field taken into consideration
+			 *
+			 * @option maxColour: Colour = [255, 255, 255, 255]
+			 * Colour given to the maximum (or over-maximum) scalar values
+			 */
+			minValue = 0,
+			maxValue = 1,
+			minColour = [0, 0, 0, 255],
+			maxColour = [255, 255, 255, 255],
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#minValue = minValue;
+		this.#maxValue = maxValue;
+		this.#minColour = parseCSSColor(minColour).map((b) => b / 255);
+		this.#maxColour = parseCSSColor(maxColour).map((b) => b / 255);
+	}
+
+	// A program that takes scalar field textures and renders a simple,
+	// two-stop gradient
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			fragmentShaderSource: `
+			const float min = ${glslFloatify(this.#minValue)};
+			const float range = ${glslFloatify(this.#maxValue - this.#minValue)};
+			const vec4 minColour = ${glslVecNify(this.#minColour)};
+			const vec4 maxColour = ${glslVecNify(this.#maxColour)};
+			`,
+			fragmentShaderMain: `
+				float value = texture2D(uField, vUV).x;
+				gl_FragColor = mix(
+					minColour,
+					maxColour,
+					(value - min) / (range)
+				);
+			`,
+		};
+	}
+};
+
+/**
+ * @class HeatMap
+ * @inherits ScalarField
+ *
+ * A `ScalarField` to draw heat maps, with a custom colour ramp.
+ *
+ * Since the colour ramp is configurable, this `ScalarField` must be manually
+ * instantiated, unlike most `Acetate`s.
+ *
+ * While it's possible to add `HeatPoint`s directly to a `Platina`,
+ * doing so (before instantiating a `HeatMap`) would use the
+ * defaults and draw those `HeatPoint`s in a black-and-white `GreyscaleField`.
+ * It is strongly advised to instantiate a `HeatMap` before placing
+ * any `HeatPoint`s.
+ *
+ * Very similar to `GreyscaleField`, but with multiple colour stops in the
+ * colour ramp (instead of two colours for min/max values).
+ *
+ * @example
+ *
+ * ```js
+ * const heatmap = new HeatMap(map, {
+ * 	stops: {
+ * 		0: [255,0,0,0],
+ * 		10: [255,0,0,255],
+ * 		100: [255,255,0,255],
+ * 		200: [0,255,0,255],
+ * 		500: [0,255,255,255]
+ * 	},
+ * });
+ *
+ * new HeatPoint(geom, {radius: 80, intensity: 500}).addTo(heatmap);
+ *
+ * ```
+ */
+
+class HeatMap extends ScalarField {
+	#stops;
+
+	/**
+	 * @constructor HeatMap(glii: GliiFactory, opts?: AcetateQuadBin Options)
+	 *
+	 */
+	constructor(
+		glii,
+		{
+			/**
+			 * @option stops: Object of Number to Colour
+			 * A map of intensities to `Colour`s that defines how to
+			 * colourize the heatmap. A pixel with an intensity of a stop
+			 * will exactly get that colour; any other colours will be
+			 * linearly interpolated.
+			 *
+			 * The first key must always be zero, and the keys must be
+			 * ordered in strictly ascending order.
+			 *
+			 * Default is:
+			 * ```
+			 * {
+			 * 	0: [255,0,0,0]        	// Transparent red
+			 *  10: [255,0,0,255]     	// Red
+			 *  100: [255,255,0,255]  	// Yellow
+			 *  1000: [0,255,0,255]   	// Green
+			 *  10000: [0,255,255,255]	// Cyan
+			 * }
+			 * ```
+			 */
+			stops = {
+				0: [0, 0, 255, 0],
+				10: [0, 0, 255, 255],
+				100: [0, 255, 255, 255],
+				1000: [0, 255, 0, 255],
+				10000: [255, 255, 0, 255],
+			},
+			...opts
+		} = {}
+	) {
+		super(glii, {
+			zIndex: 2000,
+			...opts,
+		});
+
+		this.#stops = stops;
+	}
+
+	/// @property stops: Object of Number to Colour
+	/// The colour ramp, as the homonymous option.
+	///
+	/// It can be updated, recompiling the WebGL shader in the process.
+	get stops() {
+		return this.#stops;
+	}
+
+	set stops(s) {
+		this.#stops = s;
+		this.rebuildShaderProgram();
+	}
+
+	// Returns the definition for the GL program that turns the float32 texture
+	// into a RGBA8 texture
+	glProgramDefinition() {
+		/// TODO: Refactor the GLSL program: unroll the loop, and
+		/// have the colours as constants
+
+		let intensities = [];
+		let colours = [];
+
+		Object.entries(this.#stops)
+			.map(([intensity, colour]) => [Number(intensity), parseCSSColor(colour)])
+			.sort(([a, _], [b, __]) => a - b)
+			.forEach(([intensity, colour]) => {
+				intensities.push(intensity);
+				colours.push(colour);
+			});
+
+		// const intensities = Object.keys(this.#stops).map(n=>Number(n));
+		// const colours = Object.values(this.#stops).map((c) => parseColour(c));
+		const stopCount = colours.length;
+		// NOTE: GLSL array constructors are avaialble in GLSL 3.00 (WebGL2),
+		// would allow to specify the consts outside main(), and would look like
+		// const float intensities[${stopCount}] = float[${stopCount}](${intensities.join(',')});
+		const intensitiesInit = intensities
+			.map((i, j) => `intensities[${j}] = float(${glslFloatify(i)});`)
+			.join("\n");
+		const coloursInit = colours
+			.map((c, j) => `colours[${j}] = ${glslVecNify(c.map((b) => b / 255))};`)
+			.join("\n");
+
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			fragmentShaderMain: `
+				float intensities[${stopCount}];
+				vec4 colours[${stopCount}];
+				${intensitiesInit}
+				${coloursInit}
+
+				float value = texture2D(uField, vUV).x;
+
+				//if (value <= 0.0) {discard;}
+
+				gl_FragColor = colours[0];
+
+				for (int i=1; i< ${stopCount}; i++) {
+					gl_FragColor = mix(
+						gl_FragColor,
+						colours[i],
+						smoothstep(intensities[i-1], intensities[i], value)
+					);
+				}
+			`,
+		};
+	}
+}
+
+/**
+ * @class ScalarFieldAnimated
+ * @inherits ScalarField
+ *
+ * Abstract helper class for animated scalar fields (`AcetateTwinkleField`,
+ * `AcetateHeatMirage`). Handles `clear()` and the `dirty` flag.
+ */
+class ScalarFieldAnimated extends ScalarField {
+	clear() {
+		if (this.#deepDirty) {
+			// Clear everything, including the scalar field.
+			super.clear();
+			this.#deepDirty = false;
+		} else {
+			// Only clear the RGBA output texture
+			this._clear.run();
+		}
+		return this;
+	}
+
+	#deepDirty = false;
+	// An animated Acetate is always dirty, meaning it wants to render at every
+	// frame.
+	get dirty() {
+		return true;
+	}
+	set dirty(d) {
+		this.#deepDirty = d;
+		super.dirty = d;
+	}
+}
+
+/**
+ * @class HeatMirage
+ * @inherits ScalarFieldAnimated
+ * @relationship compositionOf Acetate, 1..1, 1..1
+ *
+ * Warps another acetate based on the intensity of the scalar field, in
+ * an animated way. The amplitude of the warp is directly proportional to the
+ * value of the scalar field.
+ *
+ * @example
+ *
+ * An `HeatMirage` needs another `Acetate` or `Loader` to be added to
+ * itself, like:
+ *
+ * ```
+ * const mirage = new HeatMirage( ... );
+ * const tiles = new MercatorTiles(tilesUrl).addTo(mirage);
+ *
+ * new HeatPoint(...).addTo(mirage);
+ * ```
+ *
+ */
+
+class HeatMirage extends ScalarFieldAnimated {
+	#warpedAcetate;
+	#amplitudeRatio;
+	#maxAmplitude;
+	#speed;
+	#phase;
+
+	constructor(
+		target,
+		{
+			/**
+			 * @option amplitudeRatio: Number = 1
+			 * The ratio between the amplitude of the warp and the intensity of the
+			 * scalar field, in (horizontal) CSS pixels per unit of amplitude.
+			 */
+			amplitudeRatio = 1,
+
+			/**
+			 * @option maxAmplitude: Number = 32
+			 * The maximum amplitude, in CSS pixels.
+			 */
+			maxAmplitude = 32,
+
+			/**
+			 * @option phase: Number = 32
+			 * The phase of the wave, in CSS pixels. This can be thought as the
+			 * amplitude of the "vertical" waves seen.
+			 */
+			phase = 32,
+
+			/**
+			 * @option speed: Number = .25
+			 * Frequency of the wave, in hertz
+			 */
+			speed = 0.25,
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#amplitudeRatio = amplitudeRatio;
+		this.#maxAmplitude = maxAmplitude;
+		this.#speed = speed;
+		this.#phase = phase;
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			textures: {
+				uBase: undefined,
+				...opts.textures,
+			},
+			uniforms: {
+				uAmplitude: "float",
+				uMaxAmplitude: "float",
+				uCycle: "float",
+				uPhaseMult: "float",
+				// uSpeed: "float",
+				...opts.uniforms,
+			},
+			// vertexShaderSource: `void main() {
+			// 	gl_Position = vec4(aPos, 0., 1.);
+			// 	vUV = aUV;
+			// }`,
+			// varyings: { vUV: "vec2" },
+			fragmentShaderMain: `
+				float value = texture2D(uField, vUV).x;
+
+				float offset = min(
+					// (cos(uCycle + sin((vUV.y +uCycle) * 5.)))* value * uAmplitude,
+					(cos(uCycle - vUV.y * uPhaseMult)) * value * uAmplitude,
+					uMaxAmplitude
+				);
+				// offset /= 10.;
+
+				gl_FragColor = texture2D(uBase, vUV + vec2(offset, 0.));
+
+				// gl_FragColor.r = offset;
+			`,
+		};
+	}
+
+	resize(w, h) {
+		super.resize(w, h);
+		const dpr = devicePixelRatio ?? 1;
+		const dpr2 = dpr * 2;
+		// this._programs.setUniform("uAmplitudeRatio", this.#amplitudeRatio);
+		// this._programs.setUniform("uPixelSize", [2 / w, 2 / h]);
+		this._programs.setUniform("uAmplitude", (this.#amplitudeRatio * dpr2) / w);
+		this._programs.setUniform("uMaxAmplitude", (this.#maxAmplitude * dpr2) / w);
+
+		// Phase-based vertical multiplier
+		// this._programs.setUniform("uPhase", (2 / h) * this.#phase );
+		this._programs.setUniform("uPhaseMult", (dpr * h) / this.#phase);
+
+		if (this.#warpedAcetate) {
+			this.#warpedAcetate.resize(w, h);
+			this._programs.setTexture("uBase", this.#warpedAcetate.asTexture());
+		}
+	}
+
+	addAcetate(ac) {
+		if (ac.constructor.PostAcetate) {
+			super.addAcetate(ac);
+		} else {
+			if (this.#warpedAcetate) {
+				throw new Error("Heat mirage already has a subordinate RGBA acetate");
+			}
+			this.#warpedAcetate = ac;
+			this._programs.setTexture("uBase", ac.asTexture());
+		}
+	}
+
+	redraw() {
+		if (!this.dirty) {
+			return;
+		}
+		this._programs.setUniform(
+			"uCycle",
+			(performance.now() % (1000 / this.#speed)) / (500 / 3.14159 / this.#speed)
+		);
+		if (this.#warpedAcetate) {
+			this.#warpedAcetate.redraw(...arguments);
+		}
+		return super.redraw.apply(this, arguments);
+	}
+
+	destroy() {
+		super.destroy();
+		this.#warpedAcetate.destroy();
+	}
+
+	has(ac) {
+		return ac === this.#warpedAcetate;
+		/// TODO: implement has() for all acetates (and call super.has() here)
+	}
+
+	set dirty(d) {
+		super.dirty = d;
+		if (this.#warpedAcetate) {
+			this.#warpedAcetate.dirty = d;
+		}
+	}
+	get dirty() {
+		return super.dirty;
+	}
+}
+
+/**
+ * @class QuadBin
+ * @inherits HeatMap
+ *
+ * As `HeatMap`, but using a scalar field with a much lower resolution.
+ *
+ * This is meant to use `intensify`d `Dot`s exclusively. Any other symbols (e.g.
+ * `HeatPoint`s) will be scaled up by a factor equal to the cell size.
+ *
+ * @example
+ * ```js
+ * import QuadBin from "gleo/fields/QuadBin.mjs";
+ * import intensify from "gleo/symboldecorators/intensify.mjs";
+ * import Dot from "gleo/symbols/Dot.mjs";
+ *
+ * const IntensityDot = intensify(Dot);
+ *
+ * const heatbin = new QuadBin(map, {
+ * 	// colour stops, cell size, etc
+ * });
+ *
+ * new IntensityDot(geometry, { intensity: 100 }).addTo(heatbin);
+ * ```
+ */
+
+class QuadBin extends HeatMap {
+	#cellSize;
+	#blurDuration;
+	#blurOpacity;
+	_offset;
+
+	/**
+	 * @constructor QuadBin(target: GliiFactory, opts?: QuadBin Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option cellSize: Number = 32
+			 * The size of cells, in CSS pixels.
+			 */
+			cellSize = 32,
+
+			/**
+			 * @option blurDuration: Number = 1
+			 * The duration of the blur fade-in animation, in milliseconds.
+			 *
+			 * Setting this to zero will make the `QuadBin` (or `HexBin`)
+			 * render immediately when the map is moved or zoomed. This causes
+			 * bins to flicker rapidly, which is generally unpleasant to the
+			 * eye.
+			 *
+			 * A value larger than zero will keep rendering semi-transparent
+			 * bins each frame, until they "settle down" when the time is over.
+			 */
+			blurDuration = 150,
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#cellSize = cellSize;
+
+		if (blurDuration < 0 || isNaN(blurDuration)) {
+			throw new Error("Invalid blur time");
+		}
+		this.#blurDuration = blurDuration;
+		this.#blurOpacity = 1;
+	}
+
+	#lastDirtyTimestamp; // in milliseconds, from performance.now();
+
+	set dirty(d) {
+		super.dirty = d;
+		if (d) {
+			this.#lastDirtyTimestamp = performance.now();
+		}
+	}
+	get dirty() {
+		return super.dirty || this.#blurOpacity < 1;
+	}
+
+	clear() {
+		// Clear the framebuffer only if the parent functionality is dirty -
+		// otherwise, keep the framebuffer dirty to draw on top and perform the fade-in.
+		if (super.dirty) {
+			super.clear();
+		}
+	}
+
+	/// @property cellSize: Number
+	/// The cell size, as defined by the homonymous option during instantiation. Read-only.
+	get cellSize() {
+		return this.#cellSize;
+	}
+
+	getFieldValueAt(x, y) {
+		const dpr = devicePixelRatio ?? 1;
+		const floorX = Math.floor((this._offset[0] * dpr + x) / this.#cellSize);
+		const floorY = Math.ceil((this._offset[1] * dpr + y) / this.#cellSize);
+
+		if (
+			floorX > this.framebuffer.width ||
+			floorY > this.framebuffer.height ||
+			floorX < 0 ||
+			floorY < 0
+		) {
+			console.error("getFieldValueAt: Cell out of bounds");
+			return NaN;
+		} else {
+			return super.getFieldValueAt(floorX, floorY);
+		}
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			vertexShaderMain: `
+				gl_Position = vec4(aPos * uFactor, 0., 1.);
+				vUV = aUV;
+			`,
+			uniforms: {
+				uFactor: "vec2",
+			},
+			blend: {
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+
+				srcRGB: this.glii.CONSTANT_ALPHA,
+				dstRGB: this.glii.ONE_MINUS_CONSTANT_ALPHA,
+				srcAlpha: this.glii.CONSTANT_ALPHA,
+				dstAlpha: this.glii.ONE_MINUS_CONSTANT_ALPHA,
+
+				colour: [0, 0, 0, this.#blurOpacity],
+			},
+		};
+	}
+
+	resize(x_device, y_device, x_css, y_css) {
+		// This resizes both the scalar field and the acetate RGBA output framebuffer,
+		// so the RGBA framebuffer is resized back, after the super() call is done.
+
+		const dpr = devicePixelRatio ?? 1;
+		const dpr2 = dpr * 2;
+
+		// Number of horizontal/vertical cells
+		// Note this rounds up the size of the scalar field, thus (potentially)
+		// making the cell size slightly smaller than the desired value.
+		const cellX = Math.ceil(x_css / this.#cellSize);
+		const cellY = Math.ceil(y_css / this.#cellSize);
+		super.resize(cellX, cellY);
+
+		// Size, in CSS pixels, of the quadbin's catchment area.
+		const oversizeX = cellX * this.#cellSize;
+		const oversizeY = cellY * this.#cellSize;
+
+		this._factor = [x_css / oversizeX, y_css / oversizeY];
+		this._offset = [(oversizeX - x_css) / dpr2, (oversizeY - y_css) / dpr2];
+
+		this._program.setUniform(
+			"uFactor",
+			this._factor.map((n) => 1 / n)
+		);
+
+		Acetate.prototype.resize.call(this, x_device, y_device, x_css, y_css);
+	}
+
+	redraw(crs, matrix, viewportBbox) {
+		let opacity =
+			this.#blurDuration === 0
+				? 1
+				: (0.4 +
+						((performance.now() - this.#lastDirtyTimestamp) /
+							this.#blurDuration) *
+							0.6) **
+				  1.2;
+
+		this.#blurOpacity = Math.min(opacity, 1);
+
+		this._program.blend.colour[3] = this.#blurOpacity;
+
+		// This will expand the affine transformation matrix and the viewport
+		// bounding box by the quadbin's factor, in order to aggregate data
+		// outside the visible bounds.
+		// i.e. even if a data point falls just outside the visible bounds, *but*
+		// inside a cell's catchment area, it has to be drawn into the scalar field.
+
+		let box = viewportBbox
+			.clone()
+			.expandPercentages(this._factor[0] - 1, this._factor[1] - 1);
+
+		let expandMatrix = scale(new Array(9), matrix, this._factor);
+
+		return super.redraw(crs, expandMatrix, box);
+	}
+}
+
+/**
+ * @class QuadMarginBin
+ * @inherits QuadBin
+ *
+ * As `QuadBin`, but each cell is displayed with a transparent margin.
+ *
+ */
+
+class QuadMarginBin extends QuadBin {
+	/**
+	 * @constructor QuadMarginBin(target: GliiFactory, opts?: QuadMarginBin Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option marginSize: Number = 8
+			 * The size of the cells' margin, in CSS pixels.
+			 * Must be smaller than half the cell size (or else the cell won't be
+			 * displayed at all).
+			 */
+			marginSize = 16,
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 4,
+				growFactor: 1,
+			},
+			[
+				{
+					// Vertex position
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Texel coords
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this._indexBuffer = new this.glii.IndexBuffer({
+			growFactor: 1,
+			type: this.glii.UNSIGNED_INT,
+		});
+
+		this._marginSize = marginSize;
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		// Unlike HeatMap, the colour ramp will be applied in the vertex
+		// shader instead of the fragment shader.
+
+		let intensities = [];
+		let colours = [];
+		Object.entries(this.stops)
+			.map(([intensity, colour]) => [Number(intensity), parseCSSColor(colour)])
+			.sort(([a, _], [b, __]) => a - b)
+			.forEach(([intensity, colour]) => {
+				intensities.push(intensity);
+				colours.push(colour);
+			});
+
+		const stopCount = colours.length;
+		const intensitiesInit = intensities
+			.map((i, j) => `intensities[${j}] = float(${glslFloatify(i)});`)
+			.join("\n");
+		const coloursInit = colours
+			.map((c, j) => `colours[${j}] = ${glslVecNify(c.map((b) => b / 255))};`)
+			.join("\n");
+
+		return {
+			...opts,
+			indexBuffer: this._indexBuffer,
+			attributes: {
+				aPos: this._attrs.getBindableAttribute(0),
+				aUV: this._attrs.getBindableAttribute(1),
+			},
+			// uniforms: {},
+			vertexShaderMain: `
+				float intensities[${stopCount}];
+				vec4 colours[${stopCount}];
+				${intensitiesInit}
+				${coloursInit}
+
+				gl_Position = vec4(aPos, 0., 1.);
+
+				float value = texture2D(uField, aUV).x;
+
+				vColour = colours[0];
+
+				for (int i=1; i< ${stopCount}; i++) {
+					vColour = mix(
+						vColour,
+						colours[i],
+						smoothstep(intensities[i-1], intensities[i], value)
+					);
+				}
+			`,
+			varyings: {
+				vColour: "vec4",
+			},
+			fragmentShaderMain: `
+				gl_FragColor = vColour;
+				// gl_FragColor = vec4(0., 0., 0., 1.);
+			`,
+		};
+	}
+
+	resize(x_device, y_device, x_css, y_css) {
+		super.resize(x_device, y_device, x_css, y_css);
+
+		// The data is not shown as a single quad (as the parent classes do).
+		// Instead, this will calculate one quad per texel of the scalar field,
+		// and fill up extrusion and colour attributes for those quads.
+		// Note that the quads do not cover the entire area of a scalar field
+		// texel, since there's a margin.
+		const cellX = Math.ceil(x_css / this.cellSize);
+		const cellY = Math.ceil(y_css / this.cellSize);
+		const oversizeX = cellX * this.cellSize;
+		const oversizeY = cellY * this.cellSize;
+		const offsetX = (oversizeX - x_css) / 2;
+		const offsetY = (oversizeY - y_css) / 2;
+
+		const stride = this._attrs.asStridedArray(0, 4 * cellX * cellY);
+		this._indexBuffer.grow(6 * cellX * cellY);
+		this._indexBuffer._activeIndices = 6 * cellX * cellY; // Truncate indices
+
+		const pxSizeX = 2 / x_css; // Size of a CSS pixel in horizontal clipspace units
+		const pxSizeY = 2 / y_css; // Size of a CSS pixel in vertical clipspace units
+
+		const extrPx = this.cellSize / 2 - this._marginSize;
+		const extrX = pxSizeX * extrPx; // Extrusion amount, in clipspace units
+		const extrY = pxSizeY * extrPx;
+
+		let vtx = 0;
+		let idx = 0;
+		const maxX = cellX - 1;
+		const maxY = cellY - 1;
+		for (let i = 0; i < cellX; i++) {
+			const posX = (offsetX + i * this.cellSize) * pxSizeX - 1;
+			const texelX = i / maxX;
+
+			for (let j = 0; j < cellY; j++) {
+				const posY = (offsetY + j * this.cellSize) * pxSizeY - 1;
+				const texelY = j / maxY;
+
+				// The four vertices of a quad have the same texel coordinates,
+				// the same position, but a different extrusion direction.
+				// prettier-ignore
+				stride.set([
+					posX + extrX, posY + extrY, texelX, texelY,
+					posX + extrX, posY - extrY, texelX, texelY,
+					posX - extrX, posY - extrY, texelX, texelY,
+					posX - extrX, posY + extrY, texelX, texelY,
+				], vtx);
+
+				// prettier-ignore
+				this._indexBuffer.set(idx, [
+					vtx, vtx+1, vtx+2,
+					vtx, vtx+3, vtx+2,
+				]);
+
+				vtx += 4;
+				idx += 6;
+			}
+		}
+
+		this._attrs.commit(0, vtx);
+		// console.log(stride);
+	}
+}
+
+const SQRT3HALF = 0.86602540378443864676;
+const SQRT3QUART = 0.43301270189221932338;
+
+function fract(n) {
+	return n - Math.trunc(n);
+}
+
+/**
+ * @class HexBin
+ * @inherits QuadMarginBin
+ *
+ * As `QuadMarginBin`, but cells are hexagonal instead of square.
+ */
+
+class HexBin extends QuadMarginBin {
+	/**
+	 * @option cellSize: Number = 64
+	 * The *diameter* of the hexagonal cells, in CSS pixels.
+	 * @option marginSize: Number = 8
+	 * The size of the cells' margin, in CSS pixels.
+	 * Must be smaller than half the cell size (or else the cell won't be
+	 * displayed at all).
+	 */
+
+	// Store values for subacetates' uniforms, to prevent late-initialization
+	// issues.
+	#uHexSize;
+
+	addAcetate(ac) {
+		// console.log("Adding acetate to HexBin:", ac.constructor.name);
+		// console.log("Adding acetate to HexBin:", ac.constructor.name, ac);
+
+		// Hijack the GL program definition of the subacetate,
+		// so that it'll apply an offset to the clipspace coordinates so that
+		// the gl_Position falls on the right hexagon
+
+		const fn = ac.glProgramDefinition.bind(ac);
+
+		const search = /gl_Position\s*=\s*([^;]+);/g;
+		function replacement(_, captured) {
+			return `gl_Position = hexify(${captured});`;
+		}
+
+		const hexifyDef = `
+		vec4 hexify(vec4 orig) {
+			// Each row is (should be) as high as half the radius of the
+			// hexagons.
+			float row = orig.y / uHexSize.y;
+
+			// Each column is half the width of a hexagon
+			float col = orig.x / uHexSize.x;
+
+			// 0-2: solid hex row (odd)
+			// 2-3: triangles between hex rows
+			// 3-5: solid hex row (even)
+			// 5-6: triangles between hex rows
+			row = mod(row + 1., 6.0);
+
+			col = mod(col, 2.0);
+
+			float fractRow = fract(row);
+			float fractCol = fract(col);
+
+			vec2 offset;
+
+			if ( row < 2. ) {
+				// Center of odd row, shift half a cell to the right
+				offset.x = uHexSize.x;
+			} else if (row < 3.) {
+				if (col < 1.0) {
+					// Downwards edge on top of odd row
+					if (1.0 - fractCol < fractRow) {
+						offset.y = uHexSize.y;
+					} else {
+						offset.y = -uHexSize.y;
+					}
+				} else {
+					// Upwards edge on top of odd row
+					if (fractCol < fractRow) {
+						offset.y = uHexSize.y;
+					} else {
+						offset.y = -uHexSize.y;
+						offset.x = uHexSize.x;
+					}
+				}
+			} else if (row < 5.) {
+				// Center of even rows need no offset.
+			} else {
+				if (col < 1.0) {
+					// Upwards edge on top of even row
+					if (fractCol < fractRow) {
+						offset.y = uHexSize.y;
+					} else {
+						offset.y = -uHexSize.y;
+					}
+				} else {
+					// Downwards edge on top of even row
+					if (1.0 - fractCol < fractRow) {
+						offset.y = uHexSize.y;
+						offset.x = uHexSize.x;
+					} else {
+						offset.y = -uHexSize.y;
+					}
+				}
+			}
+			return vec4(orig.xy + offset.xy, orig.zw);
+		}`;
+
+		ac.glProgramDefinition = function glProgramDefinition() {
+			const opts = fn();
+
+			return {
+				...opts,
+				uniforms: {
+					...opts.uniforms,
+					uHexSize: "vec2",
+				},
+				vertexShaderSource:
+					hexifyDef + opts.vertexShaderSource.replace(search, replacement),
+				vertexShaderMain: opts.vertexShaderMain.replace(search, replacement),
+			};
+		};
+
+		super.addAcetate(ac);
+
+		if (this.#uHexSize) {
+			ac.once("programlinked", () => {
+				ac._programs.setUniform("uHexSize", this.#uHexSize);
+			});
+		}
+	}
+
+	resize(x, y) {
+		const hexWidth = this.cellSize * SQRT3HALF;
+		const hexHeight = this.cellSize * 0.75;
+		const hexRadius = this.cellSize * 0.5;
+		const hexHalfRadius = this.cellSize * 0.25;
+		const hexHalfWidth = hexWidth / 2;
+
+		// The number of cells (and the dimensions of the low-res framebuffer)
+		// will always be even numbers. This simplifies calculations at the
+		// cost of drawing more off-screen entities.
+		const cellX = 2 + Math.ceil(x / hexWidth / 2) * 2;
+		const cellY = 1 + 4 * Math.ceil((y / 2 - hexHalfRadius) / hexHeight / 2);
+
+		// console.log("cell x/y count: ", cellX, cellY);
+
+		const oversizeX = cellX * hexWidth;
+		const oversizeY = cellY * hexHeight + hexHalfRadius;
+		const offsetX = (x - oversizeX) / 2;
+		const offsetY = (y - oversizeY) / 2 + hexRadius;
+
+		HeatMap.prototype.resize.call(this, cellX, cellY);
+
+		const pxSizeX = 2 / x; // Size of a CSS pixel in horizontal clipspace units
+		const pxSizeY = 2 / y; // Size of a CSS pixel in vertical clipspace units
+
+		this._factor = [x / oversizeX, y / oversizeY];
+		// this._offset = [(oversizeX - x) / 2, (oversizeY - y) / 2];
+		this._offset = [offsetX, offsetY];
+		this._program.setUniform(
+			"uFactor",
+			this._factor.map((n) => 1 / n)
+		);
+
+		// "Hex size" is really half the width, and a quarter of the height
+		// (half the radius). All of that factored so that it fits the expanded
+		// bbox coverign the scalar field.
+		// This is done to avoid divisions in the shader.
+		this.#uHexSize = [
+			(hexWidth * pxSizeX * this._factor[0]) / 2,
+			hexHalfRadius * pxSizeY * this._factor[1],
+		];
+
+		// Set uniforms in the subacetates' programs
+		this.subAcetates.forEach((sac) => {
+			sac._programs.setUniform("uHexSize", this.#uHexSize);
+		});
+
+		// 6 vertices per hexagon
+		// 4 triangles (12 indices) per hexagon
+		const stride = this._attrs.asStridedArray(0, 6 * cellX * cellY);
+		this._indexBuffer.grow(12 * cellX * cellY);
+		this._indexBuffer._activeIndices = 12 * cellX * cellY; // Truncate indices
+
+		// Extrusion amount, in CSS pixels:
+		const extrPx = hexRadius - this._marginSize;
+		// Extrusion amount, in clipspace units:
+		const extrX = pxSizeX * extrPx * SQRT3HALF;
+		const extrY = pxSizeY * extrPx;
+		const extrY2 = extrY / 2;
+
+		let vtx = 0;
+		let idx = 0;
+		const maxX = cellX - 1;
+		const maxY = cellY - 1;
+		for (let i = 0; i < cellX; i++) {
+			const origPosX = (offsetX + i * hexWidth) * pxSizeX - 1;
+			const texelX = i / maxX;
+
+			for (let j = 0; j < cellY; j++) {
+				const posX = origPosX + (j % 2 ? hexHalfWidth * pxSizeX : 0);
+				const posY = (offsetY + j * hexHeight) * pxSizeY - 1;
+				const texelY = j / maxY;
+
+				// The six vertices of a hexagon have the same texel coordinates,
+				// the same position, but a different extrusion direction.
+				// prettier-ignore
+				stride.set([
+					posX        , posY + extrY , texelX, texelY,
+					posX + extrX, posY + extrY2, texelX, texelY,
+					posX + extrX, posY - extrY2, texelX, texelY,
+					posX        , posY - extrY , texelX, texelY,
+					posX - extrX, posY - extrY2, texelX, texelY,
+					posX - extrX, posY + extrY2, texelX, texelY,
+				], vtx);
+
+				// prettier-ignore
+				this._indexBuffer.set(idx, [
+					vtx  , vtx+1, vtx+5,
+					vtx+5, vtx+1, vtx+2,
+					vtx+5, vtx+2, vtx+4,
+					vtx+4, vtx+2, vtx+3,
+				]);
+
+				vtx += 6;
+				idx += 12;
+			}
+		}
+
+		this._attrs.commit(0, vtx);
+
+		Acetate.prototype.resize.call(this, x, y);
+	}
+
+	getFieldValueAt(x, y) {
+		// Same as in the shader: each row is as high as half the radius
+		// of the hexagons, and each column is as wide as half an hexagon.
+		const col = (x - this._offset[0]) / (this.cellSize * SQRT3QUART);
+		const row = (y - this._offset[1]) / (this.cellSize * 0.25);
+
+		const rowMod = (row - 1) % 6;
+		const colMod = col % 2;
+
+		let cellX, cellY;
+
+		if (rowMod < 1) {
+			/// Space between hexagon rows
+			if (colMod < 1) {
+				// Upwards edge
+				if (fract(col) + fract(row) < 1) {
+					cellX = col / 2;
+					cellY = (row + 4) / 3;
+				} else {
+					cellX = (col + 1) / 2;
+					cellY = (row + 7) / 3;
+				}
+			} else {
+				// Downwards edge
+				if (fract(col) > fract(row)) {
+					cellX = (col + 1) / 2;
+					cellY = (row + 4) / 3;
+				} else {
+					cellX = col / 2;
+					cellY = (row + 7) / 3;
+				}
+			}
+		} else if (rowMod < 3) {
+			cellX = col / 2;
+			cellY = (row + 4) / 3;
+		} else if (rowMod < 4) {
+			/// Space between hexagon rows
+			if (colMod < 1) {
+				// Downwards edge
+				if (fract(col) > fract(row)) {
+					cellX = (col + 1) / 2;
+					cellY = (row + 4) / 3;
+				} else {
+					cellX = col / 2;
+					cellY = (row + 7) / 3;
+				}
+			} else {
+				// Upwards edge
+				if (fract(col) + fract(row) < 1) {
+					cellX = col / 2;
+					cellY = (row + 4) / 3;
+				} else {
+					cellX = (col + 1) / 2;
+					cellY = (row + 7) / 3;
+				}
+			}
+		} else {
+			cellX = (col + 1) / 2;
+			cellY = (row + 4) / 3;
+		}
+
+		return ScalarField.prototype.getFieldValueAt.call(
+			this,
+			Math.floor(cellX),
+			Math.floor(cellY)
+		);
+	}
+}
+
+/**
+ * @class HueVectorField
+ * @inherits VectorField
+ *
+ * A `VectorField` which displays vector angle as hue, and vector length
+ * as opacity.
+ *
+ *
+ * Accepts `SlopePoint`s, etc as symbols.
+ *
+ * @example
+ *
+ * ```
+ * const field = new HueVectorField(map, {maxValue: 10});
+ *
+ * new SlopePoint(geometry, {intensity: 10}).addTo(field);
+ * ```
+ */
+
+class HueVectorField extends VectorField {
+	#minValue;
+	#maxValue;
+
+	constructor(
+		target,
+		{
+			/**
+			 * @section HueVectorField Options
+			 * @option minValue: Number = 0
+			 * Minimum vector length to be taken into consideration. Under this
+			 * length, opacity will be zero.
+			 *
+			 * @option maxValue: Number = 1
+			 * Maximum vector length to be taken into consideration. Over this
+			 * length, opacity will be one.
+			 */
+			minValue = 0,
+			maxValue = 1,
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#minValue = minValue;
+		this.#maxValue = maxValue;
+	}
+
+	// A program that takes scalar field textures and renders a simple,
+	// two-stop gradient
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			fragmentShaderSource: `
+			const float min = ${glslFloatify(this.#minValue)};
+			const float range = ${glslFloatify(this.#maxValue - this.#minValue)};
+			${hsv2rgb}`,
+			fragmentShaderMain: `
+				vec2 value = texture2D(uField, vUV).xy;
+
+				float theta = atan(value.y, value.x) / 6.28318530717958647693;
+				float rho = length(value);
+
+				gl_FragColor.rgb = hsv2rgb(vec3(theta, 1., 1.));
+				gl_FragColor.a = (rho - min) / range;
+			`,
+		};
+	}
+}
+
+/**
+ * @class ParticleSimulator
+ * @inherits VectorField
+ *
+ * A `VectorField` which displays moving particles on it. The movement of the
+ * particles depends on the direction and strength of the vector field.
+ *
+ */
+
+class ParticleSimulator extends VectorField {
+	#particleCount;
+	#speedMultiplier;
+	#minOpaqueSpeed;
+	#particleColour;
+
+	#partTex1;
+	#partFB1;
+	#partTex2;
+	#partFB2;
+
+	#texBytes;
+
+	#respawnInterval;
+
+	/**
+	 * @constructor ArrowHeadField(target: GliiFactory, opts?: QuadBin Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option particles: Number = 256
+			 * The amount of particles to render.
+			 */
+			particles = 256,
+
+			/**
+			 * @option speedMultiplier: Number = 1
+			 * The default speed is the field value in CSS pixels per second.
+			 *
+			 * This option multiplies the speed by the given value.
+			 */
+			speedMultiplier = 1,
+
+			/**
+			 * @option particleLifetime: Number = 10
+			 * Lifetime of the particles, in seconds.
+			 *
+			 */
+			particleLifetime = 10,
+
+			/**
+			 * @option minOpaqueSpeed: Number = 2
+			 * Minimum speed for a particle to become opaque. If the speed
+			 * of a particle is below this, it'll be semitransparent.
+			 *
+			 * The "speed of a particle" in this context is the value of the
+			 * underlying vector field times `speedMultiplier`.
+			 *
+			 * Setting this to zero will make all particles opaque.
+			 */
+			minOpaqueSpeed = 2,
+
+			/**
+			 * @option particleColour: Colour = "black"
+			 * Desired colour of the particles.
+			 *
+			 * This is the colour they take when their speed is over `minOpaqueSpeed`.
+			 */
+			particleColour = [0, 0, 0, 1],
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+		const glii = this.glii;
+
+		this.#particleCount = particles;
+		this.#speedMultiplier = speedMultiplier;
+		this.#minOpaqueSpeed = minOpaqueSpeed;
+		this.#particleColour = parseCSSColor(particleColour);
+
+		this.#texBytes = Math.ceil(Math.log2(Math.sqrt(particles)));
+		const texSize = 1 << this.#texBytes;
+
+		// console.log("particles / tex size / log2", particles, texSize, this.#texBytes);
+
+		// Spawn *two* 2-component 32F textures to hold the positions of the
+		// particles.
+		// One of them shall hold the previous state, and the other the current
+		// state. The GL program shall swap the in texture and the out framebuffer.
+		this.#partTex1 = new glii.Texture({
+			format: this.glii.gl.RG,
+			internalFormat: this.glii.gl.RG32F,
+			type: glii.FLOAT,
+		});
+		this.#partFB1 = new glii.FrameBuffer({
+			color: [this.#partTex1],
+			width: texSize, /// TODO: test with 256x256 = 65k particles, extend later
+			height: texSize,
+		});
+
+		this.#partTex2 = new glii.Texture({
+			format: this.glii.gl.RG,
+			internalFormat: this.glii.gl.RG32F,
+			type: glii.FLOAT,
+		});
+		this.#partFB2 = new glii.FrameBuffer({
+			color: [this.#partTex2],
+			width: texSize, /// TODO: test with 256x256 = 65k particles, extend later
+			height: texSize,
+		});
+
+		// An attribute storage for drawing single particles, from *either*
+		// particle position texture.
+		this._particles = new this.glii.SingleAttribute({
+			// Coords on the particles texture. The value of that
+			// texel is the screen position of the particle.
+
+			usage: this.glii.STATIC_DRAW,
+			size: this.#particleCount,
+			growFactor: 1,
+
+			glslType: "vec2",
+			type: Float32Array,
+			normalized: false,
+		});
+
+		// An attribute storage for drawing two-particle segments, connecting
+		// both positions from both particle position textures for each particle.
+		// i.e. draw a line between each particle's previous position and last
+		// position.
+		this._particleSegments = new this.glii.SingleAttribute({
+			// Coords on the particles texture. The value of that
+			// texel is the screen position of the particle.
+
+			// A positive (or zero) value on the X component means the
+			// 0th texture; a negative value means the 1st texture.
+
+			usage: this.glii.STATIC_DRAW,
+			size: this.#particleCount * 2,
+			growFactor: 1,
+
+			glslType: "vec2",
+			type: Float32Array,
+			normalized: false,
+		});
+
+		// Static indices for drawing individual particles
+		this._singleParticleIndices = new this.glii.SequentialIndices({
+			size: this.#particleCount,
+			drawMode: this.glii.POINTS,
+		});
+
+		// Static indices for drawing per-particle segments
+		this._lineParticleIndices = new this.glii.SequentialIndices({
+			size: this.#particleCount * 2,
+			drawMode: this.glii.LINES,
+		});
+
+		// Init data for the attrib storages
+		const partAttrs = new Float32Array(particles * 2);
+		const partSegments = new Float32Array(particles * 2);
+
+		for (let i = 0; i < this.#particleCount; i++) {
+			// For now, have all the coordinates assume that the textures are
+			// 256x256 in size.
+			// let y = i >> 8;
+			let y = i >> this.#texBytes;
+			let x = i - (y << this.#texBytes);
+
+			let i2 = i * 2;
+			let i4 = i * 4;
+
+			x /= texSize;
+			y /= texSize;
+
+			partAttrs[i2] = x;
+			partAttrs[i2 + 1] = y;
+
+			partSegments[i4] = x;
+			partSegments[i4 + 1] = y;
+			partSegments[i4] = x - 2;
+			partSegments[i4 + 1] = y;
+		}
+
+		this._particles.multiSet(0, partAttrs);
+		this._particleSegments.multiSet(0, partSegments);
+
+		const randomPositions = Float32Array.from(
+			new Array(texSize * texSize * 2),
+			() => Math.random() * 2 - 1
+		);
+
+		// console.log(partAttrs, randomPositions);
+
+		// Initially, load some noise into the particle position textures
+		this.#partTex1.texArray(texSize, texSize, randomPositions);
+		this.#partTex2.texArray(texSize, texSize, randomPositions);
+
+		if (isFinite(particleLifetime) && particleLifetime > 0) {
+			this.#respawnInterval = setInterval(
+				() => this.#respawnParticles(),
+				(particleLifetime * 1000) / (1 << this.#texBytes)
+			);
+		}
+	}
+
+	glProgramDefinition() {
+		// The main program renders the particles
+
+		const opts = super.glProgramDefinition();
+
+		const minOpaqueSpeed = this.#minOpaqueSpeed * this.#speedMultiplier;
+
+		return {
+			...opts,
+			indexBuffer: this._singleParticleIndices,
+			attributes: {
+				aParticleTexel: this._particles,
+			},
+			textures: {
+				uPart: this.#partTex1,
+				uField: this._fieldTexture,
+			},
+			vertexShaderMain: `
+				vec2 particlePos = texture2D(uPart, aParticleTexel).xy;
+				gl_Position = vec4(particlePos, 0., 1.);
+
+				vec2 value = texture2D(uField, particlePos / 2.0 + 0.5).xy;
+
+				vSpeed = length(value);
+
+				gl_PointSize = 1.0;
+			`,
+			varyings: {
+				// vColour: "vec4",
+				vSpeed: "float",
+			},
+			fragmentShaderMain:
+				`gl_FragColor = vec4(${glslVecNify(this.#particleColour)});` +
+				`gl_FragColor.a *= vSpeed / ${glslFloatify(minOpaqueSpeed * 256)};`,
+			// minOpaqueSpeed > 0
+			// ? `gl_FragColor.a *= min(1., vSpeed / ${glslFloatify( minOpaqueSpeed )});`
+			// : ""
+		};
+	}
+
+	simulatorGlProgramDefinition() {
+		// The simulator program renders to the framebuffer linked to the
+		// particle position texture **not** being used as input, outputting
+		// the new position vec2 for each particle.
+
+		// The simulator program reuses the single quad defined by `Field`:
+		// aPos, aUV and a sequential 4-vertex index
+		const opts = super.glProgramDefinition();
+
+		/// TODO: Apply a stencil in order to skip texels corresponding to non-existing
+		/// particles
+
+		return {
+			...opts,
+			// indexBuffer: this._singleParticleIndices,
+			// attributes: { aParticleTexel: this._particles, },
+			textures: {
+				uPart: this.#partTex1,
+				uField: this._fieldTexture,
+			},
+
+			uniforms: {
+				uPixelSize: "vec2",
+				uTimeDelta: "float",
+			},
+
+			// vertexShaderSource: `
+			// void main(){
+			// 	vec2 particlePos = texture2D(uPart, aParticleTexel).xy;
+			// 	// vec2 value = texture2D(uField, particlePos).xy;
+			//
+			// 	// vNewPosition = particlePos + (value / 128.0);
+			// 	vNewPosition = particlePos;
+			// 	vParticleTexel = aParticleTexel;
+			//
+			// 	gl_Position = vec4(
+			// 		aParticleTexel.x * 2.0 - 1.0,
+			// 		1.0 - aParticleTexel.y * 2.0,
+			// 		0.,
+			// 		1.);
+			// 	gl_PointSize = 1.0;
+			// }
+			// `,
+			// varyings: {
+			// 	vNewPosition: "vec2",
+			// 	vParticleTexel: "vec2",
+			// },
+
+			vertexShaderSource: `
+			void main(){
+				gl_Position = vec4(aPos, 0., 1.);
+				vUV = aUV;
+			}
+			`,
+
+			varyings: { vUV: "vec2" },
+
+			fragmentShaderSource: `
+			void main(){
+				vec2 particlePos = texture2D(uPart, vUV).xy;
+
+				vec4 value = texture2D(uField, particlePos / 2.0 + 0.5);
+
+				gl_FragColor = vec4(particlePos +
+					(value.xy * uPixelSize * uTimeDelta),
+				0., 1.);
+
+			}
+			`,
+			target: this.#partFB2,
+		};
+	}
+
+	#simulatorGlProgram;
+	resize(x, y) {
+		if (!this.#simulatorGlProgram) {
+			this.#simulatorGlProgram = new this.glii.WebGL1Program(
+				this.simulatorGlProgramDefinition()
+			);
+
+			// this._programs.addProgram(this.#simulatorGlProgram);
+		}
+
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / x, dpr2 / y]);
+		this.#simulatorGlProgram.setUniform("uPixelSize", [dpr2 / x, dpr2 / y]);
+
+		super.resize(x, y);
+	}
+
+	#lastRedrawTime;
+
+	redraw(crs, matrix, viewportBbox) {
+		// Swap texture and framebuffer
+		// Also unbind the texture used in the output framebuffer; if it's
+		// unused but bound to an active texture unit, it would trigger
+		// illegal feedback.
+
+		if (this.#simulatorGlProgram._target === this.#partFB2) {
+			this.#partTex1.unbind();
+			this.#simulatorGlProgram.setTarget(this.#partFB1);
+			this.#simulatorGlProgram.setTexture("uPart", this.#partTex2);
+
+			this._program.setTexture("uPart", this.#partTex1);
+		} else {
+			this.#partTex2.unbind();
+			this.#simulatorGlProgram.setTarget(this.#partFB2);
+			this.#simulatorGlProgram.setTexture("uPart", this.#partTex1);
+
+			this._program.setTexture("uPart", this.#partTex2);
+		}
+		/// FIXME: Why is the uField texture being expelled from its unit???
+		this.#simulatorGlProgram.setTexture("uField", this._fieldTexture);
+
+		const now = performance.now();
+		if (this.#lastRedrawTime) {
+			this.#simulatorGlProgram.setUniform(
+				"uTimeDelta",
+				(this.#speedMultiplier * (now - this.#lastRedrawTime)) / 1000
+			);
+		}
+		this.#lastRedrawTime = now;
+
+		this.#simulatorGlProgram.run();
+
+		// let debug1 = this.#partFB1.readPixels(0, 0, 4, 4);
+		// let debug2 = this.#partFB2.readPixels(0, 0, 4, 4);
+		// console.log(debug1, debug2);
+
+		// Clear the output colour framebuffer, but not the field framebuffer.
+		Acetate.prototype.clear.call(this);
+
+		/// TODO: Extend the bounds of the field (in order to spawn particles
+		/// slightly outside of the platina and simulate their entering)
+		/// Take some code from `QuadBin`.
+
+		return super.redraw(crs, matrix, viewportBbox);
+	}
+
+	// An animated Acetate is always dirty, meaning it wants to render at every
+	// frame.
+	get dirty() {
+		return true;
+	}
+	set dirty(d) {
+		super.dirty = d;
+	}
+
+	clear() {
+		// Clear the framebuffer only if the parent functionality is dirty -
+		// otherwise, keep the framebuffer dirty to draw on top and perform the fade-in.
+		if (super.dirty) {
+			super.clear();
+		}
+	}
+
+	#respawnIndex = 0;
+
+	// Respawns an entire texture-column worth of particles
+	#respawnParticles() {
+		if (!this._platina) return;
+
+		const texSize = 1 << this.#texBytes;
+
+		this.#respawnIndex = (this.#respawnIndex + 1) % texSize;
+
+		const randomPositions = Float32Array.from(
+			new Array(texSize * 2),
+			() => Math.random() * 2 - 1
+		);
+
+		this.#partTex1.texSubArray(1, texSize, randomPositions, this.#respawnIndex, 0);
+		this.#partTex2.texSubArray(1, texSize, randomPositions, this.#respawnIndex, 0);
+	}
+}
+
+/**
+ * @class ParticleTrailSimulator
+ * @inherits VectorField
+ *
+ * As `ParticleSimulator`, but displays particle trails instead of particles.
+ *
+ */
+
+class ParticleTrailSimulator extends VectorField {
+	#particleCount;
+	#speedMultiplier;
+	#minOpaqueSpeed;
+	#particleColour;
+	#fadingPercentage;
+	#drawLines;
+	#dotSize;
+
+	#partTex1;
+	#partFB1;
+	#partTex2;
+	#partFB2;
+
+	#texBytes;
+
+	#sections; // Or rather, section count
+	#rowsPerSection;
+	#sectionFraction; // rows for one section divided by total rows
+	#respawnAmount;
+	#msecsPerRespawnColumn;
+
+	#sectionQuads;
+
+	/**
+	 * @constructor ParticleTrailSimulator(target: GliiFactory, opts?: ParticleTrailSimulator Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option particles: Number = 256
+			 * The amount of particles to render.
+			 */
+			particles = 256,
+
+			/**
+			 * @option trailSize: Number = 8
+			 * Number of particle positions per trail.
+			 *
+			 * Must be a multiple of 2 (if not, will be rounded up).
+			 *
+			 */
+			trailSize = 8,
+
+			/**
+			 * @option speedMultiplier: Number = 1
+			 * The default speed is the field value in CSS pixels per second.
+			 *
+			 * This option multiplies the speed by the given value.
+			 */
+			speedMultiplier = 1,
+
+			/**
+			 * @option particleLifetime: Number = 10
+			 * Lifetime of the particles, in seconds.
+			 *
+			 * If this is set to `Infinity` or `NaN`, particles will never respawn.
+			 */
+			particleLifetime = 10,
+
+			/**
+			 * @option particleLifetime: Number = 1
+			 * Duration of the fade-in and fade-out on particle trails, in seconds.
+			 *
+			 * Particles will fade-out just before respawning, and fade-in
+			 * afterwards.
+			 */
+			fadeDuration = 1,
+
+			/**
+			 * @option drawLines: Boolean = true
+			 * When `true`, the trails will be drawn as thin lines (1 device pixel wide).
+			 *
+			 * When `false`, the trails will be drawn as a group of squares (the
+			 * size of the squares is defined via the `dotSize` option)
+			 */
+			drawLines = true,
+
+			/**
+			 * @option dotSize: Number = 4
+			 * Size of the square dots used to draw a trail's particle positions.
+			 *
+			 * Whis works like the `size` option of the `Dot` symbol, and has the
+			 * same limitations (size is in device pixels, not in CSS pixels;
+			 * and the maximum value depends on the GPU and the WebGL/OpenGL
+			 * stack).
+			 *
+			 * Only has effect when `drawLines` is `false`.
+			 */
+			dotSize = 4,
+
+			/**
+			 * @option minOpaqueSpeed: Number = 2
+			 * Minimum speed for a particle to become opaque. If the speed
+			 * of a particle is below this, it'll be semitransparent.
+			 *
+			 * The "speed of a particle" in this context is the value of the
+			 * underlying vector field times `speedMultiplier`.
+			 *
+			 * Setting this to zero will make all particles opaque.
+			 */
+			minOpaqueSpeed = 2,
+
+			/**
+			 * @option particleColour: Colour = "black"
+			 * Desired colour of the particles.
+			 *
+			 * This is the colour they take when their speed is over `minOpaqueSpeed`.
+			 */
+			particleColour = "black",
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+		const glii = this.glii;
+
+		this.#particleCount = particles;
+		this.#speedMultiplier = speedMultiplier;
+		this.#minOpaqueSpeed = minOpaqueSpeed;
+		this.#particleColour = parseCSSColor(particleColour);
+		this.#fadingPercentage = fadeDuration / particleLifetime;
+		this.#drawLines = drawLines;
+		this.#dotSize = dotSize;
+
+		// How many sections per texture?
+		const sections = (this.#sections = Math.ceil(trailSize / 2) + 1);
+
+		this.#texBytes = Math.ceil(Math.log2(Math.sqrt(particles * sections)));
+		const texSize = 1 << this.#texBytes;
+
+		const rowsPerSection = (this.#rowsPerSection = Math.ceil(particles / texSize));
+		this.#sectionFraction = rowsPerSection / texSize;
+
+		// console.log(
+		// 	"particles / sections / rows / fraction / tex size / log2",
+		// 	particles,
+		// 	sections,
+		// 	rowsPerSection,
+		// 	this.#sectionFraction,
+		// 	texSize,
+		// 	this.#texBytes
+		// );
+
+		// // Set to the last possible state, since the algorithm will advance
+		// // texture offsets *before* each run.
+		// this.#sectionSequence = sections - 1;
+
+		// Spawn *two* 2-component 32F textures to hold the positions of the
+		// particles.
+		// One of them shall hold the previous state, and the other the current
+		// state. The GL program shall swap the in texture and the out framebuffer.
+		this.#partTex1 = new glii.Texture({
+			format: this.glii.gl.RG,
+			internalFormat: this.glii.gl.RG32F,
+			type: glii.FLOAT,
+		});
+		this.#partFB1 = new glii.FrameBuffer({
+			color: [this.#partTex1],
+			width: texSize, /// TODO: test with 256x256 = 65k particles, extend later
+			height: texSize,
+		});
+
+		this.#partTex2 = new glii.Texture({
+			format: this.glii.gl.RG,
+			internalFormat: this.glii.gl.RG32F,
+			type: glii.FLOAT,
+		});
+		this.#partFB2 = new glii.FrameBuffer({
+			color: [this.#partTex2],
+			width: texSize, /// TODO: test with 256x256 = 65k particles, extend later
+			height: texSize,
+		});
+
+		// An attribute storage for drawing single particles, from *either*
+		// particle position texture.
+		// One attribute per particle-section. All the sections from a texture are
+		// drawn at once.
+		this._particles = new this.glii.SingleAttribute({
+			// Coords on the particles texture. The value of that
+			// texel is the screen position of the particle.
+			usage: this.glii.STATIC_DRAW,
+			size: this.#particleCount,
+			growFactor: 1,
+
+			glslType: "vec2",
+			type: Float32Array,
+			normalized: false,
+		});
+
+		// An attribute storage for drawing two-particle segments, connecting
+		// both positions from both particle position textures for each particle.
+		// i.e. draw a line between each particle's previous position and last
+		// position.
+		// One attribute per particle-section.
+
+		this._particleSegments = new this.glii.SingleAttribute({
+			// Coords on the particles texture. The value of that
+			// texel is the screen position of the particle.
+
+			// A value between 0 and 1 denotes the 1st texture.
+			// A value between 2 and 3 denotes the 2nd texture.
+
+			usage: this.glii.STATIC_DRAW,
+			size: this.#particleCount * sections * 2,
+			growFactor: 1,
+
+			glslType: "vec2",
+			type: Float32Array,
+			normalized: false,
+		});
+
+		// Data for the section quads - a single section is simulated by
+		// triggering a partial draw consisting of a single quad.
+		this.#sectionQuads = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 4 * sections,
+				growFactor: 1,
+			},
+			[
+				{
+					// Vertex position
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Texel coords
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+
+		const sectionAttrs = this.#sectionQuads.asStridedArray(0);
+		// const sectionAttrs = new Float32Array(4 * sections * 4);
+		for (let i = 0; i < sections; i++) {
+			// Target vertical texel coordinate for this section
+			const t0 = i * this.#sectionFraction;
+			const t1 = (i + 1) * this.#sectionFraction;
+
+			// Source vertical clipspace coordinate for this section
+			const c0 = t0 * 2 - 1;
+			const c1 = t1 * 2 - 1;
+
+			sectionAttrs.set(
+				// prettier-ignore
+				[
+					-1, c0, 0, t0,
+					-1, c1, 0, t1,
+					1, c0, 1, t0,
+					1, c1, 1, t1,
+				],
+				i * 4
+			);
+		}
+		this.#sectionQuads.commit(0, 4 * sections);
+
+		// Static indices for drawing section quads
+		this._sectionQuadIndices = new this.glii.SequentialIndices({
+			size: sections * 4,
+			drawMode: this.glii.TRIANGLE_STRIP,
+		});
+
+		// Static indices for drawing individual particle positions as dots
+		this._singleParticleIndices = new this.glii.SequentialIndices({
+			size: this.#particleCount * this.#sections,
+			drawMode: this.glii.POINTS,
+		});
+
+		// Static indices for drawing per-particle segments as lines
+		this._trailIndices = new this.glii.IndexBuffer({
+			type: this.glii.UNSIGNED_INT,
+			size: particles * sections * 4,
+			drawMode: this.glii.LINES,
+		});
+
+		// Init data for the "single particles" attributes
+		const partAttrs = new Float32Array(particles * sections * 2);
+		// const partSegments = new Float32Array(particles * 2);
+
+		for (let i = 0; i < this.#particleCount * this.#sections; i++) {
+			// For now, have all the coordinates assume that the textures are
+			// 256x256 in size.
+			// let y = i >> 8;
+			let y = i >> this.#texBytes;
+			let x = i - (y << this.#texBytes);
+
+			let i2 = i * 2;
+			// let i4 = i * 4;
+
+			x /= texSize;
+			y /= texSize;
+
+			partAttrs[i2] = x;
+			partAttrs[i2 + 1] = y;
+
+			// partSegments[i4] = x;
+			// partSegments[i4 + 1] = y;
+			// partSegments[i4] = x - 2;
+			// partSegments[i4 + 1] = y;
+		}
+
+		this._particles.multiSet(0, partAttrs);
+		// this._particleSegments.multiSet(0, partSegments);
+
+		// Initial data for the "particle segments" attributes
+		const segAttrs = new Float32Array(particles * sections * 4);
+		for (let s = 0; s < sections; s++) {
+			const secOffsetY = s * this.#sectionFraction;
+
+			for (let t = 0; t < 2; t++) {
+				const texOffsetX = t * 2;
+				const sectionIdx = (s * 2 + t) * particles;
+
+				for (let p = 0; p < particles; p++) {
+					let y = p >> this.#texBytes;
+					let x = p - (y << this.#texBytes);
+					x /= texSize;
+					x += texOffsetX;
+					y /= texSize;
+					y += secOffsetY;
+
+					const i = sectionIdx + p;
+					const i2 = i * 2;
+					partAttrs[i2] = x;
+					partAttrs[i2 + 1] = y;
+				}
+			}
+		}
+		this._particleSegments.multiSet(0, segAttrs);
+
+		// Initial data for the line indices connecting particle-segment vertices.
+		// Connect each vertex with the one (particles) slots away, wrapping when at
+		// the last section.
+		const trailIdxs = new Uint32Array(particles * sections * 4);
+
+		for (let s = 0; s < this.#sections; s++) {
+			const offset = s === sections - 1 ? particles * (1 - sections) : particles;
+			const idx = s * particles;
+			for (let p = 0; p < particles; p++) {
+				const i = idx + p;
+				const i2 = i * 2;
+				trailIdxs[i2] = i;
+				trailIdxs[i2 + 1] = i + offset;
+			}
+		}
+		this._trailIndices.set(0, trailIdxs);
+
+		// Initial position for the particles (only for the first section)
+		const randomPositions = Float32Array.from(new Array(texSize * texSize * 2));
+
+		randomPositions.set(
+			Array.from(new Array(particles * 2), () => Math.random() * 2 - 1),
+			0
+		);
+
+		this.#partTex1.texArray(texSize, texSize, randomPositions);
+		// this.#partTex2.texArray(texSize, texSize, randomPositions);
+
+		// Set up particle respawning
+		if (isFinite(particleLifetime) && particleLifetime > 0) {
+			this.#msecsPerRespawnColumn =
+				(particleLifetime * 1000) / (1 << this.#texBytes);
+			this.#respawnAmount = 1;
+			if (this.#msecsPerRespawnColumn < 250) {
+				this.#respawnAmount = Math.ceil(250 / this.#msecsPerRespawnColumn);
+			}
+
+			setInterval(
+				() => this.#respawnParticles(),
+				this.#msecsPerRespawnColumn * this.#respawnAmount
+			);
+
+			// console.log(
+			// 	"lifetime / respawn interval / batch size",
+			// 	particleLifetime,
+			// 	this.#msecsPerRespawnColumn * this.#respawnAmount,
+			// 	this.#respawnAmount
+			// );
+		}
+	}
+
+	glProgramDefinition() {
+		// The main program renders the particles
+
+		const opts = super.glProgramDefinition();
+
+		const minOpaqueSpeed = this.#minOpaqueSpeed * this.#speedMultiplier;
+
+		return {
+			...opts,
+			// indexBuffer: this._singleParticleIndices,
+			indexBuffer: this.#drawLines
+				? this._trailIndices
+				: this._singleParticleIndices,
+			attributes: {
+				aParticleTexel: this._particles,
+			},
+			uniforms: {
+				...opts.uniforms,
+				uSectionOffset: "float",
+				uRespawnColumn: "float", // between 0 and 1, compare to texel X
+				uFadeWidth: "float", // How far from texel X to become opaque
+			},
+			textures: {
+				uPart1: this.#partTex1,
+				uPart2: this.#partTex2,
+				uField: this._fieldTexture,
+			},
+			vertexShaderMain:
+				`
+				vec2 particlePos;
+				float texelX;
+
+				if (aParticleTexel.x < 2.0) {
+					texelX = aParticleTexel.x;
+					particlePos = texture2D(uPart1, aParticleTexel).xy;
+				} else {
+					texelX = aParticleTexel.x - 2.0;
+					particlePos = texture2D(uPart2, vec2(texelX, aParticleTexel.y)).xy;
+				}
+				gl_Position = vec4(particlePos, 0., 1.);
+
+				vec2 value = texture2D(uField, particlePos / 2.0 + 0.5).xy;
+
+				vSpeed = length(value);
+				` +
+				(this.#drawLines
+					? ""
+					: `gl_PointSize = ${glslFloatify(this.#dotSize)};`) +
+				(isFinite(this.#fadingPercentage) && this.#fadingPercentage > 0
+					? `
+				float respawnDistance = min(
+					fract(texelX - uRespawnColumn),
+					fract(uRespawnColumn - texelX)
+				) - ${glslFloatify(this.#respawnAmount / (1 << this.#texBytes))};
+
+				vFadeOpacity = min(1.0 , respawnDistance / uFadeWidth);
+			`
+					: `vFadeOpacity = 1.0;`),
+			varyings: {
+				// vColour: "vec4",
+				vSpeed: "float",
+				vFadeOpacity: "float",
+			},
+			fragmentShaderMain:
+				`
+			gl_FragColor = vec4(${glslVecNify(this.#particleColour.map((n) => n / 255))});
+			gl_FragColor.a *= vFadeOpacity;
+			` +
+				(isFinite(minOpaqueSpeed) && minOpaqueSpeed > 0
+					? `gl_FragColor.a *= min( 1.0 , vSpeed / ${glslFloatify(minOpaqueSpeed)});`
+					: ""),
+			// `gl_FragColor.a *= vSpeed / ${glslFloatify(minOpaqueSpeed * 256)};`,
+			// minOpaqueSpeed > 0
+			// ? `gl_FragColor.a *= min(1., vSpeed / ${glslFloatify( minOpaqueSpeed )});`
+			// : ""
+			blend: {
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+
+				srcRGB: this.glii.SRC_ALPHA,
+				dstRGB: this.glii.ONE_MINUS_SRC_ALPHA,
+				srcAlpha: this.glii.ONE,
+				dstAlpha: this.glii.ONE_MINUS_SRC_ALPHA,
+			},
+		};
+	}
+
+	simulatorGlProgramDefinition() {
+		// The simulator program renders to the framebuffer linked to the
+		// particle position texture **not** being used as input, outputting
+		// the new position vec2 for each particle.
+
+		// The simulator program reuses the single quad defined by `Field`:
+		// aPos, aUV and a sequential 4-vertex index
+		const opts = super.glProgramDefinition();
+
+		/// TODO: Apply a stencil in order to skip texels corresponding to non-existing
+		/// particles
+
+		return {
+			...opts,
+			indexBuffer: this._sectionQuadIndices,
+			attributes: {
+				aPos: this.#sectionQuads.getBindableAttribute(0),
+				aUV: this.#sectionQuads.getBindableAttribute(1),
+			},
+			textures: {
+				uPart: this.#partTex1,
+				uField: this._fieldTexture,
+			},
+
+			uniforms: {
+				uPixelSize: "vec2",
+				uTimeDelta: "float",
+				uSectionOffset: "float",
+			},
+
+			// vertexShaderSource: `
+			// void main(){
+			// 	vec2 particlePos = texture2D(uPart, aParticleTexel).xy;
+			// 	// vec2 value = texture2D(uField, particlePos).xy;
+			//
+			// 	// vNewPosition = particlePos + (value / 128.0);
+			// 	vNewPosition = particlePos;
+			// 	vParticleTexel = aParticleTexel;
+			//
+			// 	gl_Position = vec4(
+			// 		aParticleTexel.x * 2.0 - 1.0,
+			// 		1.0 - aParticleTexel.y * 2.0,
+			// 		0.,
+			// 		1.);
+			// 	gl_PointSize = 1.0;
+			// }
+			// `,
+			// varyings: {
+			// 	vNewPosition: "vec2",
+			// 	vParticleTexel: "vec2",
+			// },
+
+			vertexShaderSource: /* glsl */ `
+				void main() {
+					gl_Position = vec4(aPos + vec2(0.0, uSectionOffset), 0.0, 1.0);
+					vUV = aUV;
+				}
+			`,
+
+			varyings: { vUV: "vec2" },
+
+			fragmentShaderSource: /* glsl */ `
+				void main() {
+					vec2 particlePos = texture2D(uPart, vUV).xy;
+
+					vec4 value = texture2D(uField, particlePos / 2.0 + 0.5);
+					// value.x += 0.01;
+					// vec2 value = vec2(0.1, 0.0);
+
+					gl_FragColor = vec4(
+						particlePos +
+							// (value.xy),
+							value.xy * uPixelSize * uTimeDelta,
+						0.0,
+						1.0
+					);
+
+				}
+			`,
+			target: this.#partFB1,
+		};
+	}
+
+	#simulatorGlProgram;
+	resize(x, y) {
+		if (!this.#simulatorGlProgram) {
+			this.#simulatorGlProgram = new this.glii.WebGL1Program(
+				this.simulatorGlProgramDefinition()
+			);
+
+			// this._programs.addProgram(this.#simulatorGlProgram);
+		}
+
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / x, dpr2 / y]);
+		this.#simulatorGlProgram.setUniform("uPixelSize", [dpr2 / x, dpr2 / y]);
+
+		super.resize(x, y);
+
+		if (isFinite(this.#fadingPercentage)) {
+			this._program.setUniform("uFadeWidth", this.#fadingPercentage);
+		} else {
+			this._program.setUniform("uFadeWidth", 0);
+		}
+	}
+
+	#lastRedrawTime = 0;
+	#sectionSequence = 0;
+	#respawnColumnOffset = 0;
+
+	redraw(crs, matrix, viewportBbox) {
+		// Swap texture and framebuffer
+		// Also unbind the texture used in the output framebuffer; if it's
+		// unused but bound to an active texture unit, it would trigger
+		// illegal feedback.
+
+		if (this.#simulatorGlProgram._target === this.#partFB1) {
+			// 1→2
+			this.#partTex2.unbind();
+			this.#simulatorGlProgram.setTarget(this.#partFB2);
+			this.#simulatorGlProgram.setTexture("uPart", this.#partTex1);
+
+			// this._program.setTexture("uPart", this.#partTex2);
+
+			this.#simulatorGlProgram.setUniform("uSectionOffset", 0);
+		} else {
+			// 1←↓2
+
+			this.#partTex1.unbind();
+			this.#simulatorGlProgram.setTarget(this.#partFB1);
+			this.#simulatorGlProgram.setTexture("uPart", this.#partTex2);
+
+			// this._program.setTexture("uPart", this.#partTex1);
+
+			if (this.#sectionSequence >= this.#sections - 1) {
+				this.#simulatorGlProgram.setUniform(
+					"uSectionOffset",
+					-this.#sectionFraction * (this.#sections - 1) * 2
+				);
+			} else {
+				this.#simulatorGlProgram.setUniform(
+					"uSectionOffset",
+					this.#sectionFraction * 2
+				);
+			}
+		}
+
+		/// FIXME: Why is the uField texture being expelled from its unit???
+		this.#simulatorGlProgram.setTexture("uField", this._fieldTexture);
+
+		const now = performance.now();
+		if (this.#lastRedrawTime) {
+			this.#simulatorGlProgram.setUniform(
+				"uTimeDelta",
+				(this.#speedMultiplier * (now - this.#lastRedrawTime)) / 1000
+			);
+		}
+
+		const sinceLastRespawn = now - this.#lastRespawnTime;
+		this.#respawnColumnOffset = Math.floor(
+			sinceLastRespawn / this.#msecsPerRespawnColumn
+		);
+
+		const texSize = 1 << this.#texBytes;
+		this._program?.setUniform(
+			"uRespawnColumn",
+			((this.#respawnIndex + this.#respawnColumnOffset) % texSize) / (texSize - 1)
+		);
+
+		this.#lastRedrawTime = now;
+
+		this.#simulatorGlProgram.runPartial(4 * this.#sectionSequence, 4);
+
+		// let debug1 = this.#partFB1.readPixels(0, 0, 4, 4);
+		// let debug2 = this.#partFB2.readPixels(0, 0, 4, 4);
+		//
+		// let debug1fmt = Array.from(new Array(debug1.length / 4), (_,i)=>[debug1[i*4], debug1[i*4+1]]);
+		// let debug2fmt = Array.from(new Array(debug1.length / 4), (_,i)=>[debug2[i*4], debug2[i*4+1]]);
+		//
+		// // console.log(debug1, debug2);
+		// console.log(debug1fmt , debug2fmt);
+
+		if (this.#simulatorGlProgram._target === this.#partFB1) {
+			this.#sectionSequence++;
+			this.#sectionSequence %= this.#sections;
+		}
+
+		// Clear the output colour framebuffer, but not the field framebuffer.
+		Acetate.prototype.clear.call(this);
+
+		/// TODO: Extend the bounds of the field (in order to spawn particles
+		/// slightly outside of the platina and simulate their entering)
+		/// Take some code from `QuadBin`.
+
+		return super.redraw(crs, matrix, viewportBbox);
+	}
+
+	runProgram() {
+		if (!this.#drawLines) {
+			return super.runProgram();
+		}
+
+		// On a given draw call, draw only the lines between connected sections.
+		// In other words: skip the connection between the "tail" and the "head"
+		// of each trail.
+		// This is achieved with (up to) two `drawPartial` calls, knowing the
+		// structure of this._trailIndices. This skips the section connecting the
+		// tail and head.
+
+		if (this.#sectionSequence !== 0) {
+			this._program.runPartial(0, this.#sectionSequence * this.#particleCount * 2);
+		}
+
+		const s = this.#sections - this.#sectionSequence - 1;
+		if (s !== 0) {
+			this._programs.runPartial(
+				(this.#sectionSequence + 1) * this.#particleCount * 2,
+				s * this.#particleCount * 2
+			);
+		}
+	}
+
+	// An animated Acetate is always dirty, meaning it wants to render at every
+	// frame.
+	get dirty() {
+		return true;
+	}
+	set dirty(d) {
+		super.dirty = d;
+	}
+
+	clear() {
+		// Clear the framebuffer only if the parent functionality is dirty -
+		// otherwise, keep the framebuffer dirty to draw on top and perform the fade-in.
+		if (super.dirty) {
+			super.clear();
+		}
+	}
+
+	#respawnIndex = 0;
+	#lastRespawnTime = 0;
+
+	// Respawns an entire texture-column worth of particles
+	#respawnParticles() {
+		if (!this._platina) return;
+
+		const texSize = 1 << this.#texBytes;
+
+		let w = Math.min(
+			Math.max(this.#respawnColumnOffset, this.#respawnAmount),
+			texSize - this.#respawnIndex
+		);
+		// console.log("respawning at column ", this.#respawnIndex,w, this.#respawnIndex+w, texSize);
+
+		const sectionRandomPositions = Array.from(
+			new Array(w * this.#rowsPerSection * 2),
+			() => Math.random() * 2 - 1
+		);
+
+		const columnRandomPositions = Float32Array.from(
+			new Array(this.#sections).fill(sectionRandomPositions).flat()
+		);
+
+		const h = this.#sections * this.#rowsPerSection;
+
+		// if (this.#simulatorGlProgram._target === this.#partFB1) {
+		this.#partTex1.texSubArray(w, h, columnRandomPositions, this.#respawnIndex, 0);
+		// } else {
+		this.#partTex2.texSubArray(w, h, columnRandomPositions, this.#respawnIndex, 0);
+		// }
+
+		this.#respawnIndex = (this.#respawnIndex + w) % texSize;
+
+		this._program?.setUniform("uRespawnColumn", this.#respawnIndex / (texSize - 1));
+
+		this.#lastRespawnTime = performance.now();
+	}
+}
+
+/**
+ * @class RedGreenField
+ * @inherits VectorField
+ *
+ * A `VectorField` which displays as a simple red-green bivariate ramp.
+ *
+ *
+ * Accepts `SlopePoint`s, etc as symbols.
+ *
+ * @example
+ *
+ * ```
+ * const field = new RedGreenField(map, {maxValue: 10});
+ *
+ * new SlopePoint(geometry, {intensity: 10}).addTo(field);
+ * ```
+ */
+
+class GreyScaleField extends VectorField {
+	#minValue;
+	#maxValue;
+
+	constructor(
+		target,
+		{
+			/**
+			 * @section RedGreenField Options
+			 * @option minValue: Number = 0
+			 * Minimum value of the scalar field taken into consideration
+			 *
+			 * @option maxValue: Number = 1
+			 * Maximum value of the scalar field taken into consideration
+			 */
+			minValue = 0,
+			maxValue = 1,
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#minValue = minValue;
+		this.#maxValue = maxValue;
+	}
+
+	// A program that takes scalar field textures and renders a simple,
+	// two-stop gradient
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			fragmentShaderSource: `
+			const float min = ${glslFloatify(this.#minValue)};
+			const float range = ${glslFloatify(this.#maxValue - this.#minValue)};
+			`,
+			fragmentShaderMain: `
+				vec2 value = texture2D(uField, vUV).xy;
+				gl_FragColor.r = mix(
+					0.,
+					1.,
+					(value.x - min) / (range)
+				);
+				gl_FragColor.g = mix(
+					0.,
+					1.,
+					(value.y - min) / (range)
+				);
+				gl_FragColor.a = max(gl_FragColor.r, gl_FragColor.g);
+			`,
+		};
+	}
+}
+
+/**
+ * @class ScaledHeatMap
+ * @inherits HeatMap
+ *
+ * As `HeatMap`, but the ramp stops change with the map's scale. While a standard
+ * `HeatMap` has less apparent heat when zooming in, a `ScaledHeatMap` aims to
+ * maintain apparent heat on the screen when zooming into hot spots.
+ *
+ * The colour ramp should be specified as if the map scale was 1 (i.e. one CSS
+ * pixel per one CRS unit).
+ *
+ */
+
+class ScaledHeatMap extends HeatMap {
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			fragmentShaderMain: opts.fragmentShaderMain.replace(
+				"float value = texture2D(uField, vUV).x;",
+				"float value = texture2D(uField, vUV).x / uScale;"
+			),
+			uniforms: {
+				...opts.uniforms,
+				uScale: "float",
+			},
+		};
+	}
+
+	runProgram() {
+		this._programs.setUniform("uScale", this.platina.scale);
+		super.runProgram();
+	}
+}
+
+/**
+ * @class ScaledHexBin
+ * @inherits HexBin
+ *
+ * As `HexBin`, but the ramp stops change with the map's scale. While a standard
+ * `HexBin` has less apparent heat when zooming in, a `ScaledHexBin` aims to
+ * maintain apparent heat on the screen when zooming into hot spots.
+ *
+ * This is akin to the difference between a `ScaledHeatMap` and a `HeatMap`.
+ *
+ * The colour ramp should be specified as if the map scale was 1 (i.e. one CSS
+ * pixel per one CRS unit).
+ *
+ */
+
+class ScaledHexBin extends HexBin {
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			vertexShaderMain: opts.vertexShaderMain.replace(
+				"float value = texture2D(uField, aUV).x;",
+				"float value = texture2D(uField, aUV).x / uScale;"
+			),
+			uniforms: {
+				...opts.uniforms,
+				uScale: "float",
+			},
+		};
+	}
+
+	runProgram() {
+		this._programs.setUniform("uScale", this.platina.scale);
+		super.runProgram();
+	}
+}
+
+/**
+ * @class TwinkleField
+ * @inherits ScalarFieldAnimated
+ *
+ * An animated `ScalarField` that twinkles. The probability of any pixel twinkling
+ * is proportional to the value of the underlying scalar field.
+ *
+ * Works similar to `HeatMap`, in the sense that this needs symbols
+ * that add intensity to its scalar field.
+ *
+ * @example
+ *
+ * ```js
+ * const twinkler = new TwinkleField(map, {
+ * 		colour: 'red'
+ * 		maxIntensity: 16000,
+ * 	},
+ * });
+ *
+ * new HeatPoint(geom, {radius: 80, intensity: 500}).addTo(twinkler);
+ * ```
+ */
+
+class TwinkleField extends ScalarFieldAnimated {
+	#colour;
+	#maxIntensity;
+	#noiseTexture;
+	#noiseTextureSize;
+
+	/**
+	 * @constructor TwinkleField(target: GliiFactory)
+	 *
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option colour: Colour = [0, 0, 0, 255]
+			 * The colour of the twinkling pixels.
+			 */
+			colour = [0, 0, 0, 255],
+
+			/**
+			 * @option maxIntensity: Number = 65536
+			 * Valur of the field that equals a probability of 1 of a pixel
+			 * having a solid colour. In other words, the probability of
+			 * any given pixel twinkling at any given time is its intensity
+			 * divided by the maximum intensity of the twinkle field.
+			 */
+			maxIntensity = 65536,
+
+			/**
+			 * @option noiseTextureSize: Number = 512
+			 * Width and height of the internal noise texture used for
+			 * pseudo-RNG. This repeats, so small values might result in
+			 * visible non-random patterns.
+			 */
+			noiseTextureSize = 512,
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#colour = parseCSSColor(colour);
+		this.#maxIntensity = maxIntensity;
+
+		const n = (this.#noiseTextureSize = noiseTextureSize);
+		this.#noiseTexture = new this.glii.Texture({
+			format: this.glii.gl.RED,
+			internalFormat: this.glii.gl.R32F,
+			type: this.glii.FLOAT,
+			wrapS: this.glii.REPEAT,
+			wrapT: this.glii.REPEAT,
+		}).texArray(
+			n,
+			n,
+			Float32Array.from(new Array(n * n), () => Math.random())
+		);
+	}
+
+	// Returns the definition for the GL program that turns the float32 texture
+	// into a RGBA8 texture
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			textures: {
+				uTwinkleRNG: this.#noiseTexture,
+				...opts.textures,
+			},
+			uniforms: {
+				uMaxIntensity: "float",
+				uRNGoffset: "vec2",
+				uRNGsize: "vec2",
+				uColour: "vec4",
+				...opts.uniforms,
+			},
+			fragmentShaderMain: `
+				float value = texture2D(uField, vUV).x;
+				float prob = texture2D(uTwinkleRNG, (vUV + uRNGoffset) / uRNGsize ).x;
+
+				if (value / uMaxIntensity > prob) {
+					gl_FragColor = uColour;
+				} else {
+					discard;
+				}
+			`,
+		};
+	}
+
+	resize(w, h) {
+		super.resize(w, h);
+		this._programs.setUniform("uMaxIntensity", this.#maxIntensity);
+		this._programs.setUniform("uColour", this.#colour);
+		this._programs.setUniform("uRNGsize", [
+			this.#noiseTextureSize / w,
+			this.#noiseTextureSize / h,
+		]);
+	}
+
+	redraw() {
+		this._programs.setUniform("uRNGoffset", [Math.random(), Math.random()]);
+		return super.redraw.apply(this, arguments);
+	}
+}
+
+/**
+ * @class VerboseAllocator
+ * @inherits Allocator
+ *
+ * An `allocator` that `console.log()`s its state after every allocation or
+ * deallocation. Useful for (and meant only for!) debugging purposes.
+ *
+ */
+
+class VerboseAllocator extends Allocator {
+	allocateBlock(size) {
+		const returnValue = super.allocateBlock(size);
+		this.#log(`alloc ${returnValue.toString(16)} ${size.toString(16)}`);
+		return returnValue;
+	}
+
+	deallocateBlock(start, size) {
+		const returnValue = super.deallocateBlock(start, size);
+		this.#log(`deloc ${start.toString(16)} ${size.toString(16)}`);
+		return returnValue;
+	}
+
+	#log(title) {
+		let ptr = 0;
+		let str = title + ":";
+		let styles = [];
+		let point = this._points.get(ptr);
+		while (ptr < this._max) {
+			if (point.next === this._max) {
+				str += ` %c${ptr.toString(16)}→MAX`;
+			} else {
+				str += ` %c${ptr.toString(16)}→${point.next.toString(16)}`;
+			}
+			if (point.free) {
+				styles.push("color: darkgreen");
+			} else {
+				styles.push("color: darkred");
+			}
+
+			ptr = point.next;
+			point = this._points.get(ptr);
+		}
+		console.log.apply(window, [str, ...styles]);
+	}
+}
+
+/**
+ * @class AbstractTileLoader
+ * @inherits Loader
+ *
+ * @relationship association TileEvent, 1..1, 0..n
+ *
+ * Functionality common to `RasterTileLoader` and `AbstractVectorTileLoader`.
+ *
+ * A `AbstractTileLoader` watches for changes in the map's viewport and
+ * loads/unloads/overwrites raster/vector tiles.
+ */
+class AbstractTileLoader extends Loader {
+	#pyramid;
+	// #boundOnViewChange;
+	//#tileFn;
+
+	// Pyramid level that was the best fit for the platina's scale during the
+	// last viewchange event
+	#lastLevel;
+
+	// Tile range fitting the last viewchange event
+	#lastRange = [NaN, NaN, NaN, NaN];
+
+	/**
+	 * @constructor GenericVectorTileLoader(pyramid: TilePyramid, opts: GenericVectorTileLoader Options, tileWrapX: Number, tileWrapY: Number)
+	 */
+	constructor(pyramid, { ...opts } = {}) {
+		super(opts);
+		this.#pyramid = pyramid;
+		this._boundOnViewChange = this.#onViewChange.bind(this);
+	}
+
+	/**
+	 * @property pyramid: TilePyramid
+	 * The tile pyramid used. Read-only.
+	 */
+	get pyramid() {
+		return this.#pyramid;
+	}
+
+	/**
+	 * @property currentLevel: String
+	 * The name of the level of the pyramid currently active (the one best
+	 * fitting the map/platina's scale). Read-only.
+	 */
+	get currentLevel() {
+		return this.#lastLevel;
+	}
+
+	/**
+	 * @property currentRange: Array of Number
+	 * An array of the form `[minX, minY, maxX, maxY]` containing the range
+	 * of tile XY coordinates which cover the current map/platina viewport.
+	 * Read-only.
+	 */
+	get currentRange() {
+		return this.#lastRange;
+	}
+
+	addTo(target) {
+		super.addTo(target);
+		this.platina.on("viewchanged", this._boundOnViewChange);
+	}
+
+	remove() {
+		this.platina.off("viewchanged", this._boundOnViewChange);
+
+		super.remove();
+		this.#lastRange = [NaN, NaN, NaN, NaN];
+
+		/// TODO: remove all symbols. Subclasses are best equipped to deal with that.
+		return this;
+	}
+
+	_getVisibleRange(level) {
+		/// TODO: PROJECT THE BBOX TO THE PYRAMID CRS!!!!!!!
+		const mapBBox = this.platina.bbox;
+		const crs = this.platina.crs;
+		const bbox = crs
+			.offsetToBase([mapBBox.minX, mapBBox.minY])
+			.concat(crs.offsetToBase([mapBBox.maxX, mapBBox.maxY]));
+		const range = this.#pyramid.bboxToTileRange(level, bbox);
+		return range;
+	}
+
+	/**
+	 * @section Extension methods
+	 * @uninheritable
+	 * @method _isTileWithinRange(x: Number, y: Number, minX: Number, minY: Number, maxX: Number, maxY: Number, spanX: Number, spanY: Number): Boolean
+	 * Can (and should) be used by implementations to check whether a set
+	 * of `x`, `y` tile coordinates are within the given tile range with
+	 * the given tile span.
+	 * Tile ranges are assumed to be minimum-inclusive but maximum exclusive,
+	 * i.e. `[min, max)`
+	 */
+	_isTileWithinRange(x, y, minX, minY, maxX, maxY, spanX, spanY) {
+		return (
+			(maxX > spanX ? x >= minX || x < maxX % spanX : x >= minX && x < maxX) &&
+			(maxY > spanY ? y >= minY || y < maxY % spanY : y >= minY && y < maxY)
+		);
+	}
+
+	#onViewChange(ev) {
+		const level = this.#pyramid.nearestLevel(this.platina.scale);
+		if (level === undefined) {
+			// Happens when the platina doesn't have a scale set (yet)
+			return;
+		}
+		const range = this._getVisibleRange(level);
+
+		if (level !== this.#lastLevel && this.#lastLevel !== undefined) {
+			/// If there has been a level change, (try to) abort all
+			/// tiles from the outgoing level
+
+			/**
+			 * @section Extension methods
+			 * @uninheritable
+			 * @method _abortLevel(level:String): undefined
+			 * Must be provided by raster and vector implementations. Should
+			 * (try to) abort all pending `Promise`s for the given level.
+			 */
+			this._abortLevel(this.#lastLevel);
+
+			this.#lastRange = [NaN, NaN, NaN, NaN];
+		}
+
+		if (this.#lastRange.every((v, i) => v === range[i])) {
+			return;
+		}
+
+		const [minX, minY, maxX, maxY] = range;
+
+		/**
+		 * @section
+		 * @event rangechange: Event
+		 * Fired whenever the visible tiles (the "tile range") have changed.
+		 * Not every change in the viewport triggers a range change.
+		 */
+		this.fire("rangechange", {
+			level,
+			minX,
+			minY,
+			maxX,
+			maxY,
+		});
+
+		/**
+		 * @section Extension methods
+		 * @uninheritable
+		 * @method _onRangeChange(level:String, minX: Number, minY: Number, maxX: Number, maxY: Number, levelChange: Boolean): undefined
+		 * Must be provided by raster and vector implementations.
+		 * Called whenever a `rangechange` event occurs. Implementations should
+		 * (a) abort tiles outside the range and (b) load tiles inside the range,
+		 * all according to their caching algorithm.
+		 */
+		this._onRangeChange(level, minX, minY, maxX, maxY, level !== this.#lastLevel);
+
+		this.#lastLevel = level;
+		this.#lastRange = range;
+	}
+
+	/**
+	 * @section Extension methods
+	 * @uninheritable
+	 * @method _onTileLoad(level: String, x: Number, y: Number, tile: *): undefined
+	 * Should be called when a tile loads. The abstract implementation will
+	 * only fire a `tileload` event and trigger a redraw.
+	 */
+	_onTileLoad(level, x, y, tile) {
+		/**
+		 * @section
+		 * @event tileload: TileEvent
+		 * Dispatched when a tile loads.
+		 */
+		this.dispatchEvent(
+			new TileEvent("tileload", {
+				tileLevel: level,
+				tileX: x,
+				tileY: y,
+				tile: tile,
+			})
+		);
+	}
+
+	/**
+	 * @section Extension methods
+	 * @uninheritable
+	 * @method _onTileError(level: String, x: Number, y: Number, tile: *): undefined
+	 * Should be called when a tile fails to load. The abstract implementation will
+	 * only fire a `tileerror` event.
+	 */
+	_onTileError(level, x, y, err) {
+		/**
+		 * @section
+		 * @event tileerror: TileEvent
+		 * Dispatched when a tile failed to load.
+		 */
+		this.dispatchEvent(
+			new TileEvent("tileerror", {
+				tileLevel: level,
+				tileX: x,
+				tileY: y,
+				error: err,
+			})
+		);
+	}
+}
+
+/**
+ * @class Callout
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateSolidExtrusion
+ *
+ * A line segment symbol. One end of the segment is always placed at the symbol's
+ * point geometry; the dimensions of the line are defined by the symbol's `offset`
+ * (measured in CSS pixels).
+ *
+ * @example
+ * ```js
+ * new Callout([0, 0], {
+ * 	colour: "red",
+ * 	offset: [40, 10],
+ * 	width: 4,
+ * }).addTo(map);
+ * ```
+ */
+
+class Callout extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidExtrusion;
+
+	#width;
+	#colour;
+
+	/**
+	 * @constructor Callout(geom: Geometry, opts?: Callout Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @option width: Number = 2; The line segment's width, in CSS pixels
+			 * @option colour: Colour = '#3388ff33'; The line segment's colour
+			 */
+			width = 2,
+			colour = "#3388ff",
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#width = width;
+		this.#colour = parseCSSColor(colour);
+
+		// A `Callout` is just four vertices in two triangles. One pair of
+		// vertices follows the `offset`, while the other doesn't.
+
+		this.attrLength = 4;
+		this.idxLength = 6;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(strideExtrusion, strideColour, strideFeather, typedIdxs) {
+		const [oX, oY] = this.offset;
+		const feather = this._inAcetate.feather;
+
+		// Calculate components of unit vector perpendicular to the offset,
+		// create a half-width-length vector from that.
+		const l = Math.sqrt(oX * oX + oY * oY);
+		const w = (this.#width + feather) / 2;
+		const f = w * 256; // Feather max
+		const eX = (w * oX) / l;
+		const eY = (w * oY) / l;
+
+		// prettier-ignore
+		strideExtrusion.set([
+			+eY, -eX,
+			-eY, eX,
+			oX + eY, oY - eX,
+			oX - eY, oY + eX
+		], this.attrBase);
+
+		const vtx = this.attrBase;
+		strideColour?.set(this.#colour, vtx);
+		strideFeather?.set([f, f], vtx);
+		strideColour?.set(this.#colour, vtx + 1);
+		strideFeather?.set([-f, f], vtx + 1);
+		strideColour?.set(this.#colour, vtx + 2);
+		strideFeather?.set([f, f], vtx + 2);
+		strideColour?.set(this.#colour, vtx + 3);
+		strideFeather?.set([-f, f], vtx + 3);
+
+		// prettier-ignore
+		typedIdxs?.set([
+			vtx+ 0, vtx+ 1, vtx+ 2,
+			vtx+ 1, vtx+ 2, vtx+ 3
+		], this.idxBase);
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(
+			strideExtrusion,
+			undefined,
+			undefined,
+			undefined,
+			this._inAcetate?.feather
+		);
+	}
+}
+
+// import ExtrudedPoint from "./ExtrudedPoint.mjs";
+
+/**
+ * @class Spider
+ * @inherits GleoSymbol
+ * @relationship compositionOf GleoSymbol, 0..1, 0..n
+ *
+ * Similar to `MultiSymbol`, a `Spider` is a logical grouping of `GleoSymbol`s.
+ *
+ * A `Spider` has *two* sets of symbols: one collapsed, and one expanded; and
+ * at any given time it will be displayed as either.
+ *
+ * When `click`ing on any of the collapsed symbols, they will be replaced by
+ * the expanded ones. Clicking on the map will switch to the collapsed ones again.
+ *
+ * In addition, symbols in the expanded set will be automatically offset, and
+ * `Callout`s will be added - these are the "legs" of the `Spider`.
+ *
+ */
+
+const τ = Math.PI * 2; // Tau
+// const halfπ = Math.PI / 2;
+
+class Spider extends GleoSymbol {
+	#collapsed = [];
+	#expanded = [];
+	#callouts = [];
+	#expandedState = false;
+
+	#boundOnMapClick;
+	#target;
+	#calloutOptions = {};
+	#calloutLength = 0;
+
+	/**
+	 * @constructor Spider(collapsedSymbols: Array of GleoSymbol, expandedSymbols: Array of GleoSymbol, opts?: Spider Options)
+	 */
+	constructor(
+		collapsed,
+		expanded,
+		{
+			/**
+			 * @option width: Number = undefined
+			 * The width of the `Callout`s. If not specified, the `Callout` default is used.
+			 * @option colour: Colour = undefined
+			 * The colour of the `Callout`s. If not specified, the `Callout` default is used.
+			 * @option length: Number = 60
+			 * The length of the `Callout`s, in CSS pixels.
+			 * @option expandAnimationDuration
+			 * The animation of the leg expansion animation, in milliseconds. Set to
+			 * zero to disable.
+			 */
+			width = undefined,
+			colour = undefined,
+			length = 60,
+			expandAnimationDuration = 500,
+		} = {}
+	) {
+		super();
+		this.#collapsed = collapsed;
+		// this.#expanded = expanded;
+		this.#boundOnMapClick = this.collapse.bind(this);
+		const onCollapseClick = this.expand.bind(this);
+
+		this.#collapsed.forEach((s) => {
+			s.on("click", onCollapseClick);
+			s.cursor = "pointer";
+		});
+
+		this.#expanded = expanded.filter((s) => !!s.geometry);
+
+		this.#calloutOptions = { width, colour };
+		this.#expandAnimationDuration = expandAnimationDuration;
+		this.#calloutLength = length;
+	}
+
+	addTo(target) {
+		if (!target.crs) {
+			console.warn("Cannot add a spider unless the target platina has a known CRS");
+		}
+
+		// Calculate simplistic centroid of expanded symbols
+		let [x, y] = [0, 0];
+		this.#expanded.forEach((ext, i) => {
+			const geom = ext.geometry.toCRS(target.crs);
+			x += geom.coords[0];
+			y += geom.coords[1];
+		});
+		const l = this.#expanded.length;
+		x /= l;
+		y /= l;
+
+		// Order expanded symbols by their angle relative to the spider's centroid
+		// - Wrap symbols in a data structure
+		// - Calculate delta to centroid and store its arcTan on the data structure
+		// - Sort
+		// - Unwrap
+		const items = this.#expanded
+			.map((s) => {
+				const geom = s.geometry.toCRS(target.crs);
+				const Δx = geom.coords[0] - x;
+				const Δy = geom.coords[1] - y;
+				const θ = Math.atan2(Δx, Δy);
+				return {
+					symbol: s,
+					θ: θ >= 0 ? θ : θ + τ,
+				};
+			})
+			.sort((a, b) => a.θ - b.θ);
+
+		const Δ = τ / l;
+
+		let bias = (this.#bias = items.reduce((b, item, i) => b + item.θ - Δ * i, 0) / l);
+
+		this.#expanded = items.map((w) => w.symbol);
+
+		this.#callouts = this.#expanded.map((ext, i) => {
+			const θ = i * Δ + bias;
+			ext.offset = [
+				this.#calloutLength * Math.sin(θ),
+				this.#calloutLength * Math.cos(θ),
+			];
+			return new Callout(ext.geom, { ...this.#calloutOptions, offset: ext.offset });
+		});
+
+		if (this.#expandedState) {
+			target.multiAdd(this.#expanded);
+			target.multiAdd(this.#callouts);
+			target.once("click", this.#boundOnMapClick);
+		} else {
+			target.multiAdd(this.#collapsed);
+		}
+		this.#target = target;
+		return this;
+	}
+
+	remove() {
+		this.#expandedState
+			? (this.#target.multiRemove(this.#expanded),
+			  this.#target.multiRemove(this.#callouts))
+			: this.#target.multiRemove(this.#collapsed);
+		this.#target.off("click", this.#boundOnMapClick);
+		this.#target = undefined;
+		return this;
+	}
+
+	setGeometry(geom) {
+		this.geom = geom;
+		this.#expanded.forEach((s) => s.setGeometry(geom));
+		this.#callouts.forEach((s) => s.setGeometry(geom));
+		this.#collapsed.forEach((s) => s.setGeometry(geom));
+		return this;
+	}
+
+	/**
+	 * @section Lifetime methods
+	 * @method expand(): this
+	 * Displays the "expanded" set of symbols, and removes the "collapsed" ones.
+	 */
+	expand(ev) {
+		if (this.#expandedState) {
+			return;
+		}
+		this.#expandedState = true;
+		if (this.#target) {
+			this.#target.multiRemove(this.#collapsed);
+			this.#target.multiAdd(this.#expanded);
+			this.#target.multiAdd(this.#callouts);
+			this.#target.on("click", this.#boundOnMapClick);
+
+			if (this.#expandAnimationDuration > 0) {
+				this.#expandStartTimestamp = performance.now();
+				this.#expandFrame();
+			}
+		}
+
+		if (ev) {
+			ev.stopPropagation();
+		}
+		/// @event expand: CustomEvent
+		/// Fired when the spider expands for any reason
+		this.fire("expand");
+		return this;
+	}
+
+	#expandStartTimestamp;
+	#expandAnimationDuration;
+	#bias;
+	#expandFrame() {
+		const elapsed = Math.min(
+			1,
+			(performance.now() - this.#expandStartTimestamp) /
+				this.#expandAnimationDuration
+		);
+
+		const l = this.#expanded.length;
+		const Δ = τ / l;
+
+		this.#callouts.forEach((callout, i) => {
+			const θ = i * Δ + this.#bias;
+			this.#expanded[i].offset = callout.offset = [
+				this.#calloutLength * Math.sin(θ) * elapsed,
+				this.#calloutLength * Math.cos(θ) * elapsed,
+			];
+		});
+
+		if (elapsed < 1) {
+			requestAnimationFrame(this.#expandFrame.bind(this));
+		}
+	}
+
+	/**
+	 * @method collapse(): this
+	 * Displays the "collapsed" set of symbols, and removes the "expanded" ones.
+	 */
+	collapse() {
+		if (!this.#expandedState) {
+			return;
+		}
+		this.#expandedState = false;
+		if (this.#target) {
+			this.#target.multiAdd(this.#collapsed);
+			this.#target.multiRemove(this.#expanded);
+			this.#target.multiRemove(this.#callouts);
+			this.#target.off("click", this.#boundOnMapClick);
+		}
+		/// @event collapse: CustomEvent
+		/// Fired when the spider collapses for any reason
+		this.fire("collapse");
+		return this;
+	}
+
+	/**
+	 * @method toggle(): this
+	 */
+	toggle() {
+		if ((this.#expandedState = !this.#expandedState)) {
+			return this.expand();
+		} else {
+			return this.collapse();
+		}
+	}
+}
+
 let textWorker;
 let workId = 0;
 let textDrawer, textDrawerCanvas;
@@ -18506,4 +30133,10146 @@ class TextLabel extends Sprite {
 	}
 }
 
-export { Chain, Circle, MercatorMap, MercatorTiles, TextLabel };
+function defaultSymbolizer(symbols) {
+	const geom = symbols[0].geometry;
+
+	return [
+		new CircleStroke(geom, { radius: 40 }),
+		new CircleFill(geom, { radius: 40, colour: "#3388ff80" }),
+		new TextLabel(geom, {
+			str: symbols.length,
+			align: "center",
+			baseline: "middle",
+			cache: true,
+			interactive: false,
+			outlineColour: "black",
+			outlineWidth: 0.15,
+		}),
+	];
+}
+
+// The default action when clicking on a (non-spider) cluster is to zoom
+// to the bounding box of the components of that cluster, but no closer
+// than the clusterer's `scaleLimit`.
+function defaultOnClusterClick(ev, clusterer, items, bbox) {
+	let platina = ev.target.symbols[0]._inAcetate?.platina;
+	let map = platina?.map;
+
+	const { minX, minY, maxX, maxY } = bbox;
+	const [w, h] = platina.pxSize;
+
+	const center = new Geometry(ev.target.geometry.crs, [
+		(minX + maxX) / 2,
+		(minY + maxY) / 2,
+	]);
+	const scale = Math.max((maxX - minX) / w, (maxY - minY) / h, clusterer.scaleLimit);
+
+	return (map ?? platina).setView({ center, scale });
+}
+
+class PointRBush extends RBush {
+	toBBox({ x, y }) {
+		return { minX: x, minY: y, maxX: x, maxY: y };
+	}
+	compareMinX(a, b) {
+		return a.x - b.x;
+	}
+	compareMinY(a, b) {
+		return a.y - b.y;
+	}
+}
+
+/**
+ * @class Clusterer
+ * @inherits AbstractSymbolGroup
+ *
+ * Handles symbols with point geometries, and clusters them together whenever
+ * they're too close to each other.
+ */
+
+/*
+ * This implements a naïve algorithm:
+ * - Discrete steps of clustering, depending on scale. Similar to "zoom levels".
+ * - One r-bush per "zoom level"
+ *   - Contains clusters for that grouping
+ *   - A cluster of just one symbol is passed through
+ *   - A cluster of several symbols gets replaced with a cluster symbol
+ * - Symbols can be added **and** removed from the clusterer
+ *   - Adding a symbol shall do a kNN search on the r-bush for any close cluster
+ *   - All known r-bushes will add/remove symbols being added/removed.
+ * - Changing the geometry of a smbol shall remove and re-add it
+ */
+
+// TODO: Somehow move the rbush generation code to a worker: when the log2scale
+// changes, do all the work of calculating the clusters in a worker.
+
+class Clusterer extends AbstractSymbolGroup {
+	constructor({
+		/**
+		 * @option clusterSymbolizer: Function
+		 * Defines how to spawn symbols for the clusters. The function will
+		 * receive an `Array` of `GleoSymbol`s as its first parameter, and must
+		 * return an `Array` of `GleoSymbol`s which must represent the cluster.
+		 */
+		clusterSymbolizer = defaultSymbolizer,
+
+		/**
+		 * @option distance: Number = 80
+		 * The minimum distance, in CSS pixels, for two `GleoSymbol`s to not be
+		 * clustered. By implication, that's also the maximum diameter of a cluster.
+		 */
+		distance = 80,
+
+		/**
+		 * @option clusterSetFactor: Number = 1
+		 * How many cluster sets to calculate per every doubling/halving
+		 * of the scale.
+		 *
+		 * e.g. The default value of 1 will create a set of clusters for every
+		 * doubling of the scale. A value of 2 will create a set of clusters
+		 * every time the scale varies by a factor of square root of 2, and
+		 * a value of e.g. 0.5 will create a set of clusters every time the
+		 * scale quadruples.
+		 */
+		clusterSetFactor = 1,
+
+		/**
+		 * @option scaleLimit: Number = 0
+		 * Clusters will not be calculated past this scale factor. Instead, the
+		 * most detailed clusters will be expandable `Spider`s.
+		 *
+		 * TODO: Default to `undefined`, and calculate from the platina's `minSpan`.
+		 */
+		scaleLimit = 1000,
+
+		/**
+		 * @option onClusterClick: Function
+		 * An event handler that will run when clicking on a non-spider cluster.
+		 *
+		 * This function receives as parameters: the event, a reference to this
+		 * `Clusterer`, and `Array` of `GleoSymbol`s with the items in the cluster,
+		 * and an `ExpandBox` covering those items.
+		 *
+		 * The default is to perform a `fitBounds` to the bounding box of the
+		 * items in that cluster, zooming up to `scaleLimit` at most.
+		 * @alternative
+		 * @option onClusterClick: Boolean
+		 * Setting this to `false` will disable cluster click events.
+		 */
+		onClusterClick = defaultOnClusterClick,
+
+		/**
+		 * @option spiderOptions: Spider Options
+		 *
+		 * A set of options for the `Spider` constructor, that shall be applied
+		 * to any `Spider`s spawned by this clusterer.
+		 */
+		spiderOptions = {},
+
+		...opts
+	} = {}) {
+		super(opts);
+
+		this.#boundOnViewChange = this.#onViewChange.bind(this);
+		this.#boundOnCrsChange = this.#onCrsChange.bind(this);
+		this.#distance = distance * (devicePixelRatio ?? 1);
+		this.#clusterSymbolizer = clusterSymbolizer;
+		this.#clusterSetFactor = clusterSetFactor;
+		this.#onClusterClick = onClusterClick;
+		this.#scaleLimit = scaleLimit;
+		this.#boundRelayEvent = this.#relayEvent.bind(this);
+		this.#spiderOptions = spiderOptions;
+	}
+
+	#distance;
+	#rbushes = new Map();
+	#log2scale;
+	#log2offset = 0;
+	#boundOnViewChange;
+	#boundOnCrsChange;
+	#crs;
+	#onClusterClick;
+	#clusterSymbolizer;
+	#clusterSetFactor;
+	#visibleSymbols = [];
+	#bbox; // Last platina bbox where visibility was (re)calculated
+	#dataBbox = new ExpandBox(); // Extents of the contained symbols
+	#scaleLimit;
+	#spiderScaleLog = -Infinity;
+	#spiderOptions;
+
+	_addToPlatina(platina) {
+		super._addToPlatina(platina);
+
+		this.platina.on("viewchanged", this.#boundOnViewChange);
+		this.platina.on("crsoffset", this.#boundOnCrsChange);
+		this.platina.on("crschange", this.#boundOnCrsChange);
+		this.#crs = this.platina.crs;
+		this.#resetBushes();
+
+		// Calculate an offset to (later) snap the log2 of the scale factor to round numbers.
+		// This is an optimization for a common use case: snapping to the scale factor
+		// of a tile pyramid. It's a somehow naïf approach since it assumes the pyramid
+		// uses power-of-two scaling.
+		const zoomSnapActuator = (
+			this.target.actuators ?? this.target.map?.actuators
+		)?.get("zoomsnap");
+		if (zoomSnapActuator) {
+			this.#log2offset =
+				(Math.log2(zoomSnapActuator.snapScale(this.target.scale)) *
+					this.#clusterSetFactor) %
+				1;
+		}
+
+		// Calculate the minimum log2(scale), which is when clusters are
+		// spiderified.
+		if (this.#scaleLimit) {
+			this.#spiderScaleLog = Math.ceil(
+				Math.log2(this.#scaleLimit) * this.#clusterSetFactor - this.#log2offset
+			);
+		}
+
+		return this;
+	}
+
+	#animFrame;
+
+	/// @property bbox: Array of Number
+	/// The bounding box of the data for the clusterer, in the CRS of the
+	/// platina this clusterer is in, in the form `[minX, minY, maxX, maxY]`.
+	/// Read-only.
+	get bbox() {
+		if (!this.#crs) {
+			throw new Error("The clusterer needs to be in a platina with a CRS");
+		}
+		const log2scale = this.getCurrentLog2scale();
+		if (!this.#rbushes.has(log2scale)) {
+			this.#buildBush(log2scale);
+		}
+		const bush = this.#rbushes.get(log2scale).data;
+
+		return [bush.minX, bush.minY, bush.maxX, bush.maxY];
+	}
+
+	_addSymbols(symbols) {
+		cancelAnimationFrame(this.#animFrame);
+		this.#animFrame = requestAnimationFrame(() => this.#resetBushes());
+		symbols.forEach((s) => this.#dataBbox.expandGeometry(s.geometry));
+
+		super._addSymbols(symbols);
+
+		return this;
+	}
+
+	// Does *not* shrink this.#dataBbox
+	remove(symbol) {
+		if (symbol) {
+			if (symbol instanceof Loader) {
+				return super.remove(symbol);
+			} else {
+				cancelAnimationFrame(this.#animFrame);
+				this.#animFrame = requestAnimationFrame(() => this.#resetBushes());
+				return super.remove(symbol);
+			}
+		} else if (this.platina) {
+			this.platina.off("viewchanged", this.#boundOnViewChange);
+			this.platina.off("crsoffset", this.#boundOnCrsChange);
+			this.platina.off("crschange", this.#boundOnCrsChange);
+
+			// Remove currently visible clusters, by removing all clusters with
+			// the r-bush for the current scale (skipping `undefined` cluster
+			// symbols that haven't been needed yet)
+			const removableSymbols = this.#rbushes
+				.get(this.getCurrentLog2scale())
+				.all()
+				.map((item) => {
+					return item.symbol;
+				})
+				.filter((i) => !!i)
+				.flat();
+			this.fire("symbolsremoved", {
+				symbols: removableSymbols,
+			});
+			this.target.multiRemove(removableSymbols);
+
+			// Reset state, so removing & re-adding the clusterer does a refresh
+			this.#visibleSymbols = [];
+			this.#bbox = undefined;
+			this.#log2scale = undefined;
+
+			super.remove();
+		}
+		return this;
+	}
+
+	_removeSymbols(symbols) {
+		cancelAnimationFrame(this.#animFrame);
+		this.#animFrame = requestAnimationFrame(() => this.#resetBushes());
+		return super._removeSymbols(symbols);
+	}
+
+	empty() {
+		cancelAnimationFrame(this.#animFrame);
+		this.#animFrame = requestAnimationFrame(() => this.#resetBushes());
+		return super.empty();
+	}
+
+	// Aux, intended for internal use
+	getCurrentLog2scale() {
+		return Math.max(
+			Math.floor(
+				Math.log2(this.platina.scale) * this.#clusterSetFactor - this.#log2offset
+			),
+			this.#spiderScaleLog
+		);
+	}
+
+	/**
+	 * @property scaleLimit
+	 * Value of the `scaleLimit` option. Read-only.
+	 */
+	get scaleLimit() {
+		return this.#scaleLimit;
+	}
+
+	#onViewChange(ev) {
+		if (!this.platina?.scale) {
+			return;
+		}
+		if (!this.#crs) {
+			return;
+		}
+		const log2scale = this.getCurrentLog2scale();
+
+		const crs = this.#crs;
+		const rawBBox = this.platina.bbox;
+		const platinaBBox = new ExpandBox();
+		// platinaBBox.expandPair(crs.offsetToBase([rawBBox.minX, rawBBox.minY]));
+		// platinaBBox.expandPair(crs.offsetToBase([rawBBox.maxX, rawBBox.maxY]));
+		platinaBBox.expandPair([rawBBox.minX, rawBBox.minY]);
+		platinaBBox.expandPair([rawBBox.maxX, rawBBox.maxY]);
+
+		if (log2scale !== this.#log2scale) {
+			// console.info("Clusterer scale change: ", this.#log2scale, "→", log2scale);
+
+			if (!this.#rbushes.has(log2scale)) {
+				this.#buildBush(log2scale);
+			}
+		} else if (this.#bbox?.containsBox(platinaBBox)) {
+			return;
+		}
+
+		this.#log2scale = log2scale;
+		this.#bbox = platinaBBox.clone().expandPercentage(0.2);
+
+		let removableSymbols = this.#visibleSymbols;
+		const bush = this.#rbushes.get(log2scale);
+
+		// Usually, the cluster domain and the viewport have a simple intersection
+		// (`bush.search(this.#bbox)`), but edge cases
+		// involving the antimeridian call for calculating multiple intersections
+		const intersections = intersectBboxes(bush.data, this.#bbox, crs);
+		const spiders = this.#spiderScaleLog === log2scale;
+
+		let addableSymbols = intersections
+			.map((bushbox) =>
+				bush.search(bushbox).map((item) => this.#symbolizeCluster(item, spiders))
+			)
+			.flat();
+
+		let uniqueAddableSymbols = addableSymbols.filter(
+			(s) => !removableSymbols.includes(s)
+		);
+		let uniqueRemovableSymbols = removableSymbols.filter(
+			(s) => !addableSymbols.includes(s)
+		);
+
+		this.target.multiRemove(uniqueRemovableSymbols);
+		this.target.multiAdd(uniqueAddableSymbols);
+
+		this.#visibleSymbols = addableSymbols;
+	}
+
+	// Expects a rbush item as parameter
+	#symbolizeCluster(item, spiders) {
+		if (item.symbol) {
+			return item.symbol;
+		}
+
+		let symbol;
+		if (item.sources.length === 1) {
+			// Clusters of only one symbol don't need symbolization; reuse that single symbol
+			symbol = item.sources[0];
+		} else if (spiders) {
+			// At the highest zoom level (lowest scale), clickable spiders are used
+			symbol = new Spider(
+				this.#clusterSymbolizer(item.sources),
+				item.sources,
+				this.#spiderOptions
+			);
+
+			/**
+			 * @event expand: CustomEvent
+			 * Fired when one of the `Spider`s of the clusterer expands.
+			 * The `Spider` in question is in the event's `detail`
+			 * @event collapse: CustomEvent
+			 * Fired when one of the `Spider`s of the clusterer collapses.
+			 * The `Spider` in question is in the event's `detail`
+			 */
+			symbol.on("collapse", this.#boundRelayEvent);
+			symbol.on("expand", this.#boundRelayEvent);
+		} else {
+			// At any other zoom levels, use a MultiSymbol
+			symbol = new MultiSymbol(this.#clusterSymbolizer(item.sources));
+
+			if (this.#onClusterClick) {
+				symbol.cursor = "pointer";
+
+				let bbox = new ExpandBox();
+				item.sources.forEach((s) =>
+					bbox.expandGeometry(s.geometry.toCRS(this.platina.crs))
+				);
+
+				symbol.on("click", (ev) =>
+					this.#onClusterClick(ev, this, item.sources, bbox)
+				);
+			}
+		}
+
+		return (item.symbol = symbol);
+	}
+
+	#boundRelayEvent;
+
+	#relayEvent(ev) {
+		const myEv = new ev.constructor(ev.type, { ...ev, detail: ev.target });
+		this.dispatchEvent(myEv);
+	}
+
+	#buildBush(log2scale) {
+		// Max distance between points to cluster together, in CRS units
+		const dist = Math.pow(2, log2scale / this.#clusterSetFactor) * this.#distance;
+		const crs = this.#crs;
+
+		const bush = new PointRBush();
+
+		this.symbols.forEach((s) => {
+			// if (s.geometry.crs.name !== crs.name) {
+			/// FIXME: This can lead to a chain of reprojections, and a
+			/// subsequent loss of precision, if the map/platina changes
+			/// CRSs frequently.
+			/// TODO: Maybe use a `WeakMap` to hold the reprojected geometries?
+			s.geometry = s.geometry.toCRS(crs);
+			// }
+			const [x, y] = s.geometry.coords;
+			if (!isFinite(x) || !isFinite(y)) {
+				return console.warn(
+					`Could not add symbol to cluster: non-finite coordinates`
+				);
+			}
+
+			/// TODO: Consider implementing wrapping logic in the clusterer.
+			/// Take the first known point and store as wrapping reference;
+			/// Any subsequent points undergo wrapping logic: if away more than
+			/// half a period, point gets wrapped.
+
+			const nearest = knn(bush, x, y, 1, undefined, dist);
+
+			if (nearest?.length) {
+				// Add to existing cluster
+				nearest[0].sources.push(s);
+			} else {
+				// Create a new cluster with no symbol
+				bush.insert({
+					x,
+					y,
+					sources: [s],
+					symbol: undefined,
+				});
+			}
+		});
+
+		this.#rbushes.set(log2scale, bush);
+		/**
+		 * @event build: CustomEvent
+		 * Fired when one of the the internal data structures have been built (due to
+		 * data being added or removed).
+		 */
+		this.fire("build", log2scale);
+		return bush;
+	}
+
+	// Removes all of the bushes, forcing their (re)building
+	#resetBushes() {
+		/**
+		 * @event reset: CustomEvent
+		 * Fired when the internal data structures have been reset (due to
+		 * data being added or removed).
+		 */
+		this.fire("reset");
+		this.#rbushes.clear();
+		this.#log2scale = NaN;
+		this.#bbox = undefined;
+		return this.#onViewChange();
+	}
+
+	#onCrsChange(ev) {
+		this.#crs = ev.detail.newCRS;
+		return this.#resetBushes();
+	}
+
+	/**
+	 * @method getParent(symbol: GleoSymbol, scale?: Number): GleoSymbol
+	 * Returns the symbol representing the cluster that the given symbol belongs to,
+	 * at the given scale. If scale is not given, the current scale will be
+	 * used.
+	 *
+	 * Akin to leaflet-markercluster's `getVisibleParent`.
+	 */
+	getParent(symbol, scale) {
+		const log2scale = Math.max(
+			Math.floor(
+				Math.log2(scale ?? this.platina.scale) * this.#clusterSetFactor -
+					this.#log2offset
+			),
+			this.#spiderScaleLog
+		);
+
+		const [x, y] = symbol.geometry.toCRS(this.#crs).coords;
+
+		const dist = Math.pow(2, log2scale / this.#clusterSetFactor) * this.#distance;
+		const bush = this.#rbushes.get(log2scale) ?? this.#buildBush(log2scale);
+		const nearest = knn(bush, x, y, 1, undefined, dist)[0];
+
+		this.#symbolizeCluster(nearest, this.#spiderScaleLog === log2scale);
+		return nearest.symbol;
+	}
+
+	/**
+	 * @method getUnclusterScaleFor(symbol: GleoSymbol): Number
+	 * Returns the minimum scale (in the map's CRS units) where the given symbol
+	 * is not in a cluster.
+	 *
+	 * If the symbol cannot be shown outside of a cluster (i.e. it belongs to a
+	 * `Spider` at the `Clusterer`s `scaleLimit`), then the return value will
+	 * be zero.
+	 */
+	getUnclusterScaleFor(symbol) {
+		const [x, y] = symbol.geometry.toCRS(this.#crs).coords;
+
+		const log2scale = this.getCurrentLog2scale();
+
+		for (let i = log2scale; i >= this.#spiderScaleLog; i--) {
+			// Max distance between points to cluster together, in CRS units
+			const dist = Math.pow(2, i / this.#clusterSetFactor) * this.#distance;
+
+			const bush = this.#rbushes.get(i) ?? this.#buildBush(i);
+
+			// Get *one* cluster. It'll be the one containing the symbol.
+			const nearest = knn(bush, x, y, 1, undefined, dist)[0];
+
+			if (nearest.sources.length === 1) {
+				// The cluster has only one symbol in it - this is how far to
+				// zoom in.
+
+				return Math.pow(2, (i + this.#log2offset) / this.#clusterSetFactor);
+			} else if (i === this.#spiderScaleLog) {
+				return 0;
+			}
+		}
+
+		return this;
+	}
+
+	/**
+	 * @method zoomToShowSymbol(symbol: GleoSymbol, setViewOpts?: SetView Options): this
+	 * Akin to leaflet-markercluster's `zoomToShowLayer()` - zooms into the map
+	 * far enough so the given symbol is not clustered; if it's in a spider
+	 * it will zoom into it and expand the spider.
+	 */
+	zoomToShowSymbol(symbol, setViewOpts = {}) {
+		const scale = this.getUnclusterScaleFor(symbol);
+
+		// Find a target that has setView (i.e. traverse through possible nested
+		// SymbolGroups)
+		let target = this.target;
+		while (!target.setView) {
+			if (!target) {
+				return;
+			}
+			target = target.target;
+		}
+
+		if (scale > 0) {
+			target.setView({
+				duration: 2000,
+				...setViewOpts,
+				center: symbol.geometry,
+				scale: scale,
+			});
+			return this;
+		} else {
+			// const scale = Math.pow( 2, (this.#spiderScaleLog + this.#log2offset) / this.#clusterSetFactor );
+
+			target.setView({
+				duration: 2000,
+				...setViewOpts,
+				center: symbol.geometry,
+				scale: this.#scaleLimit,
+			});
+
+			// Delay the spider expansion by one frame, to prevent a race
+			// condition with a delayed #resetBushes(). This can trigger when
+			// `zoomToShowSymbol` is called just after adding data to a clusterer.
+			requestAnimationFrame(() => {
+				const spider = this.getParent(symbol, scale);
+				spider.expand();
+			});
+		}
+	}
+}
+
+/**
+ * @class AcetateConformalRaster
+ * @inherits AcetateVertices
+ *
+ * An `Acetate` that draws rectangular conformal (i.e. matching the display CRS)
+ * RGB(A) raster images.
+ *
+ * Only the four corners of the raster are reprojected when displaying in a
+ * different CRS, and pixels are linearly interpolated. For proper raster
+ * reprojection, leverage Arrugator instead.
+ *
+ */
+
+class AcetateConformalRaster extends AcetateInteractive {
+	static get PostAcetate() {
+		// Allow AcetateConformalRaster to render into both RGBA and
+		// scalar fields. When working on a scalar field, only the first
+		// channel will be used.
+		return Acetate;
+	}
+
+	constructor(target, opts) {
+		super(target, { zIndex: -2e3, ...opts });
+
+		this._uv = new this.glii.SingleAttribute({
+			size: 1,
+			growFactor: 1.2,
+			usage: this.glii.STATIC_DRAW,
+			glslType: "vec2",
+			type: Uint8Array,
+			normalized: false,
+		});
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aUV: this._uv,
+			},
+			textures: {
+				uRasterTexture: undefined,
+			},
+			vertexShaderMain: `
+				vUV = aUV;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+			`,
+			varyings: { vUV: "vec2" },
+			fragmentShaderMain: `
+				gl_FragColor = texture2D(uRasterTexture, vUV);
+				// gl_FragColor.r = 1.0;
+			`,
+		};
+	}
+
+	/**
+	 * @method multiAdd(rasters: Array of ConformalRaster): this
+	 * Adds the conformal rasters to this acetate (so they're drawn on the next refresh).
+	 *
+	 * Note this call can be asynchronous - if any of the rasters' images has not loaded
+	 * yet, that will delay this whole call until all of the images have loaded.
+	 */
+	multiAdd(symbols) {
+		Promise.all(symbols.map((s) => s.raster))
+			.then((loadedRasters) => this.multiAllocate(symbols, loadedRasters))
+			.catch((err) => {
+				/**
+				 * @event rastererror: Event
+				 * Fired when some of the rasters to be added to this acetate have failed
+				 * to load their image.
+				 */
+				throw err;
+			});
+
+		return this;
+	}
+
+	multiAllocate(symbols, loadedRasters) {
+		// Skip already added symbols
+		symbols = symbols.filter((r) => !r._inAcetate);
+		const l = symbols.length;
+		if (l === 0) return;
+
+		// These are constant for this particular case, but they could be
+		// fetched from the symbol's `attrLength` and `idxLenght` instead.
+		const totalIndices = l * 6;
+		const totalVertices = l * 4;
+
+		let baseIdx = this._indices.allocateSlots(totalIndices);
+		let baseVtx = this._attribAllocator.allocateBlock(totalVertices);
+
+		// U-V texture coordinates for all symbols. Usual 0-1 corners per group of 4 vertices.
+		// prettier-ignore
+		this._uv.multiSet(
+			baseVtx,
+			symbols.map(() => [
+				0, 0,
+				1, 0,
+				1, 1,
+				0, 1
+			]).flat()
+		);
+
+		// Build up two trigs per raster.
+		this._indices.set(
+			baseIdx,
+			symbols
+				.map((r, i) => {
+					const base = i * 4;
+
+					// prettier-ignore
+					return [
+						base   , base+1, base+2,
+						base+2 , base+3, base  ,
+					]
+				})
+				.flat()
+		);
+
+		const stridedArrays = this._getStridedArrays(
+			baseVtx + totalVertices
+			// baseIdx + totalIndices
+		);
+
+		// Set up data for each of the symbols. This will trigger texturification
+		// of each symbol's image.
+		const promises = symbols.map((s, i) => {
+			s.updateRefs(this, baseVtx + i * 4, baseIdx + i * 6);
+			s._setGlobalStrides(...stridedArrays);
+
+			this._knownSymbols[baseVtx + i * 4] = s;
+
+			return s.buildTexture(this.glii, loadedRasters[i]);
+		});
+
+		if (this._crs) {
+			this.reproject(baseVtx, totalVertices);
+		}
+
+		// The raster data might take time to be dumped into textures
+		// (especifically for GeoTIFFs, since reading a GeoTIFF is async).
+		// Therefore, re-dirty the acetate when the textures are ready.
+		Promise.all(promises).then(() => (this.dirty = true));
+
+		this._commitStridedArrays(baseVtx, totalVertices /*, baseIdx, totalIndices*/);
+
+		this.dirty = true;
+
+		super.multiAddIds(symbols, baseVtx);
+		return super.multiAdd(symbols);
+	}
+
+	/**
+	 * Redefinition of the default. Render must happen once per raster, in order
+	 * to load the appropriate textures.
+	 */
+	runProgram() {
+		this._knownSymbols.forEach((r, i) => {
+			// console.log("Rendering conformal raster", i, r);
+			this._programs.setTexture("uRasterTexture", r.texture);
+
+			// "6" is constant here, but coudl also be fetched from `r.idxLength`.
+			this._programs.runPartial(r.idxBase, r.idxLength);
+		});
+	}
+
+	_getStridedArrays(_maxVtx, _maxIdx) {
+		return [];
+	}
+
+	_commitStridedArrays(_baseVtx, _vtxLength /*, baseIdx, totalIndices*/) {
+		// noop
+	}
+
+	_getGeometryStridedArrays() {
+		return [];
+	}
+
+	_commitGeometryStridedArrays(_baseVtx, _vtxCount, _baseIdx, _idxCount) {
+		// noop
+	}
+}
+
+
+/**
+ * @class ConformalRaster
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateConformalRaster
+ *
+ * A rectangular, conformal (i.e. matching the display CRS) RGB(A) raster image.
+ *
+ * If the `Geometry` of the raster has a different CRS than the map, consider
+ * using `ArrugatedRaster` instead.
+ */
+class ConformalRaster extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateConformalRaster
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateConformalRaster;
+
+	// static assertGeometry(geom) {
+	// 	if (!(geom instanceof RawGeometry)) {
+	// 		throw new Error("ConformalRaster Geometry is not a valid.");
+	// 	}
+	// 	if (geom.coords.length / geom.dimension !== 4) {
+	// 		throw new Error("ConformalRaster Geometry must have exactly 4 coordinates.");
+	// 	}
+	// }
+
+	/**
+	 * @section
+	 * A `ConformalRaster` is created from a `Geometry` and a RGB(A) image. The
+	 * image can be either:
+	 * - An instance of `HTMLImageElement`, which must be fully loaded
+	 * - A `Promise` to such a `HTMLImageElement` instance
+	 * - A `String` containing the URL for the image
+	 * In the last two cases, the addition of the `ConformalRaster` to the
+	 * platina or map will be delayed until the image has been loaded.
+	 *
+	 * The `Geometry` must have one ring of 4 elements. The image is assumed
+	 * to be quadrangular (rectangular or quasi-rectangular), and each coordinate
+	 * is mapped to the four "corners" of the image.
+	 *
+	 * The 4 points of the geometry **must** be sorted as follows:
+	 * - Upper-Left corner of the raster
+	 * - Upper-right idem
+	 * - Lower-right idem
+	 * - Lower-left idem
+	 *
+	 * @constructor ConformalRaster(coords: Geometry, raster: HTMLImageElement)
+	 * Instantiate with an already-loaded image
+	 * @alternative
+	 * @constructor ConformalRaster(coords: Geometry, raster: Promise to HTMLImageElement)
+	 * Instantiate with a `Promise` to a raster
+	 * @alternative
+	 * @constructor ConformalRaster(coords: Geometry, raster: String)
+	 * Instantiate with the URL of a raster
+	 */
+	constructor(geom, raster, opts = {}) {
+		super(geom, opts);
+		// this.constructor.assertGeometry(this.geometry);
+
+		/**
+		 * @property raster: Promise to AbstractRaster
+		 * A `Promise` to the raster image (when instantiated with a `Promise`
+		 * or a `String` containing a URL)
+		 * @alternative
+		 * @property image: AbstractRaster
+		 * The raster image itself (when instantiated with a fully-loaded
+		 * `HTMLImageElement` or `GeoTIFF` or the like)
+		 */
+		this.raster = raster instanceof Promise ? raster : factory(raster);
+
+		/**
+		 * @option interpolate: Boolean = false
+		 * Whether to use bilinear pixel interpolation or not.
+		 *
+		 * In other words: `false` means pixellated, `true` means smoother.
+		 */
+		this._interpolate = !!opts.interpolate;
+
+		// A conformal raster is always represented as a quad: 4 vertices, 2 triangle
+		// primitives of 3 slots each.
+		this.attrLength = 4;
+		this.idxLength = 6;
+	}
+
+	/**
+	 * @method setGeometry(geom: Geometry): this
+	 * Moves this conformal raster symbol to a new bounding box, as given by `geom`.
+	 *
+	 * The given geometry must have one ring of 4 elements.
+	 */
+	setGeometry(geom) {
+		geom = factory$1(geom);
+		assertGeometry(geom);
+
+		this.geom = geom;
+		if (this._inAcetate) {
+			this._inAcetate.reproject(this.attrBase, this.attrLength);
+			if (this._inAcetate._map) {
+				this._inAcetate.dirty = true;
+			}
+		}
+	}
+
+	/**
+	 * @method buildTexture(glii: Glii, raster: AbstractRaster): Promise of this
+	 * Internal usage only, called from `AcetateConformalRaster` and only
+	 * once the image promise has been resolved. Builds the texture given
+	 * the Glii/WebGL context. Texture dumping might be async.
+	 */
+	async buildTexture(glii, raster) {
+		/**
+		 * @property texture: Texture
+		 * The Glii texture containing this raster's RGB(A) image. Is initialized
+		 * by an acetate, after this symbol has been added to it.
+		 */
+
+		this.raster = raster;
+		this.texture = await raster.asTexture(glii);
+		const texFilter = this._interpolate ? glii.LINEAR : glii.NEAREST;
+		this.texture.setParameters(
+			texFilter,
+			texFilter,
+			glii.CLAMP_TO_EDGE,
+			glii.CLAMP_TO_EDGE
+		);
+		return this;
+	}
+
+	/**
+	 * @method remove():this
+	 * Removes this symbol from its containing `Acetate` (and, therefore, from the
+	 * containing `GleoMap`). Cleans up resources dedicated to the GL texture.
+	 */
+	remove() {
+		super.remove();
+		this.texture.destroy && this.texture.destroy(); // So Glii cleans up GL resources
+		delete this.texture;
+	}
+
+	_setGlobalStrides() {
+		// noop
+	}
+	_setGeometryStrides() {
+		// noop
+	}
+	_setPerPointStrides(_n, _pointType, _vtx, _vtxCount, _geom, ..._strides) {
+		// noop
+	}
+}
+
+/**
+ * @class ConformalOGCAPIMaps
+ * @inherits Loader
+ * @relationship compositionOf ConformalRaster
+ *
+ * A `Loader` that displays conformal rasters from a OGC API Maps service, as
+ * described in:
+ * - https://docs.ogc.org/DRAFTS/20-058.html
+ * - https://opengeospatial.github.io/architecture-dwg/api-maps/index.html
+ *
+ * The constructor needs the base URL of the OGC API endpoint. The `ConformalOGCAPIMaps`
+ * loader will request the metadata for that endpoint (available collections,
+ * formats, CRSs, etc).
+ *
+ * This is an **untiled** client implementation: every viewport change
+ * translates into a new image request to the API.
+ *
+ */
+class ConformalOGCAPIMaps extends Loader {
+	#baseURL; // URL of the API endpoint
+	#collection; // Promise to the metadata of the collection in use
+	#imageURL; // Promise to the base URL of the image
+	#attribution; // String of HTML attribution from the metadata
+
+	/**
+	 * @constructor ConformalOGCAPIMaps(url: String, opts: ConformalOGCAPIMaps Options)
+	 *
+	 * Instantiates a `ConformalOGCAPIMaps`, given the base URL for the API endpoint,
+	 * and a string containing the ID of a "collection".
+	 *
+	 */
+	constructor(url, { collection, ...opts } = {}) {
+		/**
+		 * @section
+		 * @aka ConformalOGCAPIMaps Options
+		 * @option collection: String
+		 * The ID of the collection to use. Note this is que unique `id`, and **not**
+		 * the human-readable `title` of the collection.
+		 * @option imageFormat: String
+		 * The MIME type for the image format to request, e.g. `image/png` or
+		 * `image/jpeg`.
+		 * If ommitted, the first format listed in the collection metadata will be used.
+		 * @option debounceTime: Number = 500
+		 * Time, in milliseconds, to debounce the HTTP(S) requests. This is a
+		 * preventative measure against overloading the OGC API server.
+		 * @option transparent: Boolean
+		 * Whether or not to request transparent images.
+		 * @option interpolate: Boolean = false
+		 * Akin to the `interpolate` option of `ConformalRaster`
+		 */
+
+		super(opts);
+
+		this._boundOnViewChange = this._onViewChange.bind(this);
+		this._boundReloadImage = this._reloadImage.bind(this);
+
+		// Strip the trailing slash, if there's one.
+		this.#baseURL = url.replace(/\/?$/, "");
+
+		// First, fetch the metadata for the collection
+		// The collection metadata is common for all OGC APIs related to that
+		// collection - e.g. raster maps, raster tiles, raw vector features,
+		// are all listed in the collection's metadata.
+		const collectionsURL = new URL(this.#baseURL + "/collections", document.URL);
+		collectionsURL.searchParams.set("f", "json");
+		this.#collection = fetch(collectionsURL)
+			.then((response) => response.json())
+			.then((json) => {
+				console.log(json.collections);
+				const matches = json.collections.filter((c) => c.id === collection);
+				if (matches.length === 0) {
+					throw new Error(
+						`Collection '${collection}' is not available from OGC API endpoint ${
+							this.#baseURL
+						}`
+					);
+				} else if (matches.length > 1) {
+					throw new Error(
+						`Collection '${collection}' has a duplicate definition from OGC API endpoint ${
+							this.#baseURL
+						}`
+					);
+				}
+				this.#attribution = matches[0].attribution;
+				return matches[0];
+			});
+
+		/// TODO: Fetch the attribution HTML string, store it properly.
+
+		// Then, choose an appropriate image endpoint for the collection,
+		// based on the image format.
+		this.#imageURL = this.#collection
+			.then((col) => {
+				// Filter links: only interested in the ones conforming to the
+				// OGC API Maps spec.
+				const links = col.links.filter(
+					(l) => l.rel === "http://www.opengis.net/def/rel/ogc/1.0/map"
+				);
+				if (!opts.imageFormat) {
+					// On no specified image format (png/jpeg), use the first one from
+					// the collection metadata
+					return links[0];
+				} else {
+					const formatLinks = links.filter((l) => l.type === opts.imageFormat);
+					if (formatLinks.length === 0) {
+						throw new Error(
+							`OGC API: Maps for collection ${collection} are not available in image format ${opts.imageFormat}`
+						);
+					} else if (formatLinks.length > 1) {
+						throw new Error(
+							`OGC API: Maps for collection ${collection} have multiple endpoints for image format ${opts.imageFormat}`
+						);
+					}
+					return formatLinks[0];
+				}
+			})
+			.then((link) => {
+				return new URL(link.href, this.#baseURL);
+			});
+
+		this.#imageURL.catch((ex) => {
+			throw new Error(`Could not get details from OGC API because: ${ex}`);
+		});
+
+		this.options = opts;
+	}
+
+	addTo(map) {
+		super.addTo(map);
+
+		this.platina.on("viewchanged", this._boundOnViewChange);
+		return this;
+	}
+
+	remove() {
+		this.platina.off("viewchanged", this._boundOnViewChange);
+
+		if (this._conformalRaster) {
+			this._conformalRaster.remove();
+		}
+		super.remove();
+		return this;
+	}
+
+	_onViewChange(ev) {
+		if (this._abortController && !this._abortController.signal.aborted) {
+			this._abortController.abort();
+		}
+		clearTimeout(this._timeout);
+		this._timeout = setTimeout(
+			this._boundReloadImage,
+			this.options.debounceTime || 250
+		);
+	}
+
+	async _reloadImage() {
+		const mapBBox = this.platina.bbox;
+
+		const crs = this.platina.center.crs;
+
+		/// TODO: Clamp viewport bbox by collection bbox
+		/// Is there even a collection bbox???
+		const { minX, maxX, minY, maxY } = mapBBox;
+		const geom = new Geometry(
+			crs,
+			[
+				[minX, maxY],
+				[maxX, maxY],
+				[maxX, minY],
+				[minX, minY],
+			],
+			{ wrap: false }
+		);
+
+		let url = await this.#imageURL;
+
+		const [baseMinX, baseMinY] = crs.offsetToBase([minX, minY]);
+		const [baseMaxX, baseMaxY] = crs.offsetToBase([maxX, maxY]);
+		const [w, h] = this.platina.pxSize;
+
+		const params = url.searchParams;
+
+		/// TODO: The short CRS names ("EPSG:4326") migth not be supported
+		/// by the server, which might only rely on the links
+		/// ("http://www.opengis.net/def/crs/EPSG/0/4326") to the GML
+		/// definitions in the collection metadata.
+		params.set("crs", crs.name);
+		params.set("bbox-crs", crs.name);
+
+		if (crs.flipAxes) {
+			params.set("bbox", `${baseMinY},${baseMinX},${baseMaxY},${baseMaxX}`);
+		} else {
+			params.set("bbox", `${baseMinX},${baseMinY},${baseMaxX},${baseMaxY}`);
+		}
+
+		params.set("width", w);
+		params.set("height", h);
+		// 		params.set("styles", this.options.style.join(","));
+		params.set("transparent", !!this.options.transparent);
+
+		//console.log(url.toString());
+
+		this._abortController = new AbortController();
+		this._image = abortableImagePromise(url.toString(), this._abortController);
+
+		this._image.then((img) => {
+			if (!this._conformalRaster) {
+				this._conformalRaster = new ConformalRaster(geom, img, {
+					interpolate: this.options.interpolate,
+					attribution: this.#attribution,
+				}).addTo(this.platina);
+			} else {
+				this._conformalRaster.setGeometry(geom);
+				this._conformalRaster.texture.texImage2D(img);
+			}
+		});
+	}
+}
+
+const XMLparser$2 = new window.DOMParser();
+const parseXML = function (str) {
+	return XMLparser$2.parseFromString(str, "text/xml");
+};
+
+/**
+ * @class ConformalWMS
+ * @inherits Loader
+ * @relationship compositionOf ConformalRaster, 0..1, 1..1
+ *
+ * A `Loader` that displays conformal rasters from a WMS service.
+ *
+ * The constructor needs the base URL of the WMS. The `ConformalWMS` loader
+ * will perform a `getCapabilities` query. The raster will only by displayed if
+ * the CRS of the map is one of the CRSs available from the WMS.
+ *
+ * This is an **untiled** WMS client implementation: every viewport change
+ * translates into a new image request to the WMS.
+ *
+ */
+class ConformalWMS extends Loader {
+	/**
+	 * @constructor ConformalWMS(url: String, opts: ConformalWMS Options)
+	 *
+	 * Instantiates a `ConformalWMS`, given the base URL for the WMS, and a
+	 * string containing the name(s) of one or more thematic "layer"(s). These
+	 * "layer" names must be present in the WMS's capabilities, and must be
+	 * available in the CRS of the containing map.
+	 *
+	 */
+	constructor(url, { wmsVersion = "1.3.0", ...opts } = {}) {
+		/**
+		 * @section
+		 * @aka ConformalWMS Options
+		 * @option layer: String
+		 * The name of the thematic layer to request, as defined per the WMS capabilities
+		 * @alternative
+		 * @option layer: Array of String
+		 * The name**s** of the thematic layer**s** to request.
+		 * @option style: String
+		 * A style for the thematic layer, as defined per the WMS capabilities
+		 * @alternative
+		 * @option style: Array of String
+		 * The style**s** for the thematic layer**s**. There must be a one-to-one equivalence.
+		 * @option imageFormat: String
+		 * The MIME type for the image format to request, e.g. `image/png` or
+		 * `image/png`.
+		 * If ommitted, the first format listed in the WMS capabilities will be used.
+		 * @option transparent: Boolean
+		 * Whether or not to request transparent images.
+		 * @option debounceTime: Number = 500
+		 * Time, in milliseconds, to debounce the WMS requests. This is a
+		 * preventative measure against overloading the WMS server.
+		 * @option wmsVersion: String = "1.3.0"
+		 * The version of the WMS protocol to use
+		 * @option interpolate: Boolean = false
+		 * Akin to the `interpolate` option of `ConformalRaster`
+		 */
+
+		super(opts);
+
+		this._wmsVersion = wmsVersion;
+
+		this._boundOnViewChange = this._onViewChange.bind(this);
+		this._boundReloadImage = this._reloadImage.bind(this);
+
+		this._capsUrl = new URL(url, document.URL);
+		this._capsUrl.searchParams.set("service", "WMS");
+		this._capsUrl.searchParams.set("version", wmsVersion);
+		this._capsUrl.searchParams.set("request", "getCapabilities");
+		this._capabilities = fetch(this._capsUrl)
+			.then((response) => response.text())
+			.then(parseXML)
+			.then((capabilities) => {
+				return capabilities.documentElement;
+			});
+
+		this._getMapCaps = this._capabilities.then((caps) => {
+			const getMapCaps = caps.querySelector("Capability Request GetMap");
+			const formats = Array.from(getMapCaps.querySelectorAll("Format")).map(
+				(f) => f.textContent
+			);
+			const url = getMapCaps
+				.querySelector("HTTP > Get > OnlineResource")
+				.getAttribute("xlink:href");
+
+			return {
+				formats,
+				url: url ? new URL(url, document.URL) : this._capsUrl,
+			};
+		});
+
+		this._themeCaps = this._capabilities.then((caps) => {
+			const themeCaps = {};
+
+			caps.querySelectorAll("Capability Layer > Name").forEach((nameNode) => {
+				const name = nameNode.textContent;
+				const CRSs = [];
+				const styles = [];
+				let attributionURL;
+				let attributionText;
+
+				// In WMS 1.3.0, <Layer> elements can be nested
+				let node = nameNode.parentNode;
+				while (node.nodeName === "Layer") {
+					for (let i = 0, l = node.children.length; i < l; i++) {
+						let child = node.children.item(i);
+						switch (child.nodeName) {
+							case "CRS":
+								CRSs.push(child.textContent);
+								break;
+							// case "BoundingBox": // TODO
+							case "Style":
+								styles.push(child.querySelector("Name").textContent);
+								break;
+							case "Attribution":
+								if (!attributionURL) {
+									attributionURL = child
+										.querySelector("OnlineResource")
+										.getAttribute("xlink:href");
+									attributionText =
+										child.querySelector("Title").textContent;
+								}
+						}
+					}
+					node = node.parentNode;
+				}
+				themeCaps[name] = {
+					CRSs,
+					styles,
+					attributionText,
+					attributionURL,
+					// bboxes: /* optional, I guess? One per CRS. */,
+					// legend: /* optional */,
+				};
+			});
+			return themeCaps;
+		});
+
+		// this._themeNames.then(ns=>console.log("Available theme names", ns))
+
+		this._getMapCaps.then((caps) => console.log("GetMap capabilities:", caps));
+		this._themeCaps.then((caps) => console.log("Theme capabilities:", caps));
+
+		this.options = opts;
+	}
+
+	addTo(map) {
+		super.addTo(map);
+
+		this.platina.on("viewchanged", this._boundOnViewChange);
+		return this;
+	}
+
+	remove() {
+		this.platina.off("viewchanged", this._boundOnViewChange);
+
+		if (this._conformalRaster) {
+			this._conformalRaster.remove();
+		}
+		super.remove();
+		return this;
+	}
+
+	_onViewChange(ev) {
+		if (this._abortController && !this._abortController.signal.aborted) {
+			this._abortController.abort();
+		}
+		clearTimeout(this._timeout);
+		this._timeout = setTimeout(
+			this._boundReloadImage,
+			this.options.debounceTime || 250
+		);
+	}
+
+	async _reloadImage() {
+		const mapBBox = this.platina.bbox;
+
+		const crs = this.platina.center.crs;
+
+		/// TODO: Clamp viewport bbox by thematic layer bbox
+		const { minX, maxX, minY, maxY } = mapBBox;
+		const geom = new Geometry(
+			crs,
+			[
+				[minX, maxY],
+				[maxX, maxY],
+				[maxX, minY],
+				[minX, minY],
+			],
+			{ wrap: false }
+		);
+
+		let [getMapCaps, themeCaps] = await Promise.all([
+			this._getMapCaps,
+			this._themeCaps,
+		]);
+
+		if (!(this.options.layer instanceof Array)) {
+			this.options.layer = [this.options.layer];
+		}
+		if (!(this.options.style instanceof Array)) {
+			this.options.style = [this.options.style];
+		}
+
+		this.options.layer.forEach((l) => {
+			if (!themeCaps[l]) {
+				throw new Error(`WMS does not offer thematic layer ${l}`);
+			}
+		});
+
+		if (!this.options.layer.every((l) => themeCaps[l].CRSs.includes(crs.name))) {
+			throw new Error(
+				`WMS does not implement CRS ${crs.name} (in the requested layer(s))`
+			);
+		}
+
+		const [baseMinX, baseMinY] = crs.offsetToBase([minX, minY]);
+		const [baseMaxX, baseMaxY] = crs.offsetToBase([maxX, maxY]);
+		// 		const [baseMinX, baseMinY] = crs.offsetFromBase([minX, minY]);
+		// 		const [baseMaxX, baseMaxY] = crs.offsetFromBase([maxX, maxY]);
+		const [w, h] = this.platina.pxSize;
+		const url = getMapCaps.url;
+		const params = url.searchParams;
+
+		if (this._wmsVersion === "1.3.0" && crs.flipAxes) {
+			params.set("bbox", `${baseMinY},${baseMinX},${baseMaxY},${baseMaxX}`);
+		} else {
+			params.set("bbox", `${baseMinX},${baseMinY},${baseMaxX},${baseMaxY}`);
+		}
+
+		params.set("request", "GetMap");
+		params.set("version", this._wmsVersion);
+		params.set("crs", crs.name);
+		params.set("width", w);
+		params.set("height", h);
+		params.set("layers", this.options.layer.join(","));
+		params.set("styles", this.options.style.join(","));
+		params.set("format", this.options.imageFormat || getMapCaps.formats[0]);
+		params.set("transparent", !!this.options.transparent);
+
+		this._abortController = new AbortController();
+		this._image = new abortableImagePromise(url.toString(), this._abortController);
+
+		this._image.then((img) => {
+			if (!this._conformalRaster) {
+				this._conformalRaster = new ConformalRaster(geom, img, {
+					interpolate: this.options.interpolate,
+				}).addTo(this.platina);
+			} else {
+				this._conformalRaster.setGeometry(geom);
+				this._conformalRaster.texture.texImage2D(img);
+			}
+		});
+	}
+}
+
+function defaultWaypointSymbolizer(waypoint, geometry) {
+	return [new CircleStroke(geometry), new CircleFill(geometry)];
+}
+
+function defaultTrackSymbolizer(track, geometry) {
+	return [new Stroke(geometry)];
+}
+function defaultRouteSymbolizer(route, geometry) {
+	return [new Stroke(geometry)];
+}
+
+const XMLparser$1 = new window.DOMParser();
+
+/**
+ * @class GPX
+ * @inherits Loader
+ * @relationship compositionOf GleoSymbol, 0..1, 0..n
+ *
+ * A `Loader` for requesting, parsing and symbolizing data in [GPS Exchange Format](https://en.wikipedia.org/wiki/GPS_Exchange_Format) (AKA "GPX").
+ */
+
+/// TODO: Handle some of the metadata. "Author" and "Copyright" fields can be
+/// interesting for attribution.
+
+class GPX extends Loader {
+	#symbols = [];
+
+	/**
+	 * @constructor GPX(gpx: XMLDocument, options: GPX Options)
+	 * Symbolizes the data in the given XML document structure. The XML must
+	 * be conformant to the GPX schema.
+	 * @alternative
+	 * @constructor GPX(url: URL, options: GPX Options)
+	 * If given a URL object, that URL will be requested, and the returned
+	 * GPX will be parsed.
+	 * @alternative
+	 * @constructor GPX(url: String, options: GPX Options)
+	 * When given a `String`, it will be trated as an `URL`.
+	 */
+	constructor(
+		gpx,
+		{
+			/**
+			 * @section GPX Options
+			 * @option waypointSymbolizer: Function = *
+			 * A `Function` that defines how waypoints get transformed into
+			 * `GleoSymbol`s. It receives the waypoint (as a parsed XML node),
+			 * an instance of a Gleo `Geometry` as its second parameter, and
+			 * must return an array of `GleoSymbol`s.
+			 *
+			 * The parsed XML node is an [`Element`](https://developer.mozilla.org/docs/Web/API/Element), and its schema is specified at [https://www.topografix.com/GPX/1/1/#type_wptType](https://www.topografix.com/GPX/1/1/#type_wptType)
+			 *
+			 * When not specified, a default implementation is used. This default
+			 * implementation symbolizes waypoints with a `CircleFill` and
+			 * a `CircleStroke` with default options.
+			 *
+			 * @option trackSymbolizer: Function = *
+			 * Akin to `pointSymbolizer`, but for GPX tracks.
+			 *
+			 * When not specified, the default is to use a default `Stroke`.
+			 * @option routeSymbolizer: Function = *
+			 * Akin to `pointSymbolizer`, but for GPX routes.
+			 *
+			 * When not specified, the default is to use a default `Stroke`.
+			 */
+			waypointSymbolizer = defaultWaypointSymbolizer,
+			trackSymbolizer = defaultTrackSymbolizer,
+			routeSymbolizer = defaultRouteSymbolizer,
+			...opts
+		} = {}
+	) {
+		super(opts);
+		/**
+		 * @property waypointSymbolizer: Function
+		 * The `Function` currently used for turning a waypoint into a set of
+		 * `GleoSymbol`s.
+		 *
+		 * Changing this function during runtime does **not** trigger a
+		 * re-symbolization of the dataset.
+		 * @property trackSymbolizer: Function
+		 * Akin to `waypointSymbolizer`, but for GPX tracks.
+		 * @property routeSymbolizer: Function
+		 * Akin to `waypointSymbolizer, bt for GPX routes.
+		 */
+		this.waypointSymbolizer = waypointSymbolizer;
+		this.trackSymbolizer = trackSymbolizer;
+		this.routeSymbolizer = routeSymbolizer;
+
+		if (gpx instanceof XMLDocument) {
+			// Assuming a well-formed GeoJSON data structure was received
+			this.#symbols = this._symbolizeGPX(gpx);
+		} else {
+			// Assuming URL, or url-like string
+			let url = gpx instanceof URL ? gpx : new URL(gpx, document.URL);
+
+			fetch(url)
+				.then((response) => response.text())
+				.then((text) => XMLparser$1.parseFromString(text, "text/xml"))
+				.then((xml) => {
+					this.#symbols = this._symbolizeGPX(xml);
+					this.platina?.multiAdd(this.#symbols);
+				});
+		}
+	}
+
+	addTo(target) {
+		super.addTo(target);
+		return this;
+	}
+
+	remove() {
+		this.platina?.multiRemove(this.#symbols);
+		return super.remove();
+	}
+
+	_symbolizeGPX(gpxDoc) {
+		const waypointSymbols = Array.from(gpxDoc.querySelectorAll("gpx > wpt"))
+			.map((wpt) => {
+				const geom = new LngLat([
+					Number(wpt.attributes.lon.value),
+					Number(wpt.attributes.lat.value),
+				]);
+				return this.waypointSymbolizer(wpt, geom);
+			})
+			.flat();
+
+		const tracksSymbols = Array.from(gpxDoc.querySelectorAll("gpx > trk"))
+			.map((trk) =>
+				this.trackSymbolizer(
+					trk,
+					new LngLat(
+						Array.from(trk.querySelectorAll("trkseg"))
+							.map((trkseg) =>
+								Array.from(trkseg.querySelectorAll("trkpt")).map(
+									(trkpt) => [
+										Number(trkpt.attributes.lon.value),
+										Number(trkpt.attributes.lat.value),
+									]
+								)
+							)
+							.filter((seg) => seg.length)
+					)
+				)
+			)
+			.flat();
+
+		const routesSymbols = Array.from(gpxDoc.querySelectorAll("gpx > rte"))
+			.map((rte) =>
+				this.routeSymbolizer(
+					rte,
+					new LngLat(
+						Array.from(rte.querySelectorAll("rtept")).map((rtept) => [
+							Number(rtept.attributes.lon.value),
+							Number(rtept.attributes.lat.value),
+						])
+					)
+				)
+			)
+			.flat();
+
+		return [waypointSymbols, tracksSymbols, routesSymbols].flat();
+	}
+}
+
+/**
+ * @class GenericVectorTileLoader
+ * @inherits AbstractTileLoader
+ * @relationship compositionOf GleoSymbol, 0..n, 0..n
+ *
+ * Generic, format-less, vector tile loader.
+ *
+ * Uses a `Pyramid` like a `TileLoader` does, but instead of a raster image,
+ * each tile contains a number of `GleoSymbol`s instead.
+ *
+ * This is the base, format-less, implementation; most users will be interested
+ * in a vector tile loader which requests and parses vector tiles in protobuf
+ * or geojson format. This class does allow for synthetic vector tiles, though.
+ */
+
+class GenericVectorTileLoader extends AbstractTileLoader {
+	// Tile and request cache.
+	// For vector tiles, the cache follows a Leaflet-like data structure: a
+	// hash `Map` of "tile keys" to cache slots, one such hash map per
+	// pyramid level.
+	// Each cache slot (a tile/tile request) is a JS object of the form:
+	// {x, y, req, data, abortController}
+	// The vector tile cache is different from the raster tile cache due to the
+	// need of different caching/pruning algorithms. In particular, raster
+	// can implicitly prune tiles (by overwriting the same modulo XY), but
+	// vector tiles must prune with more precision. Since a vector tile
+	// has symbols on different acetates, loading overlapping vector tiles
+	// do NOT obscure the data from the overlapped tile.
+	#cached = {};
+
+	/**
+	 * @section
+	 * A `GenericVectorTileLoader` is built upon a `TilePyramid` and a function
+	 * that, given the pyramid level ("`z`"), the coordinates of a tile
+	 * within that level ("`x`" and "`y`"), and an `AbortController`, returns
+	 * an `Array` of `GleoSymbol`s, or a `Promise` to such an array.
+	 *
+	 * @constructor GenericVectorTileLoader(pyramid: TilePyramid, tileFn: Function, opts: GenericVectorTileLoader Options)
+	 */
+	constructor(pyramid, fn, { ...opts } = {}) {
+		super(pyramid, opts);
+		this._tileFn = fn;
+
+		// Init cache
+		pyramid.forEachLevel((name, _def) => {
+			this.#cached[name] = new Map();
+		});
+	}
+
+	addTo(target) {
+		super.addTo(target);
+		this._boundOnViewChange();
+		return this;
+	}
+
+	remove() {
+		const removableSymbols = Object.values(this.#cached)
+			.map((level) => {
+				return Array.from(level.values()).map(({ data, abortController }) => {
+					abortController?.abort();
+					return data;
+				});
+			})
+			.flat(2)
+			.filter((s) => !!s);
+
+		this.platina.multiRemove(removableSymbols);
+
+		return super.remove();
+	}
+
+	_abortLevel(level) {
+		this.#cached[level].forEach(({ abortController, data }, key) => {
+			abortController?.abort();
+		});
+		//this.#cached[level].clear();
+	}
+
+	#deleteOutsideVisibleRange(level) {
+		// TODO: It should be possible to cache the CRS bbox somehow. That
+		// way, there shouldn't be a need to recalculate the offset CRS bbox
+		// each time.
+
+		const [minX, minY, maxX, maxY] = this._getVisibleRange(level);
+		const { spanX, spanY } = this.pyramid.getLevelDef(level);
+		const cachedLevel = this.#cached[level];
+		//console.log("OOB check", level, minX, minY, maxX, maxY, spanX, spanY);
+		// Abort & delete tiles outside the range
+		const removableSymbols = Array.from(cachedLevel)
+			.filter(
+				([key, { x, y }]) =>
+					!this._isTileWithinRange(x, y, minX, minY, maxX, maxY, spanX, spanY)
+			)
+			.map(([key, { x, y, abortController, data }]) => {
+				/**
+				 * @section
+				 * @event tileout: TileEvent
+				 * Dispatched when a vector tile is deleted due to
+				 * being out of the platina's visible bounds.
+				 */
+				this.dispatchEvent(
+					new TileEvent("tileout", {
+						tileLevel: level,
+						tileX: x,
+						tileY: y,
+						tile: data,
+					})
+				);
+
+				abortController?.abort();
+				cachedLevel.delete(key);
+				//console.log("OOB remove: ",level, key);
+				return data ? data : [];
+			});
+
+		return removableSymbols;
+	}
+
+	_onRangeChange(level, minX, minY, maxX, maxY, levelChange) {
+		const cachedLevel = this.#cached[level];
+		const { spanX, spanY } = this.pyramid.getLevelDef(level);
+
+		if ((maxX - minX) * (maxY - minY) > 256) {
+			// This amount of tiles shouldn't appear during normal operation
+			console.warn("Attempted to load too many vector tiles");
+			return;
+		}
+
+		// Abort & delete tiles outside the range, for the current level...
+		const removableSymbols = [this.#deleteOutsideVisibleRange(level)];
+
+		// ...and any other levels with loaded tiles
+		Object.entries(this.#cached).forEach(([pruneLevelName, pruneLevel]) => {
+			if (pruneLevel.size === 0) {
+				return;
+			}
+			if (pruneLevelName === level) {
+				return;
+			}
+
+			removableSymbols.push(this.#deleteOutsideVisibleRange(pruneLevelName));
+		});
+
+		//if (removableSymbols.flat().length) {console.log('removing symbols', removableSymbols);}
+		this.platina.multiRemove(removableSymbols.flat(2));
+
+		// Load tiles inside the range, by looping through the range.
+		for (let i = minX; i < maxX; i++) {
+			for (let j = minY; j < maxY; j++) {
+				const x = i % spanX;
+				const y = j % spanY;
+
+				const key = `x${x}y${y}`;
+
+				if (cachedLevel.has(key)) {
+					// Trigger the pruning logic for this tile.
+					// If not done, a race condition might occur:
+					// - load tiles from level *z*
+					// - zoom in to level *z+1*
+					// - allow just a partial set of tiles to load at *z+1*,
+					//   without pruning from *z*
+					// - switch back to *z*
+					// - tiles from *z+1* should be pruned, but won't: the tiles
+					//   from *z*, even though they're current, won't trigger
+					//   the pruning logic because they never load... because
+					//   they were never removed.
+					if (levelChange) {
+						this._prune(level, x, y);
+					}
+				} else {
+					const abortController = new AbortController();
+					const req = Promise.resolve(
+						this._tileFn(level, x, y, abortController)
+					);
+
+					const slot = {
+						x,
+						y,
+						req,
+						data: undefined,
+						abortController,
+					};
+
+					req.then((data) => {
+						const [lastMinX, lastMinY, lastMaxX, lastMaxY] =
+							this.currentRange;
+
+						/// Async, so compare against the current range, not the range
+						/// inside the closure
+						if (
+							this.currentLevel !== level ||
+							!this._isTileWithinRange(
+								x,
+								y,
+								lastMinX,
+								lastMinY,
+								lastMaxX,
+								lastMaxY,
+								spanX,
+								spanY
+							)
+						) {
+							// Async, non-abortable tile finished loading when
+							// the viewport already changed
+							//console.log("Not loadable", key);
+							return;
+						}
+						slot.data = data;
+						this._onTileLoad(level, x, y, data);
+					}).catch((err) => {
+						// Invalidate this cache slot
+						cachedLevel.delete(key);
+
+						this._onTileError(level, x, y, err);
+					});
+
+					cachedLevel.set(key, slot);
+				}
+			}
+		}
+	}
+
+	_onTileLoad(level, x, y, symbols) {
+		this._prune(level, x, y);
+		this.platina.multiAdd(symbols);
+		return super._onTileLoad(level, x, y, symbols);
+	}
+
+	_prune(level, x, y) {
+		/**
+		 * Pruning algorithm.
+		 *
+		 * The same for all levels, no matter if they're parents/ascendants
+		 * (lower zoom / higher scale) or children/descendents (higher zoom /
+		 * lower scale).
+		 *
+		 * For each level with present tiles:
+		 * - get the tile range for the bounds of the loaded tile
+		 * - loop through the range
+		 * - See if there's a cached tile. If there is,
+		 * - calculate its bounding box
+		 * - get the tile range for that bbox, for the current pyramid level
+		 * - clip that tile range with the currently visible tile range
+		 * - Loop through that tile range. If all of those exist, then tile
+		 *   cah be pruned.
+		 */
+		const cachedLevel = this.#cached[level];
+		const bounds = this.pyramid.tileCoordsToBbox(level, [x, y]);
+		const visibleRange = this._getVisibleRange(level);
+		const removableSymbols = [];
+		const { spanX, spanY } = this.pyramid.getLevelDef(level);
+
+		//console.log("Loaded: ", level, x, y);
+
+		Object.entries(this.#cached).forEach(([pruneLevelName, pruneLevel]) => {
+			if (pruneLevel.size === 0) {
+				return;
+			}
+			if (pruneLevelName === level) {
+				return;
+			}
+
+			const [pMinX, pMinY, pMaxX, pMaxY] = this.pyramid.bboxToTileRange(
+				pruneLevelName,
+				bounds
+			);
+
+			for (let pX = pMinX; pX < pMaxX; pX++) {
+				for (let pY = pMinY; pY < pMaxY; pY++) {
+					const pruneKey = `x${pX}y${pY}`;
+					//console.log("checking prunable key", pruneLevelName, pruneKey);
+
+					if (pruneLevel.has(pruneKey)) {
+						const overlapRange = this.pyramid.bboxToTileRange(
+							level,
+							this.pyramid.tileCoordsToBbox(pruneLevelName, [pX, pY])
+						);
+
+						let oMinX = Math.max(overlapRange[0], visibleRange[0]);
+						let oMinY = Math.max(overlapRange[1], visibleRange[1]);
+						let oMaxX = Math.min(overlapRange[2], visibleRange[2]);
+						let oMaxY = Math.min(overlapRange[3], visibleRange[3]);
+
+						/// Antimeridian artefact prevention.
+						/// The tile ranges (the ones overlapping
+						/// the prunable tile vs the visible range) do not play
+						/// nicely over the antimeridian. Namely, when overlapRange
+						/// is zero (or close) and visibleRange is greater than
+						/// the level span.
+
+						if (oMinX > oMaxX) {
+							// Horizontal antimeridian
+							oMinX = Math.max(overlapRange[0], visibleRange[0] - spanX);
+							oMaxX = Math.min(overlapRange[2], visibleRange[2] - spanX);
+						}
+						if (oMinY > oMaxY) {
+							// Vertical antimeridian
+							oMinY = Math.max(overlapRange[1], visibleRange[1] - spanY);
+							oMaxY = Math.min(overlapRange[3], visibleRange[3] - spanY);
+						}
+
+						const xs = new Array(oMaxX - oMinX)
+							.fill(0)
+							.map((_, i) => oMinX + i);
+						const ys = new Array(oMaxY - oMinY)
+							.fill(0)
+							.map((_, i) => oMinY + i);
+
+						const candidates = xs
+							.map((i) => ys.map((j) => `x${i}y${j}`))
+							.flat();
+
+						//console.log(overlapRange, candidates);
+
+						//const debugCount = candidates.filter(can=>cachedLevel.get(can)?.data).length;
+
+						if (candidates.every((can) => cachedLevel.get(can)?.data)) {
+							// Tile pX,pY from pruneLevel can and will be pruned
+
+							const prunableTile = pruneLevel.get(pruneKey);
+							// this.platina.multiRemove(pruneLevel.get(pruneKey).data);
+							removableSymbols.push(prunableTile.data || []);
+							pruneLevel.delete(pruneKey);
+							/**
+							 * @section
+							 * @event tileprune: TileEvent
+							 * Dispatched when a tile is deleted due to pruning. This happens
+							 * whenever a prunable tile is (a) not the best fit for the current
+							 * map scale and (b) completely covered by tiles from the fitting
+							 * pyramid level.
+							 */
+							this.dispatchEvent(
+								new TileEvent("tileprune", {
+									tileLevel: level,
+									tileX: x,
+									tileY: y,
+									tile: prunableTile,
+								})
+							);
+
+							// console.log("prune", `x${x}y${y}`, '→', pruneKey);
+							//console.log(`${level}x${x}y${y}`, `→ ${pruneLevelName}${pruneKey} ${debugCount}/${candidates.length} → prune`)
+						}
+					}
+				}
+			}
+		});
+
+		this.platina.multiRemove(removableSymbols.flat());
+	}
+
+	// debug
+	get cache() {
+		return this.#cached;
+	}
+}
+
+function defaultPointSymbolizer(feature, geometry) {
+	return [new CircleStroke(geometry), new CircleFill(geometry)];
+}
+
+function defaultLinestringSymbolizer(feature, geometry) {
+	return [new Stroke(geometry)];
+}
+
+function defaultPolygonSymbolizer(feature, geometry) {
+	return [new Stroke(geometry), new Fill(geometry)];
+}
+
+/**
+ * @class GeoJSON
+ * @inherits Loader
+ * @relationship compositionOf GleoSymbol, 0..1, 0..n
+ *
+ * A `Loader` for requesting, parsing and symbolizing data in [GeoJSON format](https://geojson.org/)
+ */
+class GeoJSON extends Loader {
+	#symbols = [];
+
+	/**
+	 * @constructor GeoJSON(json: Object, options: GeoJSON Options)
+	 * Parses the data in the given JSON structure. The JSON must be conformant
+	 * to the GeoJSON specification.
+	 * @alternative
+	 * @constructor KML(blob: Blob, options: KML Options)
+	 * If given a `Blob` (which also includes `File`s), it will be parsed as GeoJSON.
+	 * @alternative
+	 * @constructor GeoJSON(url: URL, options: GeoJSON Options)
+	 * If given a URL object, that URL will be requested, and the returned
+	 * GeoJSON will be parsed.
+	 * @alternative
+	 * @constructor GeoJSON(url: String, options: GeoJSON Options)
+	 * When given a `String`, it will be trated as an `URL`.
+	 */
+	constructor(
+		geojson,
+		{
+			/**
+			 * @section GeoJSON Options
+			 * @option pointSymbolizer: Function = *
+			 * A `Function` that defines how features with a point (or multipoint)
+			 * geometry get transformed into `GleoSymbol`s. It receives the feature
+			 * as its first parameter, an instance of a Gleo `Geometry` as its
+			 * second parameter, and must return an array of `GleoSymbol`s.
+			 *
+			 * When not specified, a default implementation is used. This default
+			 * implementation symbolizes point features with a `CircleFill` and
+			 * a `CircleStroke` with default options.
+			 *
+			 * This function may be called more than once for the same feature.
+			 *
+			 *
+			 * @option lineSymbolizer: Function = *
+			 * Akin to `pointSymbolizer`, but for linestrings (and multilinestrings).
+			 *
+			 * When not specified, the default is to use a default `Stroke`.
+			 *
+			 * @option polygonSymbolizer: Function = *
+			 * Akin to `pointSymbolizer`, but for polygons (and multipolygons).
+			 *
+			 * When not specified, the default is to use default `Stroke` and `Fill`.
+			 */
+			pointSymbolizer = defaultPointSymbolizer,
+			lineSymbolizer = defaultLinestringSymbolizer,
+			polygonSymbolizer = defaultPolygonSymbolizer,
+			...opts
+		} = {}
+	) {
+		super(opts);
+		/**
+		 * @property pointSymbolizer: Function
+		 * The `Function` currently used for turning a feature and one of its
+		 * geometries into a set of `GleoSymbol`s.
+		 * Changing this function during runtime does **not** trigger a
+		 * re-symbolization of the dataset.
+		 * @option lineSymbolizer: Function
+		 * Akin to `pointSymbolizer`, but for linestrings (and multilinestrings).
+		 * @option polygonSymbolizer: Function
+		 * Akin to `pointSymbolizer`, but for polygons (and multipolygons).
+		 */
+		this.pointSymbolizer = pointSymbolizer;
+		this.lineSymbolizer = lineSymbolizer;
+		this.polygonSymbolizer = polygonSymbolizer;
+
+		if (geojson instanceof Blob) {
+			geojson.text().then((json) => {
+				this.#symbols = this._symbolizeFeature(JSON.parse(json));
+				this.fire("symbolsadded", { symbols: this.#symbols });
+				this.target?.multiAdd(this.#symbols);
+			});
+		} else if (geojson.type) {
+			// Assuming a well-formed GeoJSON data structure was received
+			this.#symbols = this._symbolizeFeature(geojson);
+			this.fire("symbolsadded", { symbols: this.#symbols });
+		} else {
+			// Assuming URL, or url-like string
+			let url = geojson instanceof URL ? geojson : new URL(geojson, document.URL);
+
+			fetch(url)
+				.then((response) => response.json())
+				.then((json) => {
+					this.#symbols = this._symbolizeFeature(json);
+					this.fire("symbolsadded", { symbols: this.#symbols });
+					this.target?.multiAdd(this.#symbols);
+				});
+		}
+	}
+
+	addTo(target) {
+		super.addTo(target);
+		return this;
+	}
+
+	_addToPlatina(platina) {
+		super._addToPlatina(platina);
+		this.platina.multiAdd(this.#symbols);
+	}
+
+	remove() {
+		this.platina?.multiRemove(this.#symbols);
+		return super.remove();
+	}
+
+	_symbolizeFeature(feature) {
+		switch (feature.type) {
+			case "Feature":
+				return this._symbolizeFeatureGeometry(feature, feature.geometry);
+			case "FeatureCollection":
+				return feature.features.map(this._symbolizeFeature.bind(this)).flat();
+			default:
+				throw new Error(
+					`Malformed GeoJSON: Expected item of type either FeatureCollection or Feature, but found ${feature.type}`
+				);
+		}
+	}
+
+	_symbolizeFeatureGeometry(feature, geometry) {
+		if (geometry.type === "GeometryCollection") {
+			return geometry.geometries
+				.map((g) => this._symbolizeFeatureGeometry(feature, g))
+				.flat();
+		} else {
+			const gleoGeometry = new LngLat(geometry.coordinates);
+			switch (geometry.type) {
+				case "Point":
+				case "MultiPoint":
+					return this.pointSymbolizer(feature, gleoGeometry);
+
+				case "LineString":
+				case "MultiLineString":
+					return this.lineSymbolizer(feature, gleoGeometry);
+
+				case "Polygon":
+				case "MultiPolygon":
+					return this.polygonSymbolizer(feature, gleoGeometry);
+
+				default:
+					throw new Error(
+						`Malformed GeoJSON: Expected geometry of type either (Multi)Point, (Multi)LineString, (Multi)Polygon or GeometryCollection, but found ${geometry.type}`
+					);
+			}
+		}
+	}
+}
+
+/**
+ * @class AcetateArrugatedRaster
+ * @inherits AcetateConformalRaster
+ *
+ * An `Acetate` that draws warped, reprojected (AKA "arrugated")
+ * RGB(A) raster images.
+ *
+ * Injection of the `proj4js` dependency should be done **before** instantiating
+ * any `ArrugatedRaster`s.
+ */
+
+/// BIG TODO:
+/// Allow deleting ArrugatedRasters
+/// Allow reprojecting (trigger full re-arrugating of all symbols)
+
+class AcetateArrugatedRaster extends ConformalRaster.Acetate {
+	#wireframeColour;
+	#wireframeIndices;
+	#wireframeProgram;
+
+	/**
+	 * @constructor AcetateArrugatedRaster(target: GliiFactory, opts: AcetateArrugatedRaster Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @section AcetateArrugatedRaster Options
+			 * @option wireframeColour: undefined = undefined
+			 * Disables wireframe rendering. This is the default.
+			 * @option wireframeColour: Colour
+			 * Enables wireframe rendering. Wireframe will have the specified
+			 * solid colour. Wireframe rendering is useful for debugging but can
+			 * negatively impact performance.
+			 */
+			wireframeColour = undefined,
+			...opts
+		} = {}
+	) {
+		super(target, { zIndex: -1900, ...opts });
+
+		if (wireframeColour) {
+			this.#wireframeColour = parseCSSColor(wireframeColour);
+			this.#wireframeIndices = new this.glii.WireframeTriangleIndices({
+				type: this.glii.UNSIGNED_INT,
+			});
+		}
+
+		// Redefine the UV attribute buffer since arrugated rasters will have
+		// non-integer UV coordinates between 0 and 1
+		this._uv = new this.glii.SingleAttribute({
+			size: 1,
+			growFactor: 1.2,
+			usage: this.glii.STATIC_DRAW,
+			glslType: "vec2",
+			type: Float32Array,
+			normalized: false,
+		});
+	}
+
+	multiAllocate(symbols, loadedImages) {
+		/// Calculates data for each raster:
+		/// - The initial epsilon, and LoD
+		/// - The minimum epsilon, and LoD (less than half a *raster* pixel, naïvely)
+		/// Then, runs `arrugate` for each LoD
+
+		const platinaCrs = this.platina.crs;
+		if (!platinaCrs) {
+			return;
+		}
+
+		const promises = symbols.map((raster, i) => {
+			/// TODO: Most of this should be moved to reproject(), somehow.
+			const image = loadedImages[i];
+			const rasterCrs = raster.geom.crs;
+			const coords = raster.geom.coords;
+
+			// Data for the CRS coords attribute. Its values will be appended by
+			// arrugator.
+			const pos = [
+				[coords[0], coords[1]],
+				[coords[2], coords[3]],
+				[coords[4], coords[5]],
+				[coords[6], coords[7]],
+			];
+
+			// Data for the UV attribute. Its values will be appended by arrugator.
+			// Note this defines the needed order of vertices
+			const uv = [
+				[0, 0],
+				[0, 1],
+				[1, 0],
+				[1, 1],
+			];
+
+			// Data for the triangle indices. Its values will be appended by arrugator.
+			const trigs = [
+				[0, 1, 3],
+				[0, 3, 2],
+			];
+
+			const arruga = new Arrugator(
+				(coord) => project(rasterCrs.name, platinaCrs.name, coord),
+				pos,
+				uv,
+				trigs
+			);
+
+			let arrugado;
+			let minLoD, maxLoD;
+			// Will store the indices data, to allocate later
+			const idxs = {};
+			// Will store indices allocations, one per LoD
+			const baseIdxs = {};
+			// Will store length of the indices per LoD, to load into symbol
+			const idxLengths = {};
+
+			if (rasterCrs.name === platinaCrs.name) {
+				// Edge case: for equal CRSs, skip arrugation and use a stub instead.
+				arrugado = arruga.output();
+				minLoD = 0;
+				maxLoD = 0;
+				idxs[0] = arrugado.trigs;
+			} else {
+				// The minimum LoD corresponds to the scale which is equal(ish)
+				// to the initial epsilon - which means that, at that scale, the
+				// un-arrugated raster displays with less than a pixel of distortion.
+				minLoD = Math.ceil(Math.log2(Math.sqrt(arruga.epsilon)));
+
+				// Naïve calculation of the maximum LoD - the goal is to stop
+				// calculating subdivisions that are smaller than a raster's pixel.
+				/// TODO: Is there a better method to calculate the maxLoD???
+				const imageSize = Math.max(image.width, image.height);
+				maxLoD = Math.floor(Math.log2(Math.sqrt(arruga.epsilon) / imageSize));
+
+				for (let i = 0; i < raster.forces; i++) {
+					arruga.force();
+				}
+
+				for (let lod = minLoD; lod >= maxLoD; lod--) {
+					const epsilon = Math.pow(2, lod) ** 2;
+
+					arruga.epsilon = epsilon;
+
+					arrugado = arruga.output();
+					idxs[lod] = arrugado.trigs;
+				}
+			}
+
+			const baseAttr = this._attribAllocator.allocateBlock(
+				(raster.attrLength = uv.length)
+			);
+
+			for (let lod = minLoD; lod >= maxLoD; lod--) {
+				/// TODO: Allocate all of the index slots at once??????????
+				/// That would have the benefit of being more "compatible" in
+				/// the symbol (i.e. the symbol has one single contigous block
+				/// of indices), but otherwise the LoD index data ("where do
+				/// each LoD start?") needs to be kept inside the symbol as well.
+				const len = (idxLengths[lod] = idxs[lod].length * 3);
+				baseIdxs[lod] = this._indices.allocateSlots(len);
+				this._indices.set(
+					baseIdxs[lod],
+					idxs[lod].flat().map((i) => i + baseAttr)
+				);
+				this.#wireframeIndices?.set(
+					baseIdxs[lod],
+					idxs[lod].flat().map((i) => i + baseAttr)
+				);
+			}
+
+			raster.updateRefs(this, baseAttr, baseIdxs[minLoD], minLoD, maxLoD);
+			raster._idxLengths = idxLengths;
+			raster._lodBaseIdxs = baseIdxs;
+
+			this._uv.multiSet(baseAttr, uv.flat());
+			this.multiSetCoords(baseAttr, arrugado.projected.flat());
+
+			this._knownSymbols[baseAttr] = raster;
+
+			// Unlike other acetates, ArrugatedRaster does not allocate space
+			// for all symbols at once, but on a one-by-one basis
+			const stridedArrays = this._getStridedArrays(
+				baseAttr + raster.attrLength
+				// baseIdx + totalIndices
+			);
+
+			symbols.map((raster, _i) => {
+				raster._setGlobalStrides(...stridedArrays);
+			});
+
+			this._commitStridedArrays(
+				baseAttr,
+				raster.attrLength /*, baseIdx, totalIndices*/
+			);
+
+			// // Skip AcetateConformalRaster functionality and go directly to
+			// // Acetate functionality.
+			// this.fire("symbolsadded", { symbols: symbols });
+
+			super.multiAddIds([raster], baseAttr);
+
+			// Call grandparent
+			Acetate.prototype.multiAdd.call(this, [raster]);
+
+			// Return dump texture promise
+			return raster.buildTexture(this.glii, image);
+		});
+
+		// The raster data might take time to be dumped into textures
+		// (especifically for GeoTIFFs, since reading a GeoTIFF is async).
+		// Therefore, re-dirty the acetate when the textures are ready.
+		Promise.all(promises).then(() => (this.dirty = true));
+
+		this.dirty = true;
+
+		return this;
+	}
+
+	resize(x, y) {
+		super.resize(x, y);
+
+		if (this.#wireframeColour && !this.#wireframeProgram) {
+			const def = this.glProgramDefinition();
+			const opts = {
+				...def,
+				fragmentShaderMain: `gl_FragColor = uWireframeColour;`,
+				uniforms: {
+					...def.uniforms,
+					uWireframeColour: "vec4",
+				},
+				indexBuffer: this.#wireframeIndices,
+				blend: false,
+			};
+			opts.vertexShaderSource += opts.vertexShaderMain
+				? `\nvoid main(){${opts.vertexShaderMain}}`
+				: "";
+			opts.fragmentShaderSource += opts.fragmentShaderMain
+				? `\nvoid main(){${opts.fragmentShaderMain}}`
+				: "";
+			this.#wireframeProgram = new this.glii.WebGL1Program(opts);
+			this.#wireframeProgram.setUniform(
+				"uWireframeColour",
+				this.#wireframeColour.map((b) => b / 255)
+			);
+			this._programs.addProgram(this.#wireframeProgram);
+		}
+		return this;
+	}
+
+	/**
+	 * Redefinition of the default. Render must happen once per raster, in order
+	 * to load the appropriate textures; also the current CRS scale defines
+	 * which LoD to choose from, once clamped to the symbol's min/max.
+	 */
+	runProgram() {
+		const lod = Math.floor(Math.log2(this.platina.scale));
+
+		this._knownSymbols.forEach((r) => {
+			this._programs.setTexture("uRasterTexture", r.texture);
+
+			// Slightly confusing since minLoD > maxLoD (simpler LoDs are higher)
+			const clampLoD = Math.min(Math.max(lod, r._maxLoD), r._minLoD);
+
+			this._programs.runPartial(r._lodBaseIdxs[clampLoD], r._idxLengths[clampLoD]);
+		});
+	}
+
+	// A full reprojection is easier to handle with a "remove everything, add
+	// everything" approach.
+	reprojectAll() {
+		if (this._crs.name !== this._oldCrs.name) {
+			const loadedRasters = this._knownSymbols.slice();
+			this.multiDeallocate(this._knownSymbols);
+			this._knownSymbols = [];
+			this.multiAdd(loadedRasters);
+		} else {
+			super.reprojectAll();
+		}
+	}
+
+	/// TODO: This only handles reprojection between CRSs with the same name
+	/// (offsets).
+	/// (Reprojecting between CRSs with different name requires a recalculation
+	/// of **all** data for the given rasters. Doing this here leads to problems
+	/// due to modifying an allocation map inside a `forEach()` call.
+	reproject(start, length) {
+		if (this._crs.name !== this._oldCrs.name) {
+			if (Object.keys(this._oldCrs).length === 0) {
+				// Happens at the first render. The data is already projected
+				// in the platina's CRS during `_syncMultiAdd` (which has run earlier).
+				return;
+			} else {
+				throw new Error(
+					"Reprojecting an ArrugatedRaster is unimplemented. Sorry."
+				);
+			}
+		} else {
+			// Manual offsetting of points.
+			/// TODO: Should be applied for the general case, instead of
+			/// per-symbol reprojection???
+
+			const fromOffset = this._oldCrs?.offset ?? [0, 0];
+			const toOffset = this._crs?.offset ?? [0, 0];
+			const offsetX = toOffset[0] - fromOffset[0];
+			const offsetY = toOffset[1] - fromOffset[1];
+
+			let coordSlice = new Float32Array(
+				this._coords._byteData.buffer,
+				start * 8, // Each item is 2 4-byte floats, so 8 bytes per.
+				length * 2
+			);
+
+			coordSlice = coordSlice.map((xy, i) => (i % 2 ? xy - offsetY : xy - offsetX));
+
+			this.multiSetCoords(start, coordSlice);
+		}
+	}
+
+	// Custom implementation of multiDeallocate. The base implementation in
+	// AcetateVertices assumes a symbol has only one indices allocation block; but
+	// ArrugatedRasters have several (one per LoD).
+	multiDeallocate(symbols) {
+		symbols.forEach((symbol) => {
+			const lods = Object.keys(symbol.idxBase).sort();
+			lods.forEach((lod) => {
+				this._indices.deallocateSlots(
+					symbol._lodBaseIdxs[lod],
+					symbol._idxLenghts[lod]
+				);
+			});
+		});
+
+		super.multiDeallocate(symbols);
+	}
+}
+
+/**
+ * @class ArrugatedRaster
+ * @inherits ConformalRaster
+ * @relationship dependsOn AcetateArrugatedRaster
+ *
+ * A warped, reprojected (AKA "arrugated") RGB(A) raster image.
+ *
+ * It's used just as a `ConformalRaster` would, but will work properly when being
+ * reprojected - i.e. when the CRS of the raster's geometry is different from
+ * the map's CRS.
+ */
+
+class ArrugatedRaster extends ConformalRaster {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateArrugatedRaster
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateArrugatedRaster;
+
+	#forces = 0;
+
+	constructor(
+		geom,
+		image,
+		{
+			/**
+			 * @option forces: Number = 0
+			 * The amount of times to force arrugator split for all segments.
+			 * The default of zero should work for rasters with a relative small
+			 * coverage. Rasters who span the whole globe and produce artefacts
+			 * might arrugate better with values between 1 and 4.
+			 */
+			forces = 0,
+			...opts
+		} = {}
+	) {
+		super(geom, image, opts);
+		this.attrLengths = {};
+		this._idxLengths = {};
+		this._lodBaseIdxs = {};
+
+		this.#forces = forces;
+
+		// Lengths are stored elsewhere. By setting this to zero,
+		// the parent functionality for deallocating symbols will still work.
+		this.idxLength = 0;
+	}
+
+	get forces() {
+		return this.#forces;
+	}
+
+	/**
+	 * @section Acetate Interface
+	 * @method updateRefs(ac: AcetateConformalRaster, atb: Number, idx: Object of Number to Number, minLoD: Number, maxLoD: Number): this
+	 * Internal usage only, called from `AcetateConformalRaster`.
+	 *
+	 * An arrugated raster has *several* index slots - one per level of detail
+	 * (AKA "zoom level"). Those indices refer to the same set of vertex attributes
+	 * (i.e. the vertices and their data are completely shared between LoDs).
+	 *
+	 * This method updates the acetate that this raster is being currently drawn
+	 * on, the base vertex attribute slot**s** (`atb`), the base vertex
+	 * index slot**s** (`idx`), and the minimum/maximum LoD (Level of Detail) for
+	 * the data structures (each LoD maps to a CRS scale value, so the acetate
+	 * can chose which set of triangles to render at a given scale).
+	 */
+	updateRefs(ac, atb, idx, minLoD, maxLoD /*, arrugator*/) {
+		this._minLoD = minLoD;
+		this._maxLoD = maxLoD;
+		// this._arrugator = arrugator;
+
+		/// TODO: Should handle idxLengths and lodBaseIdxs as well.
+
+		return super.updateRefs(ac, atb, idx);
+	}
+
+	/// TODO!!!
+	remove() {
+		throw new Error("Unimplemented.");
+	}
+}
+
+/**
+ * @class GeoTIFF
+ * An `AbstractRaster` that fits GeoTIFFs.
+ *
+ * When building from a GeoTIFF URL, this reads the *first* image of a GeoTIFF
+ * file.
+ */
+class GeoTIFF extends AbstractRaster {
+	#tiffImg;
+
+	constructor(tiffImg) {
+		super();
+		this.#tiffImg = tiffImg;
+	}
+
+	static canWrap(obj) {
+		return obj instanceof GeoTIFFImage;
+	}
+
+	static async fromUrl(url) {
+		if (!url.match(/\.(geo)?tif?f/i)) {
+			return Promise.reject();
+		}
+		const tiff = await fromUrl(url);
+		return new GeoTIFF(await tiff.getImage(0));
+	}
+
+	// Must dump the raster object into a new glii texture
+	async asTexture(glii) {
+		const data = await this.#tiffImg.readRasters({
+			interleave: true,
+		});
+
+		let tex;
+		const bands = this.bandCount;
+
+		if (bands === 1 && data instanceof Float32Array) {
+			tex = new glii.Texture({
+				internalFormat: glii.gl.R32F,
+				format: glii.gl.RED,
+				type: glii.FLOAT,
+			});
+		} else if (bands === 4 && data instanceof Uint8Array) {
+			tex = new glii.Texture({
+				internalFormat: glii.RGBA,
+				format: glii.RGBA,
+				type: glii.UNSIGNED_BYTE,
+			});
+		} else {
+			throw new Error(
+				`Cannot create texture from a GeoTIFF with ${bands} bands/samples/channels, and datatype ${data.constructor.name}`
+			);
+		}
+
+		return tex.texArray(this.width, this.height, data);
+	}
+
+	// Returns the width of the raster, in pixels.
+	get width() {
+		return this.#tiffImg.getWidth();
+	}
+
+	// Returns the height of the raster, in pixels.
+	get height() {
+		return this.#tiffImg.getHeight();
+	}
+
+	// Returns the number of channels/bands
+	get bandCount() {
+		return this.#tiffImg.getSamplesPerPixel();
+	}
+
+	// Returns the number of bits per channel/band
+	get bitDepth() {
+		return this.#tiffImg.getBytesPerPixel() * 8;
+	}
+}
+
+known.push(GeoTIFF);
+
+/**
+ * @class GeoTIFFLoader
+ * @inherits Loader
+ *
+ * Loads a single GeoTIFF file (from a URL), automatically handling everything
+ * needed for a default visualization of that GeoTIFF.
+ *
+ * In particular, this handles metadata for the CRS, the min/max values and number
+ * of samples per pixel. It then provides a `ArrugatedRaster`, possibly paired
+ * to a `HeatMap` to provide greyscale rendering.
+ *
+ * Note this works for single GeoTIFFs with *one* image inside. It will not
+ * work for CloudOptimized GeoTIFFs (COGs) or the like.
+ *
+ * Any options not recognized by gleo will be passed on to the GeoTIFF.js library
+ * when requesting a GeoTIFF from a URL.
+ *
+ * @example
+ *
+ * ```
+ * new GeoTIFFLoader('file.tif').addTo(map);
+ *
+ * new GeoTIFFLoader('otherfile.tif', {
+ * 	allowFullFile: true,	// geotiff.js-specific option
+ * 	headers: {}, 	// geotiff.js-specific option
+ * 	maxRanges: 0	// geotiff.js-specific option
+ * }).addTo(map);*
+ * ```
+ */
+
+class GeoTIFFLoader extends Loader {
+	#url;
+	#tiff;
+	#arrugator;
+	#wrapper; // ScalarField (etc) when needed for non-RGBA TIFFs
+
+	#geotiffjsOptions = {};
+
+	/**
+	 * @constructor GeoTIFFLoader(url: String, opts?: GeoTIFFLoader Options)
+	 * Loads the GeoTIFF from the given URL.
+	 * @alternative
+	 * @constructor GeoTIFFLoader(geotiff: GeoTIFF, opts?: GeoTIFFLoader Options)
+	 * Loads the GeoTIFF from a `geotiff.js` instance
+	 */
+	constructor(
+		url,
+		{
+			/**
+			 * TODO:
+			 * section GeoTIFFLoader Options
+			 * option wireframeColour: Colour = undefined
+			 * As the homonymous option in `AcetateArrugatedRaster`. Setting this
+			 * to an actual colour will display the arrugator tesselation as wireframe.
+			 */
+			// wireframeColour = undefined,
+
+			...opts
+		} = {}
+	) {
+		super(opts);
+		this.#url = url;
+		this.#geotiffjsOptions = opts;
+	}
+
+	addTo(target) {
+		// console.log("Adding GeoTIFFLoader to", target.constructor.name, target);
+
+		super.addTo(target);
+		const arrugator = this.#buildArrugatedRaster(this.#url);
+
+		arrugator.then((arr) => {
+			if (target instanceof ScalarField) {
+				const acetate = new ArrugatedRaster.Acetate(target);
+				arr.addTo(acetate);
+			} else if (this.#wrapper) {
+				const acetate = new ArrugatedRaster.Acetate(this.#wrapper);
+				arr.addTo(acetate);
+			} else {
+				arr.addTo(target);
+			}
+		});
+	}
+
+	async #buildArrugatedRaster(url) {
+		const tiff =
+			url instanceof GeoTIFF$1 ? url : await fromUrl(url, this.#geotiffjsOptions);
+
+		// console.log(`Geotiff has ${await tiff.getImageCount()} images`);
+
+		this.#tiff = await tiff.getImage(0);
+
+		const crsCode = "EPSG:" + this.#tiff.getGeoKeys().ProjectedCSTypeGeoKey;
+
+		const crs = await BaseCRS.guessFromCode(crsCode);
+
+		/// TODO: double-check this. Is there another way to fetch the corners?
+		/// How are GeoTIFFs with slanted or rotated worldfiles work????
+		const [minX, minY, maxX, maxY] = this.#tiff.getBoundingBox();
+
+		this.#arrugator = new ArrugatedRaster(
+			new Geometry(crs, [
+				[minX, maxY],
+				[minX, minY],
+				[maxX, maxY],
+				[maxX, minY],
+			]),
+			this.#tiff,
+			{
+				// ...opts
+			}
+		);
+
+		const samples = this.#tiff.getSamplesPerPixel();
+
+		// See geotiff.js/src/globals.js for explanation of values
+		const interpretation = this.#tiff.getFileDirectory().PhotometricInterpretation;
+
+		if (samples === 1) {
+			const minValue = this.#tiff.getFileDirectory().SMinSampleValue;
+			const maxValue = this.#tiff.getFileDirectory().SMaxSampleValue;
+			// const nodata = this.#tiff.getGDALNoData();
+
+			if (interpretation === 0) {
+				// "White is zero"
+				this.#wrapper = new HeatMap(this.platina, {
+					stops: {
+						[minValue - 0.001]: [0, 0, 0, 0],
+						[minValue]: "white",
+						[maxValue]: "black",
+						[maxValue + 0.001]: [0, 0, 0, 0],
+					},
+				});
+			} else if (interpretation === 1) {
+				// "Black is zero"
+				this.#wrapper = new HeatMap(this.platina, {
+					stops: {
+						[minValue - 0.001]: [0, 0, 0, 0],
+						[minValue]: "black",
+						[maxValue]: "white",
+						[maxValue + 0.001]: [0, 0, 0, 0],
+					},
+				});
+			} else if (interpretation === 3) {
+				throw new Error("Cannot (yet) display pallette GeoTIFFs");
+			} else {
+				throw new Error(
+					`Unknown/invalid photogrammetric interpretation for 1-band raster: ${interpretation}`
+				);
+			}
+
+			// Explicitly create an ArrugatedRasterAcetate and add it to the heatmap
+			// const acetate = new ArrugatedRaster.Acetate(this.#wrapper);
+			// this.#arrugator.addTo(acetate);
+		} else if (samples === 3 || samples === 4) ; else {
+			throw new Error(
+				`Cannot (yet) display GeoTIFF with ${samples} samples per pixel`
+			);
+		}
+
+		return this.#arrugator;
+	}
+}
+
+// Returns a `BaseCRS` given the value of the `coordRefSys` property in
+// the JSON-FG structure
+function getCRS(def, fallback) {
+	if (typeof def === "string") {
+		return getCRS$1(def);
+	} else if (def?.href) {
+		return getCRS$1(def.href);
+	} else {
+		return fallback;
+	}
+}
+
+/**
+ * @class JSONFG
+ * @inherits GeoJSON
+ * @relationship compositionOf GleoSymbol, 0..1, 0..n
+ * @relationship dependsOn knownCRSs
+ *
+ * A `Loader` for requesting, parsing and symbolizing data in "OGC Features and
+ * Geometries JSON" format (AKA "OGC JSON-FG"). JSON-FG is OGC's proposal for
+ * extending GeoJSON.
+ *
+ * This Gleo implementation is built according to the *draft* specification as
+ * of 2022-09, from https://docs.ogc.org/DRAFTS/21-045.html .
+ *
+ * GeoJSON files can only contain data in latitude-longitude coordinates, but
+ * JSON-FG allows for other coordinate systems. This Gleo implementation
+ * handles this extra CRS information, so that geometries work as they should.
+ *
+ * Due to technical restrictions, any CRSs referred to in the data **must**
+ * already have a corresponding Gleo `BaseCRS` defined *elsewhere*.
+ */
+class JSONFG extends GeoJSON {
+	/**
+	 * @constructor JSONFG(json: Object, options: JSONFG Options)
+	 * Parses the data in the given JSON structure. The JSON must be conformant
+	 * to the JSON-FG specification.
+	 * @alternative
+	 * @constructor JSONFG(url: URL, options: JSONFG Options)
+	 * If given a URL object, that URL will be requested, and the returned
+	 * JSON-FG will be parsed.
+	 * @alternative
+	 * @constructor JSONFG(url: String, options: JSONFG Options)
+	 * When given a `String`, it will be trated as an `URL`.
+	 */
+	constructor(jsonfg, opts) {
+		super(jsonfg, opts);
+	}
+
+	_symbolizeFeature(feature, crs) {
+		// This rewrites GeoJSON's `_symbolizeFeature`, adding support for the
+		// `place` property, which takes priority over `geometry`.
+		const featCrs = getCRS(feature.coordRefSys, crs);
+
+		switch (feature.type) {
+			case "Feature":
+				if (feature.geometry) {
+					return this._symbolizeFeatureGeometry(feature, feature.geometry);
+				} else if (feature.place) {
+					return this._symbolizeFeaturePlace(feature, feature.place, featCrs);
+				} else {
+					throw new Error("JSON-FG Feature has neither geometry of place.");
+				}
+			case "FeatureCollection":
+				return feature.features
+					.map((feat) => this._symbolizeFeature(feat, featCrs))
+					.flat();
+			default:
+				throw new Error(
+					`Malformed JSON-FG: Expected item of type either FeatureCollection or Feature, but found ${feature.type}`
+				);
+		}
+	}
+
+	_symbolizeFeaturePlace(feature, place, crs) {
+		const geomCrs = getCRS(place.coordRefSys, crs);
+
+		if (place.type === "GeometryCollection") {
+			return place.geometries
+				.map((g) => this._symbolizeFeaturePlace(feature, g, geomCrs))
+				.flat();
+		} else {
+			const gleoGeometry = new Geometry(geomCrs, place.coordinates);
+			switch (place.type) {
+				case "Point":
+				case "MultiPoint":
+					return this.pointSymbolizer(feature, gleoGeometry);
+
+				case "LineString":
+				case "MultiLineString":
+					return this.lineSymbolizer(feature, gleoGeometry);
+
+				case "Polygon":
+				case "MultiPolygon":
+					return this.polygonSymbolizer(feature, gleoGeometry);
+
+				default:
+					throw new Error(
+						`Unsupported/malformed JSON-FG: Expected place of type either (Multi)Point, (Multi)LineString, (Multi)Polygon or GeometryCollection, but found ${place.type}`
+					);
+			}
+		}
+	}
+}
+
+const XMLparser = new window.DOMParser();
+
+// Parses a string containing space-delimited triplets of comma-delimited
+// numerical coordinates. Drops the altitude during `slice(0,2)`.
+// Returns an array of arrays.
+function parseKMLcoordinates(coordStr) {
+	return coordStr
+		.trim()
+		.split(/\s+/)
+		.map((pointString) => pointString.split(",").slice(0, 2).map(Number));
+}
+
+/**
+ * @class KML
+ * @inherits Loader
+ * @relationship compositionOf GleoSymbol, 0..1, 0..n
+ *
+ * A `Loader` for requesting, parsing and symbolizing data in [Keyhole Markup Language](https://en.wikipedia.org/wiki/Keyhole_Markup_Language) (AKA "KML").
+ */
+
+class KML extends Loader {
+	#symbols = [];
+	#url = document.url; // URL of the KML document, if any.
+	#bbox;
+
+	/**
+	 * @constructor KML(gpx: XMLDocument, options: GPX Options)
+	 * Symbolizes the data in the given XML document structure. The XML must
+	 * be conformant to the KML schema.
+	 * @alternative
+	 * @constructor KML(blob: Blob, options: KML Options)
+	 * If given a `Blob` (which also includes `File`s), it will be parsed as KML.
+	 * @alternative
+	 * @constructor KML(url: URL, options: KML Options)
+	 * If given a URL object, that URL will be requested, and the returned
+	 * KML will be parsed.
+	 * @alternative
+	 * @constructor KML(url: String, options: KML Options)
+	 * When given a `String`, it will be trated as an `URL`.
+	 */
+	constructor(
+		kml,
+		{
+			/**
+			 * @section KML Options
+			 */
+			...opts
+		} = {}
+	) {
+		super(opts);
+
+		if (kml instanceof XMLDocument) {
+			// Assuming a well-formed GeoJSON data structure was received
+			this.#syncSymbolizeKml(kml);
+		} else if (kml instanceof Blob) {
+			kml.text()
+				.then((text) => XMLparser.parseFromString(text, "text/xml"))
+				.then(this.#syncSymbolizeKml.bind(this));
+		} else {
+			// Assuming URL, or url-like string
+			this.#url = kml instanceof URL ? kml : new URL(kml, document.URL);
+
+			fetch(this.#url)
+				.then((response) => response.text())
+				.then((text) => XMLparser.parseFromString(text, "text/xml"))
+				.then(this.#syncSymbolizeKml.bind(this));
+		}
+	}
+
+	// As constructor, but parameter MUST be a parsed XML document.
+	#syncSymbolizeKml(xml) {
+		this.#symbols = this._symbolizeKML(xml);
+		if (this.platina) {
+			this.platina.multiAdd(this.#symbols);
+		}
+		/**
+		 * @event load
+		 * Fired when the KML data has been fully loaded ans symbolized.
+		 */
+		this.fire("load");
+	}
+
+	addTo(target) {
+		super.addTo(target);
+		this.platina.multiAdd(this.#symbols);
+		return this;
+	}
+
+	remove() {
+		this.platina.multiRemove(this.#symbols);
+		return super.remove();
+	}
+
+	/**
+	 * @property bbox: ExpandBox
+	 * The minimal bounding box that contains all geometries from all loaded
+	 * symbols.
+	 * The units of this bounding box correspond to the CRS of the `Platina`
+	 * this loader is in.
+	 * @alternative
+	 * @property bbox: undefined
+	 * When this loader is not in any `Platina`, or there are no loaded symbols,
+	 * the bounding box of its loaded symbols is undefined.
+	 */
+	get bbox() {
+		const crs = this.platina?.crs;
+		if (!crs || this.#symbols.length === 0) {
+			return undefined;
+		}
+		if (this.#bbox) {
+			return this.#bbox;
+		}
+
+		this.#bbox = new ExpandBox();
+
+		this.#symbols.forEach((s) => {
+			const coordData = s.geom.toCRS(crs).coords;
+			for (let i = 0, l = coordData.length; i < l; i += 2) {
+				if (Number.isFinite(coordData[i]) && Number.isFinite(coordData[i + 1])) {
+					this.#bbox.expandXY(coordData[i], coordData[i + 1]);
+				}
+			}
+		});
+		return this.#bbox;
+	}
+
+	_symbolizeKML(kmlDoc) {
+		// 1: parse styles
+		// 2: parse stylemaps (and copy normal style to stylemap ref)
+		// 3: parse placemarks
+
+		const styles = new Map(
+			Array.from(kmlDoc.querySelectorAll("Document > Style")).map((styleNode) => {
+				let symbolizers = parseKMLStyle(styleNode, this.#url);
+
+				return [styleNode.id, symbolizers];
+			})
+		);
+
+		// Link stylemaps
+		// A <stylemap> contains a pair of style references: "normal" and "highlight".
+		// All three thingshave an ID (or ID reference) - Gleo will link stuff
+		// so that the stylemap ID holds the same information as the "normal"
+		// style ID ref.
+		Array.from(kmlDoc.querySelectorAll("Document > StyleMap")).forEach((stylemap) => {
+			const stylemapId = stylemap.attributes.id.value;
+			stylemap.querySelectorAll("Pair").forEach((pair) => {
+				if (pair.querySelector("key").textContent === "normal") {
+					const normalStyleId = pair
+						.querySelector("styleUrl")
+						.textContent.replace(/^#/, "");
+					styles.set(stylemapId, styles.get(normalStyleId));
+				}
+			});
+		});
+
+		// There can be `Document > Placemark` and `Document > Folder > Placemark`.
+		// This Gleo loader will just add all of the placemarks, regardless of
+		// whether they're in folders or not.
+		// const placemarks = kmlDoc.querySelectorAll("Document > Placemark");
+		const placemarks = kmlDoc.querySelectorAll("Document Placemark");
+
+		const symbols = Array.from(placemarks).map((placemark) => {
+			// This handles ONLY style URLs. Supposedly this should be able
+			// to handle inline styles as well (by splitting the style parsing
+			// functionality off)
+			const styleRef = placemark
+				.querySelector("styleUrl")
+				?.textContent.replace(/^#/, "");
+			const inlineStyleNode = placemark.querySelector("Style");
+			const symbolizers = styleRef
+				? styles.get(styleRef)
+				: inlineStyleNode
+				? parseKMLStyle(inlineStyleNode, this.#url)
+				: { point: [], line: [], polygon: [] };
+
+			// Most placemarks are a single geometry, but there are MultGeometries
+			// also - so any number of geometries of any dimension are possible.
+			const gleoPointGeoms = [];
+			const gleoLineGeoms = [];
+			const gleoPolygonGeoms = [];
+
+			const pointGeoms = placemark.querySelectorAll("Point");
+			pointGeoms.forEach((pointGeom) => {
+				const coords = pointGeom.querySelector("coordinates").textContent;
+				const [lng, lat /*, alt*/] = coords.split(",").map(Number);
+				gleoPointGeoms.push(new LngLat([lng, lat]));
+			});
+
+			const linestringGeoms = placemark.querySelectorAll("LineString");
+			linestringGeoms.forEach((linestringGeom) => {
+				const coords = linestringGeom.querySelector("coordinates").textContent;
+				const points = parseKMLcoordinates(coords);
+
+				gleoLineGeoms.push(new LngLat(points));
+			});
+
+			const polygonGeoms = placemark.querySelectorAll("Polygon");
+			polygonGeoms.forEach((polygonGeom) => {
+				const outerRing = parseKMLcoordinates(
+					polygonGeom.querySelector(
+						"outerBoundaryIs > LinearRing > coordinates"
+					).textContent
+				);
+
+				const innerRings = Array.from(
+					polygonGeom.querySelectorAll(
+						"innerBoundaryIs > LinearRing > coordinates"
+					)
+				).map((el) => parseKMLcoordinates(el.textContent));
+
+				gleoPolygonGeoms.push(new LngLat([outerRing, ...innerRings]));
+			});
+
+			if (
+				gleoPointGeoms.length === 0 &&
+				gleoLineGeoms.length === 0 &&
+				gleoPolygonGeoms.length === 0
+			) {
+				console.warn("KML placemark has invalid/unrecognized geometry");
+			}
+
+			if (symbolizers) {
+				return [
+					symbolizers.point.map((s) => gleoPointGeoms.map((g) => s(g))),
+					symbolizers.line.map((s) => gleoLineGeoms.map((g) => s(g))),
+					symbolizers.polygon.map((s) => gleoPolygonGeoms.map((g) => s(g))),
+				].flat(2);
+			} else {
+				debugger;
+			}
+		});
+
+		return symbols.flat();
+	}
+}
+
+/**
+ * @class Tile
+ * @inherits GleoSymbol
+ *
+ * @relationship drawnOn AcetateStitchedTiles, 0..n, 0..1
+ *
+ * A rectangular, conformal (i.e. matching the display CRS) RGB(A) raster image,
+ * part of a bigger grid mosaic.
+ *
+ * Users should not use `Tile` symbols directly - in most cases, using
+ * a `RasterTileLoader` will fulfil most of their use cases.
+ */
+
+class Tile extends GleoSymbol {
+	/**
+	 * @section
+	 * A `Tile` needs to be passed a 4-point `Geometry` with its bounds, the
+	 * name of the pyramid level it's in, its X and Y coordinates within the pyramid level,
+	 * and a `HTMLImageElement`
+	 *
+	 * @constructor Tile(geom: RawGeometry, levelName: String, tileX: Number, tileY: Number)
+	 */
+	constructor(geom, levelName, tileX, tileY, image) {
+		super(geom);
+
+		this.level = levelName;
+		this.tileX = tileX;
+		this.tileY = tileY;
+		this.image = image;
+
+		this.attrLength = 4;
+		this.idxLength = 6;
+	}
+}
+
+/**
+ * @class RasterTileLoader
+ * @inherits AbstractTileLoader
+ * @relationship compositionOf AcetateStitchedTiles, 1..1, 1..1
+ *
+ * Loads raster tiles, according to a Gleo `TilePyramid` and a callback function
+ * that returns tiles given the tile coordinates.
+ *
+ * Will automatically spawn an `AcetateStitchedTiles`.
+ *
+ */
+class RasterTileLoader extends AbstractTileLoader {
+	#boundOnLevelExpelled;
+
+	// Tile and tile request cache.
+	// Raster tile loaders use a sliding window - the cache holds a tile on
+	// a position given by the modulo of the tile XY coordinate.
+	// The cache itself is a simple key-value JS object, keyed by the names
+	// of the pyramid levels.
+	// Each value is an `Array` of tiles/tile requests. The array is 1-dimensional,
+	// and has a set maximum size (tileWrapX times tileWrapY);  the index of
+	// the array comes from the tile coordinates modulo tileWrapX/tileWrapY.
+	// Each tile/tile request is a JS object of the form: {x, y, req, data, abortController}
+	#cached = {};
+
+	#opts = {};
+	#zIndex = 0;
+	#tileFn;
+	#fallback;
+	#retry;
+
+	#pendingReqs = 0;
+	#lastLevel;
+	#fadeInDuration;
+	#cleanupTimeout;
+
+	/**
+	 * @section
+	 *
+	 * A `RasterTileLoader` needs a `TilePyramid` and a function that, given the
+	 * pyramid level ("`z`"), the coordinates of a tile within that level
+	 * ("`x`" and "`y`"), and an instance of `AbortController`, returns an
+	 * instance of `HTMLImageElement`, or a `Promise` to such an image. The
+	 * promise should be rejected whenever the abort controller's signal is
+	 * activated.
+	 *
+	 * @constructor TileLoader(pyramid:TilePyramid, tileFn: Function, opts: TileLoader Options)
+	 */
+	constructor(
+		pyramid,
+		fn,
+		{
+			/// FIXME: tile resolution is per pyramid level, not global!!
+			/**
+			 * @section TileLoader Options
+			 * @option tileResX: Number = 256; Horizontal size, in source raster pixels, of each tile.
+			 * @alternative
+			 * @option tileResX: Object of String to Number
+			 * A map of level identifier to horizontal raster size (in source raster pixels).
+			 * e.g. `{"0": 512, "1": 256}`
+			 * @option tileResY: Number = 256; Vertical size, in source raster pixels, of each tile.
+			 * @option tileResY: Object of String to Number
+			 * A map of level identifier to vertical raster size (in source raster pixels).
+			 * e.g. `{"0": 512, "1": 256}`
+			 * @option zIndex: Number = -5500; The z-index of the acetate for these tiles.
+			 */
+			tileResX = 256,
+			tileResY = 256,
+
+			zIndex = -5500,
+
+			/**
+			 * @option fallback: HTMLImageElement
+			 * An image to use as fallback is loading a tile fails.
+			 * @alternative
+			 * @option fallback: URL
+			 * Idem, but using the `URL` to an image.
+			 * @alternative
+			 * @option fallback: String
+			 * Idem, but using a `String` containing a URL
+			 */
+			fallback,
+
+			/**
+			 * @option retry: Boolean = false
+			 * When `true`, tiles that failed to load will be re-requested
+			 * the next time the tile extent changes (i.e. moving the map enough
+			 * so that new tiles become visible). This can potentially
+			 * lead to lots of requests for missing tiles.
+			 */
+			retry = false,
+
+			/// TODO: Additional option to enable/disable scale snap points
+
+			/**
+			 * @section Options passed to spawned acetate
+			 * A `RasterTileLoader` creates a `AcetateStitchedTiles` under the hood.
+			 * The following options are passed through to this acetate.
+			 * @option interpolate: Boolean = false
+			 * Whether to use bilinear pixel interpolation or not.
+			 *
+			 * In other words: `false` means pixellated, `true` means smoother.
+			 * @option fadeInDuration: Number = 250
+			 * Duration, in milliseconds, of the tile fade-in animation.
+			 * @option maxLoadedLevels: Number = 3
+			 * Number of maximum tile levels to keep loaded in their textures.
+			 * Higher values can provide a slightly better experience when
+			 * zooming in and out, but will use more GPU RAM.
+			 * @option resizablePlatina: Boolean = true
+			 * Whether the platina can be expected to be resized up to the size
+			 * of the screen. When `false`, less GPU RAM is used for the textures.
+			 */
+			fadeInDuration = 250,
+
+			...opts
+		} = {}
+	) {
+		super(pyramid, opts);
+
+		this.#boundOnLevelExpelled = this.#onLevelExpelled.bind(this);
+		this.#tileFn = fn;
+		this.#tileResX = tileResX;
+		this.#tileResY = tileResY;
+		this.#zIndex = zIndex;
+		this.#opts = opts;
+		if (fallback) {
+			this.#fallback = imagePromise(fallback);
+		} else {
+			this.#fallback;
+		}
+		this.#retry = retry;
+		this.#fadeInDuration = fadeInDuration;
+	}
+
+	#tileResX;
+	#tileResY;
+	// 	#textureSizeX;
+	// 	#textureSizeY;
+
+	addTo(target) {
+		super.addTo(target);
+
+		let maxTileSize = 0;
+		if (isFinite(this.#tileResX)) {
+			maxTileSize = this.#tileResX;
+		} else {
+			maxTileSize = Math.max.apply(null, Object.values(this.#tileResX));
+		}
+		if (isFinite(this.#tileResY)) {
+			maxTileSize = Math.max(maxTileSize, this.#tileResY);
+		} else {
+			maxTileSize = Math.max.apply(null, Object.values(this.#tileResY));
+		}
+
+		const minTextureSize =
+			// 	this.platina.resizable && typeof screen !== undefined
+			// 		? getMaxScreenSize() :
+			Math.max.apply(null, this.platina.pxSize) + maxTileSize;
+		// const minTextureSize = 1024;
+
+		this._ac = new AcetateStitchedTiles(this.platina.glii, {
+			...this.#opts,
+
+			pyramid: this.pyramid,
+			tileResX: this.#tileResX,
+			tileResY: this.#tileResY,
+			minTextureSize,
+			// textureSizeX: this.#textureSizeX,
+			// textureSizeY: this.#textureSizeY,
+			zIndex: this.#zIndex,
+			fadeInDuration: this.#fadeInDuration,
+		});
+		if (target.addAcetate) {
+			target.addAcetate(this._ac);
+			this._ac._platina = this.platina;
+		} else {
+			this.platina.addAcetate(this._ac);
+		}
+
+		this.pyramid.forEachLevel((_name, def) => {
+			this.platina.setScaleStop(this.pyramid.crs.name, def.scale);
+		});
+
+		//this.platina.on("viewchanged", this._boundOnViewChange);
+		this._ac.on("levelexpelled", this.#boundOnLevelExpelled);
+
+		if (target.actuators && target.actuators.get("zoomsnap")) {
+			// Trigger the map setter, and thus the ZoomYawSnapActuator functionality
+			target.scale = target.scale;
+		}
+
+		this._boundOnViewChange();
+
+		return this;
+	}
+
+	remove() {
+		this._ac.off("levelexpelled", this.#boundOnLevelExpelled);
+
+		/// remove acetate from map
+		this._ac.destroy();
+
+		super.remove();
+		/// TODO: Remove the scale stops
+		return this;
+	}
+
+	_abortLevel(level) {
+		this.#cached[level].forEach(({ data, abortController, x, y }) => {
+			if (!data) {
+				abortController?.abort();
+				// console.log("aborted", level, x, y);
+			}
+		});
+	}
+
+	_onRangeChange(level, minX, minY, maxX, maxY) {
+		if (!this.#cached[level]) {
+			// Init cache for level
+			// console.log("Create tile cache for level", level);
+			const levelInfo = this._ac.getLevelsInfo()[level];
+			this.#cached[level] = new Array(levelInfo.wrapX * levelInfo.wrapY)
+				.fill(0)
+				.map(() => {
+					return {
+						x: undefined,
+						y: undefined,
+						req: undefined,
+						data: undefined,
+						abortController: undefined,
+					};
+				});
+		}
+
+		const cachedLevel = this.#cached[level];
+		this.#lastLevel = level;
+
+		// console.log(cachedLevel);
+
+		const { spanX, spanY } = this.pyramid.getLevelDef(level);
+
+		if ((maxX - minX) * (maxY - minY) > 256) {
+			// This amount of tiles shouldn't appear during normal operation
+			console.warn("Attempted to load too many raster tiles");
+			return;
+		}
+
+		// Abort tiles outside the range, by looping through all
+		// the cache slots in the current level.
+		cachedLevel.forEach(({ x, y, abortController }) => {
+			// Check if the request is outside the range,
+			// accounting for the non-trivial case of comparing
+			// a maxX that wraps around spanX
+			if (
+				(maxX > spanX ? x < minX && x > maxX % spanX : x < minX || x > maxX) ||
+				(maxY > spanY ? y < minY && y > maxY % spanY : y < minY || y > maxY)
+			) {
+				// console.log("Aborting", cachedLevel, x, y);
+				/// Abort tiles in the level, but outside the range.
+				abortController?.abort();
+			}
+		});
+
+		let levelInfo = this._ac.getLevelsInfo()[level];
+		// const reqCount = 0;
+
+		// Load tiles inside the range, by looping through the range.
+		for (let i = minX; i < maxX; i++) {
+			for (let j = minY; j < maxY; j++) {
+				const x = i % spanX;
+				const y = j % spanY;
+
+				const xmod = (x % levelInfo.wrapX) * levelInfo.wrapY;
+				const ymod = y % levelInfo.wrapY;
+				const cacheSlot = cachedLevel[xmod + ymod];
+
+				if (
+					cacheSlot.x !== x ||
+					cacheSlot.y !== y ||
+					cacheSlot.abortController?.signal?.aborted
+				) {
+					cacheSlot.abortController?.abort();
+					cacheSlot.data = undefined;
+					cacheSlot.x = x;
+					cacheSlot.y = y;
+
+					const abortController = (cacheSlot.abortController =
+						new AbortController());
+					const req = (cacheSlot.req = Promise.resolve(
+						this.#tileFn(level, x, y, abortController)
+					));
+
+					this.#pendingReqs++;
+
+					req.then((data) => {
+						this.#decreasePendingReqs();
+						const [lastMinX, lastMinY, lastMaxX, lastMaxY] =
+							this.currentRange;
+
+						/// Async, so compare against the current range, not the range
+						/// inside the closure
+						if (
+							this.currentLevel !== level ||
+							i < lastMinX ||
+							i > lastMaxX ||
+							j < lastMinY ||
+							j > lastMaxY
+						) {
+							// Async, non-abortable tile finished loading when
+							// the viewport already changed
+							return;
+						}
+						cacheSlot.data = data;
+						this._onTileLoad(level, x, y, data);
+
+						// this.#prune(level, x, y);
+					}).catch((err) => {
+						this.#decreasePendingReqs();
+						const [lastMinX, lastMinY, lastMaxX, lastMaxY] =
+							this.currentRange;
+						if (
+							this.currentLevel !== level ||
+							i < lastMinX ||
+							i > lastMaxX ||
+							j < lastMinY ||
+							j > lastMaxY
+						) {
+							// Async, non-abortable tile failed when
+							// the viewport already changed
+							return;
+						}
+
+						if (this.#retry) {
+							// Invalidate this cache slot
+							cacheSlot.x = NaN;
+							cacheSlot.y = NaN;
+							cacheSlot.data = undefined;
+						}
+
+						if (this.#fallback) {
+							this.#fallback.then((f) =>
+								this._onTileLoad(level, x, y, f, true)
+							);
+						} else {
+							this._onTileError(level, x, y, err);
+						}
+					});
+				}
+			}
+		}
+		// console.log("range change; pending:", this.#pendingReqs);
+
+		if (this.#pendingReqs) {
+			clearTimeout(this.#cleanupTimeout);
+		}
+	}
+
+	_onTileLoad(level, x, y, img, isFallback = false) {
+		const bounds = this.pyramid.tileCoordsToBbox(level, [x, y]);
+		const geom = new Geometry(
+			this.pyramid.crs,
+			[
+				[bounds[0], bounds[1]],
+				[bounds[2], bounds[1]],
+				[bounds[2], bounds[3]],
+				[bounds[0], bounds[3]],
+			],
+			{ wrap: false }
+		);
+		this._ac.add(new Tile(geom, level, x, y, img));
+		if (isFallback) {
+			super._onTileError(level, x, y);
+		} else {
+			super._onTileLoad(level, x, y, img);
+		}
+	}
+
+	#decreasePendingReqs() {
+		this.#pendingReqs--;
+
+		// console.log("pending:", this.#pendingReqs);
+		if (this.#pendingReqs == 0) {
+			this.#cleanupTimeout = setTimeout(() => {
+				// console.log("cleanup");
+				// Tell the acetate to destroy textures
+				this._ac.destroyHigherScaleLevels(this.#lastLevel);
+
+				// Mark tiles from those levels as invalid
+				const acLevels = this._ac.getLevelsInfo();
+				const scale = acLevels[this.#lastLevel].scale;
+
+				Object.entries(acLevels).forEach(([name, level]) => {
+					if (level.scale < scale) {
+						delete this.#cached[name];
+					}
+				});
+				// console.log(this.#cached);
+			}, this.#fadeInDuration);
+		}
+	}
+
+	#onLevelExpelled(ev) {
+		const level = ev.detail.levelName;
+
+		/// TODO: Expel the level from the acetate (mark as unavailable, free the texture, etc)
+		delete this.#cached[level];
+
+		//console.log("Level invalidated", ev.detail.levelName);
+	}
+}
+
+/**
+ * @class MercatorTiles
+ * @inherits RasterTileLoader
+ * @relationship compositionOf epsg3857, 0..n, 1..1
+ *
+ * Convenience wrapper for `RasterTileLoader`. Loads tilesets in the de-facto
+ * standard for Web Mercator tiles.
+ *
+ * This aims to expose a minimalistic Leaflet-like API, instead of needing to use
+ * a configurable `TilePyramid` like `TileLoader` does.
+ *
+ * @example
+ *
+ * ```js
+ * new MercatorTiles("https://tile.osm.org/{z}/{y}/{x}.png", {
+ * 	maxZoom: 10,
+ * 	attribution: "<a href='http://osm.org/copyright'>© OpenStreetMap contributors</a>",
+ * }).addTo(myGleoMap);
+ * ```
+ */
+class MercatorTiles extends RasterTileLoader {
+	/**
+	 * @constructor MercatorTiles(templateStr: String, options: MercatorTiles Options)
+	 */
+	constructor(templateStr, options = {}) {
+		/**
+		 * @section
+		 * @aka MercatorTiles Options
+		 * @option minZoom: Number = 0
+		 * The minimum zoom level for tiles to be loaded.
+		 * @option maxZoom: Number = 18
+		 * The maximum zoom level for tiles to be loaded.
+		 * @option tileSize: Number = 256
+		 * The size of the tiles, **in CSS pixels**.
+		 */
+		const pyramid = create3857Pyramid(
+			options.minZoom || 0,
+			options.maxZoom || 18,
+			options.tileSize || 256
+		);
+
+		function fetchImage(z, x, y, controller) {
+			return abortableImagePromise(
+				template(templateStr, { x, y, z, ...options }),
+				controller
+			);
+		}
+
+		super(pyramid, fetchImage, options);
+	}
+}
+
+/**
+ * @class MovingFeaturesJSON
+ * @inherits Loader
+ *
+ * A `Loader for requesting, parsing and symbolizing data in
+ * [Moving Features JSON](https://github.com/opengeospatial/mf-json) standard format.
+ *
+ *
+ */
+
+class MovingFeaturesJSON extends Loader {
+	#symbols = [];
+
+	/**
+	 * @constructor MovingFeaturesJSON(json: Object, options: MovingFeaturesJSON Options)
+	 * Parses the data in the given JSON structure. The JSON must be conformant
+	 * to the MovingFeaturesJSON specification.
+	 * @alternative
+	 * @constructor MovingFeaturesJSON(blob: Blob, options: MovingFeaturesJSON Options)
+	 * If given a `Blob` (which also includes `File`s), it will be parsed as MovingFeaturesJSON.
+	 * @alternative
+	 * @constructor MovingFeaturesJSON(url: URL, options: MovingFeaturesJSON Options)
+	 * If given a URL object, that URL will be requested, and the returned
+	 * MovingFeaturesJSON will be parsed.
+	 * @alternative
+	 * @constructor MovingFeaturesJSON(url: String, options: MovingFeaturesJSON Options)
+	 * When given a `String`, it will be trated as an `URL`.
+	 */
+	constructor(
+		mfjson,
+		{
+			/**
+			 * @section MovingFeaturesJSON Options
+			 * @option movingPointSymbolizer: Function = *
+			 * A `Function` that defines how features with a Moving Point
+			 * temporal geometry get transformed into `GleoSymbol`s.
+			 *
+			 * Must return an array of (zero or more) `GleoSymbol`s.
+			 *
+			 * When not specified, a default implementation is used. This default
+			 * implementation symbolizes point features with a `CircleFill` and
+			 * a `CircleStroke` with default options.
+			 *
+			 */
+			movingPointSymbolizer,
+
+			...opts
+		} = {}
+	) {
+		super(opts);
+
+		this.movingPointSymbolizer = movingPointSymbolizer;
+
+
+		if (geojson instanceof Blob) {
+			geojson.text().then((json) => {
+				this.#symbols = this._symbolizeFeature(JSON.parse(json));
+				this.fire("symbolsadded", { symbols: this.#symbols });
+				this.target?.multiAdd(this.#symbols);
+			});
+		} else if (geojson.type) {
+			// Assuming a well-formed GeoJSON data structure was received
+			this.#symbols = this._symbolizeFeature(geojson);
+			this.fire("symbolsadded", { symbols: this.#symbols });
+		} else {
+			// Assuming URL, or url-like string
+			let url = geojson instanceof URL ? geojson : new URL(geojson, document.URL);
+
+			fetch(url)
+				.then((response) => response.json())
+				.then((json) => {
+					this.#symbols = this._symbolizeFeature(json);
+					this.fire("symbolsadded", { symbols: this.#symbols });
+					this.target?.multiAdd(this.#symbols);
+				});
+		}
+
+	}
+
+
+	// As per the spec:
+	// An instant object is only a JSON string encoded by ISO 8601 field-based formats using Z or the number of milliseconds since midnight (00:00 a.m.) on January 1, 1970, in UTC
+	// This returns the milliseconds since unix epoch.
+	_parseDatetime(datetime) {
+		if (typeof datetime === "Number") {return datetime;}
+		if (typeof datetime === "String") {return Date.parse(datetime);}
+	}
+
+
+	_setMinMaxTimestamp(feature) {
+		let minmax = this._getMinMaxTimestamp(feature);
+		this.minTimestamp = minmax[0];
+		this.maxTimestamp = minmax[1];
+	}
+
+	// Returns an array of the form [min, max] with the mininum/maximum timestamps
+	// for that feature.
+	_getMinMaxTimestamp(feature) {
+		switch (feature.type) {
+			case "Feature":
+				return [
+					this._parseDatetime(feature.datetimes[0]),
+					this._parseDatetime(feature.datetimes[feature.datetimes.length -1])
+				];
+			case "FeatureCollection":
+				let min = Infinity;
+				let max = -Infinity;
+				for (f of feature.features) {
+					const [minF, maxF] = this._getMinMaxTimestamp(f);
+					min = Math.min(min, minF);
+					max = Math.max(min, maxF);
+				}
+				return [min, max];
+			default:
+				throw new Error(
+					`Malformed GeoJSON: Expected item of type either FeatureCollection or Feature, but found ${feature.type}`
+				);
+		}
+	}
+
+
+	_symbolizeFeature(feature) {
+		switch (feature.type) {
+			case "Feature":
+				return this._symbolizeFeatureGeometry(feature, feature.temporalGeometry);
+			case "FeatureCollection":
+				return feature.features.map(this._symbolizeFeature.bind(this)).flat();
+			default:
+				throw new Error(
+					`Malformed GeoJSON: Expected item of type either FeatureCollection or Feature, but found ${feature.type}`
+				);
+		}
+	}
+
+	_symbolizeFeatureGeometry(feature, temporalGeometry) {
+		// if (geometry.type === "GeometryCollection") {
+		// 	return geometry.geometries
+		// 		.map((g) => this._symbolizeFeatureGeometry(feature, g))
+		// 		.flat();
+		// } else {
+			const gleoGeometry = new LngLat(temporalGeometry.coordinates);
+
+			const mcoords = temporalGeometry.datetimes.map(d=>
+				this._parseDatetime(d) - this.minTimestamp
+			);
+
+			switch (temporalGeometry.type) {
+				case "MovingPoint":
+					return this.movingPointSymbolizer(feature, gleoGeometry, mcoords);
+
+				default:
+					throw new Error(
+						`Unsupported temporal geometry type (expected 'MovingPoint' but found '${geometry.type}')`
+					);
+			}
+		// }
+	}
+
+}
+
+/**
+ * @class ProtoMapsLoader
+ * @inherits Loader
+ *
+ * Loader for ProtoMaps vector tiles. See https://protomaps.com/ .
+ *
+ * It assumes a EPSG:3857 pyramid.
+ */
+
+class ProtoMapsLoader extends Loader {
+	#symbolizers = {};
+
+	#defaultSymbolizer;
+
+	#onEachFeature;
+	// #fetchOptionsForTile;
+
+	#pmtiles; // The PMTiles instance
+
+	// A GenericVectorTileLoader, init'd once the pmtiles metadata is loaded.
+	#tileLoader;
+
+	/**
+	 * @constructor ProtobufVectorTileLoader(pyramid: TilePyramid, templateStr: String, symbolyzer: Function, opts?: ProtobufVectorTileLoader options)
+	 */
+	constructor(
+		source,
+		{
+			/**
+			 * @option symbolizers: Obect of String to Function
+			 *
+			 * A key-value map of symbolizer callback functions. The keys
+			 * must be the names of the themes in the tileset (e.g. `"roads"` or
+			 * `"natural"`), the values must be symbolizer functions that must
+			 * return an array of zero or more `GleoSymbol`s.
+			 */
+			symbolizers = {},
+
+			/**
+			 * @option defaultSymbolizer: Function
+			 *
+			 * A callback symbolizer function used whenever there is no matching entry in
+			 * `symbolizers`. It must return an array of zero or more `GleoSymbol`s.
+			 */
+			defaultSymbolizer = undefined,
+
+			/**
+			 * @option tileSize: Number = 256
+			 * The expected size of the tiles, in CSS pixels
+			 */
+			tileSize = 256,
+
+			...opts
+		} = {}
+	) {
+		// super(pyramid, this.#tileFn.bind(this), opts);
+
+		super();
+
+		this.#pmtiles = new PMTiles(source);
+		this.#symbolizers = symbolizers;
+		this.#defaultSymbolizer = defaultSymbolizer ?? function () {};
+
+		this.#tileLoader = this.#pmtiles.getMetadata().then((metadata) => {
+			// Get min/max zoom level from vector_layers metadata
+			let minZoom = Infinity;
+			let maxZoom = -Infinity;
+
+			console.log(metadata);
+
+			metadata.vector_layers.forEach((l) => {
+				minZoom = Math.min(minZoom, l.minzoom);
+				maxZoom = Math.max(maxZoom, l.maxzoom);
+			});
+
+			const pyramid = create3857Pyramid(minZoom, maxZoom, tileSize);
+
+			return new GenericVectorTileLoader(pyramid, this.#tileFn.bind(this));
+		});
+
+		this.#tileLoader.then(console.log);
+
+		// super(pyramid, undefined, opts);
+		// this._tileFn = this.#tileFn;
+		// this.#symbolizer = symbolizer;
+		// this.#templateStr = templateStr;
+		//
+		// this.#onEachFeature = onEachFeature;
+		// this.#fetchOptionsForTile = fetchOptionsForTile;
+	}
+
+	/**
+	 * @property tileLoader: Promise to AbstractTileLoader
+	 * Resolves to the underlying tile loader, once the metadata for the
+	 * PMTiles source has been loaded.
+	 */
+	get tileLoader() {
+		return this.#tileLoader;
+	}
+
+	addTo(target) {
+		/// FIXME: cover edge case of adding then immediately removing a ProtoMapsLoader
+		this.#tileLoader.then((tileloader) => tileloader.addTo(target));
+		super.addTo(target);
+	}
+
+	remove() {
+		this.#tileLoader.then((tileloader) => tileloader.remove());
+		super.remove();
+	}
+
+	async #tileFn(z, x, y, controller) {
+		const pmtile = await this.#pmtiles.getZxy(z, x, y, controller.signal);
+
+		// Parse the mapbox-style protobuffer vector tile
+		const tile = new VectorTile(new Pbf(pmtile.data));
+
+		const pyramid = (await this.#tileLoader).pyramid;
+		const bbox = pyramid.tileCoordsToBbox(z, [x, y]);
+
+		const symbols = Object.entries(tile.layers)
+			.map(([themeName, theme]) => {
+				const extent = theme.extent;
+				const themeSymbols = [];
+				const symbolizer =
+					this.#symbolizers[themeName] ?? this.#defaultSymbolizer;
+				const numericZoom = +z;
+
+				// console.log("tileFn", z, x, y, themeName, theme.length);
+
+				if (symbolizer) {
+					for (let i = 0; i < theme.length; i++) {
+						const feat = theme.feature(i);
+						// const coords = feat.loadGeometry();
+						// const geom = this.#normalizeGeom(extent, bbox, coords, feat.type);
+						const geom = loadProtobufferRawGeometry(
+							pyramid.crs,
+							feat,
+							bbox,
+							extent
+						);
+
+						const geomType =
+							feat.type === 1
+								? "Point"
+								: feat.type === 2
+								? "LineString"
+								: feat.type === 3
+								? "Polygon"
+								: "Unknown";
+
+						const symbols = symbolizer(geom, {
+							$type: geomType,
+							"geometry-type": geomType,
+							$zoom: numericZoom,
+							...feat.properties,
+						});
+
+						this.#onEachFeature?.(symbols, geom, themeName, feat.properties);
+
+						themeSymbols[i] = symbols;
+					}
+				}
+				return themeSymbols.flat();
+			})
+			.flat();
+
+		return symbols;
+	}
+}
+
+/**
+ * @class ProtobufVectorTileLoader
+ * @inherits GenericVectorTileLoader
+ *
+ * Loader for protobuffer (`.pbf`) vector tiles. Also known as "MVT"
+ * (mapbox/maplibre vector tiles).
+ *
+ * Requires:
+ * * A `TilePyramid`
+ * * A tile URL template (as `RasterTileLoader`), and
+ * * A function that takes a vector feature (theme/"layer", geometry and attributes)
+ * and returns an array of `GleoSymbol`s.
+ *
+ * @example
+ *
+ * ```
+ * let vectorTiles = new ProtobufVectorTileLoader(
+ * 	pyramid,
+ * 	"https://api.maptiler.com/tiles/v3-openmaptiles/{z}/{x}/{y}.pbf?key=API_KEY_GOES_HERE",
+ * 	function (themeName, geom, attrs) {
+ * 		if (themeName === "water") {
+ * 			return [ new Fill(geom, {
+ * 				colour: [0, 0, 128, 128],
+ * 				interactive: true,
+ * 			})];
+ * 		} else {
+ * 			return [];
+ * 		}
+ * 	}, {
+ * 		attribution: "MapTiler, OpenStreetMap"
+ * 	}
+ * ).addTo(gleoMap);
+ * ```
+ *
+ */
+
+/// TODO: Allow for arbitrary options in template string, leaflet-style????
+
+class ProtobufVectorTileLoader extends GenericVectorTileLoader {
+	#symbolizer;
+	#templateStr;
+
+	#onEachFeature;
+	#fetchOptionsForTile;
+
+	/**
+	 * @constructor ProtobufVectorTileLoader(pyramid: TilePyramid, templateStr: String, symbolyzer: Function, opts?: ProtobufVectorTileLoader options)
+	 */
+	constructor(
+		pyramid,
+		templateStr,
+		symbolizer,
+		{
+			/**
+			 * @option onEachFeature: Function
+			 * Callback function that will be called just after each feature has
+			 * been symbolized.
+			 * The callback function will receive `(symbols, geometry, themeName, attributes)`
+			 * as parameters. The callback will not be called if a vector tile
+			 * feature was filtered out or otherwise was symbolized to zero symbols.
+			 */
+			onEachFeature = undefined,
+
+			/**
+			 * @option fetchOptionsForTile: Function = undefined
+			 * Optional callback function for supplying custom fetch options, given
+			 * the tile coordinates (`level`, `x` and `y`).
+			 *
+			 * The return value of this callback must be a set of fetch options,
+			 * as per the `options` parameter in https://developer.mozilla.org/en-US/docs/Web/API/fetch .
+			 *
+			 */
+			fetchOptionsForTile = undefined,
+			...opts
+		} = {}
+	) {
+		// super(pyramid, this.#tileFn.bind(this), opts);
+		super(pyramid, undefined, opts);
+		this._tileFn = this.#tileFn;
+		this.#symbolizer = symbolizer;
+		this.#templateStr = templateStr;
+
+		this.#onEachFeature = onEachFeature;
+		this.#fetchOptionsForTile = fetchOptionsForTile;
+	}
+
+	#tileFn(z, x, y, controller) {
+		const headers =
+			this.#fetchOptionsForTile === undefined
+				? {}
+				: this.#fetchOptionsForTile(z, x, y);
+
+		return fetch(template(this.#templateStr, { x, y, z }), {
+			...headers,
+			signal: controller.signal,
+		}).then(async (res) => {
+			const tile = new VectorTile(new Pbf(await res.arrayBuffer()));
+			const bbox = this.pyramid.tileCoordsToBbox(z, [x, y]);
+
+			const numericZoom = Number(z);
+			// A tile has themes (landuse/roads/built-up/etc), which
+			// VectorTile calls "layers".
+
+			const symbols = Object.entries(tile.layers)
+				.map(([themeName, theme]) => {
+					const extent = theme.extent;
+					const themeSymbols = [];
+
+					for (let i = 0; i < theme.length; i++) {
+						const feat = theme.feature(i);
+						// const coords = feat.loadGeometry();
+						// const geom = this.#normalizeGeom(extent, bbox, coords, feat.type);
+						const geom = loadProtobufferRawGeometry(
+							this.pyramid.crs,
+							feat,
+							bbox,
+							extent
+						);
+
+						const geomType =
+							feat.type === 1
+								? "Point"
+								: feat.type === 2
+								? "LineString"
+								: "Polygon";
+
+						const symbols = this.#symbolizer(themeName, geom, {
+							$type: geomType,
+							"geometry-type": geomType,
+							$zoom: numericZoom,
+							...feat.properties,
+						});
+
+						this.#onEachFeature?.(symbols, geom, themeName, feat.properties);
+
+						themeSymbols[i] = symbols;
+					}
+					return themeSymbols.flat();
+				})
+				.flat();
+
+			return symbols;
+		});
+	}
+}
+
+/**
+ * @class SymbolGroup
+ * @inherits AbstractSymbolGroup
+ *
+ * Akin to Leaflet's `LayerGroup`. Groups symbols together so that they can be
+ * added to/removed  at once by adding/removing the symbol group. Symbols can be
+ * added to/removed from the group as well.
+ *
+ * In addition to symbols, accepts nested `Loader`s.
+ *
+ * For grouping symbols relating to the same geographical feature, use `MultiSymbol`
+ * instead.
+ */
+
+class SymbolGroup extends AbstractSymbolGroup {
+	addTo(target) {
+		super.addTo(target);
+		this.target.multiAdd(Array.from(this.symbols));
+		return this;
+	}
+
+	// _addToPlatina(p) {
+	// 	super._addToPlatina(p);
+	// 	p.multiAdd(this.symbols);
+	// }
+
+	_addSymbols(symbols) {
+		super._addSymbols(symbols);
+		this.target?.multiAdd(symbols);
+		this.fire("symbolsadded", { symbols });
+	}
+
+	_removeSymbols(symbols) {
+		super._removeSymbols(symbols);
+		this.target?.multiRemove(symbols);
+		this.fire("symbolsremoved", { symbols });
+	}
+
+	empty() {
+		this.target?.multiRemove(Array.from(this.symbols));
+		this.fire("symbolsremoved", { symbols: this.symbols });
+		return super.empty();
+	}
+
+	remove(s) {
+		if (!s && this.target) {
+			this.target.multiRemove(Array.from(this.symbols));
+		}
+		return super.remove(s);
+	}
+}
+
+// import Stroke from "../symbols/Stroke.mjs";
+// import Hair from "../symbols/Hair.mjs";
+
+/**
+ * @class VectorStylesheetLoader
+ * @inherits Loader
+ * @relationship aggregationOf RasterTileLoader, 0..1, 0..n
+ * @relationship aggregationOf ProtobufVectorTileLoader, 0..1, 0..n
+ *
+ * Should read a JSON document containing a Mapbox GL JS Stylesheet, and
+ * spawn a ProtobufVectorTileLoader (plus a RasterTileLoader if there is
+ * aerial imagery specified in the stylesheet)
+ *
+ * See https://docs.mapbox.com/mapbox-gl-js/style-spec/
+ *
+ */
+
+class VectorStylesheetLoader extends Loader {
+	// An array containing one loader per data source.
+	// These can be `RasterTileLoader`s, `ProtobufVectorTileLoader`s
+	#subloaders = [];
+
+	#backgroundColour;
+
+	#boundDispatchEvent;
+
+	/**
+	 * @section
+	 * A `VectorStylesheetLoader` takes the URL of the JSON stylesheet as its
+	 * only constructor parameter.
+	 *
+	 * @constructor VectorStylesheetLoader(url: URL)
+	 * @alternative
+	 * @constructor VectorStylesheetLoader(url: String)
+	 */
+	constructor(
+		url,
+		{
+			/**
+			 * @option interactive: Boolean = false
+			 * Whether the `GleoSymbol`s spawned bythis loader shall be
+			 * `interactive` themselves (or not).
+			 */
+			interactive = false,
+			...opts
+		} = {}
+	) {
+		super();
+
+		this.#boundDispatchEvent = function proxyEvent(ev) {
+			this.dispatchEvent(
+				new TileEvent(ev.type, {
+					tileLevel: ev.tileLevel,
+					tileX: ev.tileX,
+					tileY: ev.tileY,
+					tile: ev.tile,
+					error: ev.error,
+				})
+			);
+		}.bind(this);
+
+		url = new URL(url, document.url);
+		fetch(url)
+			.then((res) => res.json())
+			.then((stylesheet) => {
+				const themeFuncs = {};
+
+				// Each "theme" (or "layer" in mapbox/maplibre parlance) shall
+				// spawn a lambda-function to return `GleoSymbol`s from a
+				// feature from that theme.
+				stylesheet.layers.forEach((theme) => {
+					let themeFunc;
+					if (theme.type == "fill" && theme.paint["fill-color"]) {
+						/// TODO: Handle fill patterns
+
+						try {
+							themeFunc = fillSymbolizer(theme, interactive);
+						} catch (ex) {
+							console.info(ex, theme);
+						}
+					} else if (theme.type == "line" && theme.paint["line-color"]) {
+						/// TODO: handle line patterns
+
+						try {
+							themeFunc = lineSymbolizer(theme, interactive);
+						} catch (ex) {
+							console.info(ex, theme);
+						}
+					} else if (theme.type === "background") {
+						if (typeof theme.paint["background-color"] === "string") {
+							this.#backgroundColour = theme.paint["background-color"];
+						} else if (theme.paint["background-color"].stops) {
+							this.#backgroundColour =
+								theme.paint["background-color"].stops[0][1];
+						}
+					}
+
+					if (themeFunc && theme.filter) {
+						const booleanFilter = getFilterFunc(theme.filter);
+						themeFunc = (function filterClosure(fn) {
+							return function filter(geom, attrs) {
+								return booleanFilter(geom, attrs) ? fn(geom, attrs) : [];
+							};
+						})(themeFunc);
+					}
+
+					if (themeFunc) {
+						const source = theme["source-layer"];
+						if (themeFuncs[source]) {
+							themeFuncs[source].push(themeFunc);
+						} else {
+							themeFuncs[source] = [themeFunc];
+						}
+					}
+				});
+
+				// Flatten themeFuncs
+				Object.entries(themeFuncs).forEach(([themeName, funcs]) => {
+					themeFuncs[themeName] = function flattenSymbols(geom, attrs) {
+						return funcs.map((f) => f(geom, attrs)).flat();
+					};
+				});
+
+				function stylesheetSymbolizer(themeName, geom, attrs) {
+					if (attrs.class === "street" && attrs.type === "residential") {
+						console.log(attrs);
+					}
+					if (themeFuncs[themeName]) {
+						return themeFuncs[themeName](geom, attrs);
+					} else {
+						return [];
+					}
+				}
+
+				Object.entries(stylesheet.sources).forEach(
+					async ([sourceName, source]) => {
+						//console.log(sourceName, source);
+
+						let loader;
+
+						if (source.attribution && !source.url && !source.tiles) {
+							// Attribution-only source - set the loader's attribution
+							// to it, and hope that there's only one such source.
+							this.attribution = source.attribution;
+						} else if (source.type === "raster" && source.tiles) {
+							const tilesTemplate = source.tiles[0];
+
+							loader = new MercatorTiles(tilesTemplate, {
+								minZoom: source.tiles.minZoom || 0,
+								maxZoom: source.tiles.maxZoom || 15,
+								tileSize: source.tiles.tileSize || 256,
+								attribution: source.attribution || opts.attribution,
+								...opts,
+							});
+						} else if (source.type === "raster" && source.url) {
+							const { pyramid, tiles } = await tileJsonToPyramid(
+								source.url,
+								source.tileSize
+							);
+
+							const templateStr = tiles[0];
+
+							loader = new RasterTileLoader(
+								pyramid,
+								function fetchImage(z, x, y, controller) {
+									return abortableImagePromise(
+										template(templateStr, { x, y, z }),
+										controller
+									);
+								},
+								{
+									tileResX: source.tileSize || 256,
+									tileResY: source.tileSize || 256,
+									//tileSize: source.tileSize || 256,
+									attribution: source.attribution || opts.attribution,
+									...opts,
+								}
+							);
+						} else if (source.type === "vector" && source.tiles) {
+							const pyramid = create3857Pyramid(
+								source.tiles.minZoom || 0,
+								source.tiles.maxZoom || 14,
+								source.tiles.tileSize || 256
+							);
+
+							loader = new ProtobufVectorTileLoader(
+								pyramid,
+								source.tiles[0],
+								stylesheetSymbolizer,
+								{
+									attribution: source.attribution || opts.attribution,
+									...opts,
+								}
+							);
+						} else if (source.type === "vector" && source.url) {
+							const { pyramid, tiles } = await tileJsonToPyramid(
+								source.url
+							);
+
+							loader = new ProtobufVectorTileLoader(
+								pyramid,
+								tiles[0],
+								stylesheetSymbolizer,
+								{
+									attribution: source.attribution || opts.attribution,
+									...opts,
+								}
+							);
+						}
+
+						if (loader) {
+							this.#subloaders.push(loader);
+							if (this.platina) {
+								this.#addSubloader(loader);
+							}
+						}
+						if (this.#backgroundColour) {
+							this.platina.backgroundColour = this.#backgroundColour;
+						}
+					}
+				);
+			})
+			.catch((err) => {
+				throw err;
+			});
+	}
+
+	addTo(target) {
+		super.addTo(target);
+		this.#subloaders.forEach(this.#addSubloader.bind(this));
+		if (this.#backgroundColour) {
+			this.platina.backgroundColour = this.#backgroundColour;
+		}
+		return this;
+	}
+
+	remove() {
+		super.remove();
+		this.#subloaders.forEach((subloader) => {
+			for (let evName of ["tileload", "tileerror", "tileprune"]) {
+				subloader.removeEventListener(evName, this.#boundDispatchEvent);
+			}
+			subloader.remove();
+		});
+		/// TODO: There are no capabilities to reset the background colour
+	}
+
+	#addSubloader(subloader) {
+		subloader.addTo(this.platina);
+		for (let evName of ["tileload", "tileerror", "tileprune", "tileout"]) {
+			subloader.addEventListener(evName, this.#boundDispatchEvent);
+		}
+	}
+}
+
+css(`
+.gleo .pin {
+	z-index: 1;
+	position: absolute;
+}
+`);
+
+/**
+ * @class HTMLPin
+ * @inherits AbstractPin
+ *
+ * A HTML element that is pinned to a point `Geometry` inside a `GleoMap`, displaying
+ * on top of the map's `Platina`.
+ *
+ * This is an unstyled HTML element - users should consider the `Balloon` class
+ * instead, which provides styling.
+ *
+ * Note that lots of `HTMLPin`s mean lots of HTML elements in the DOM, which
+ * means more load in the browser. Therefore, lots of `HTMLPin`s should be avoided.
+ */
+
+class HTMLPin extends AbstractPin {
+	#map;
+	#boundOnViewChange;
+	#boundOnCRSChange;
+	#element;
+	#geometry;
+	#projectedGeometry;
+	#offset;
+
+	/**
+	 * @constructor HTMLPin(geometry: RawGeometry, contents: HTMLElement)
+	 * @alternative
+	 * @constructor HTMLPin(geometry: RawGeometry, contents: String)
+	 * @alternative
+	 * @constructor HTMLPin(geometry: Array of Number, contents: HTMLElement)
+	 * @alternative
+	 * @constructor HTMLPin(geometry: Array of Number, contents: String)
+	 */
+	constructor(
+		geometry,
+		contents,
+		{
+			/**
+			 * @section HTMLPin Options
+			 * @option offset: Array of Number = [0,0]
+			 * Pixel offset of the `HTMLPin` (relative to the pixel where the
+			 * point geometry is projected to).
+			 * @option cssClass: String = undefined
+			 * Optional CSS class to be applied to the pin's element.
+			 */
+			offset = [0, 0],
+			cssClass,
+		} = {}
+	) {
+		super();
+		this.#boundOnViewChange = this.#onViewChange.bind(this);
+		this.#boundOnCRSChange = this.#onCRSChange.bind(this);
+		this.#geometry = factory$1(geometry);
+
+		/// TODO: Sanity check on the dimension of the geometry. Whereas
+		/// sprites and other extruded point symbols might take multipoints
+		/// as an input (and cast linestrings/polys/multipolys to multipoints),
+		/// an HTMLPin actually does need a point geometry.
+
+		if (contents instanceof HTMLElement) {
+			this.#element = contents;
+		} else {
+			this.#element = document.createElement("div");
+			this.#element.innerHTML = contents;
+		}
+		this.#element.classList.add("pin");
+		if (cssClass) {
+			this.#element.classList.add(cssClass);
+		}
+		this.#offset = offset;
+	}
+
+	/**
+	 * @section
+	 * @method addTo(map: GleoMap): this
+	 * Adds this pin to the given map
+	 */
+	addTo(map) {
+		this.#map = map;
+		if (map.crs) {
+			this.#projectedGeometry = this.#geometry.toCRS(map.crs);
+		}
+		map.platina.on("viewchanged", this.#boundOnViewChange);
+		map.platina.on("crschange", this.#boundOnCRSChange);
+		map.platina.on("crsoffset", this.#boundOnCRSChange);
+		map.container.appendChild(this.#element);
+		this.#onViewChange();
+
+		map.on("destroy", this.remove.bind(this));
+		return this;
+	}
+
+	/**
+	 * @method remove(): this
+	 * Removes this pin fom whatever map it's in.
+	 */
+	remove() {
+		if (!this.#map) {
+			return this;
+		}
+		this.#map.platina?.off("viewchanged", this.#boundOnViewChange);
+		this.#map.platina?.off("crschange", this.#boundOnCRSChange);
+		this.#map.platina?.off("crsoffset", this.#boundOnCRSChange);
+		this.#map.container?.removeChild(this.#element);
+		this.#map = undefined;
+		return this;
+	}
+
+	#onViewChange(ev) {
+		const pos = this.#map.platina.geomToPx(this.#projectedGeometry);
+
+		this.#element.style.left = `${pos[0] + this.#offset[0]}px`;
+		this.#element.style.top = `${pos[1] + this.#offset[1]}px`;
+	}
+
+	#onCRSChange(ev) {
+		this.#projectedGeometry = this.#geometry.toCRS(ev.detail.newCRS);
+		this.#onViewChange();
+	}
+
+	/**
+	 * @property element: HTMLElement
+	 * Read-only accesor to this pin's `HTMLElement`.
+	 */
+	get element() {
+		return this.#element;
+	}
+
+	/**
+	 * @property geometry: RawGeometry
+	 * The point `Geometry` for the pin. Can be overwritten with a new point
+	 * `Geometry`.
+	 */
+	get geometry() {
+		return this.#geometry;
+	}
+	set geometry(geom) {
+		this.#geometry = factory$1(geom);
+		if (this.#map?.platina) {
+			this.#onCRSChange({
+				detail: { newCRS: this.#map.platina.crs },
+			});
+		}
+	}
+}
+
+css(`
+.gleo-balloon {
+  --background-color: white;
+  --border-color: black;
+}
+
+.gleo-balloon { display: flex; }
+.gleo-balloon-right, .gleo-balloon-left { align-items: center; }
+.gleo-balloon-above, .gleo-balloon-below { justify-content: center; }
+
+.gleo-balloon-tip {position: absolute;}
+.gleo-balloon-right > .gleo-balloon-tip ,
+.gleo-balloon-left > .gleo-balloon-tip { width: .5rem; height: 1rem; }
+
+.gleo-balloon-above > .gleo-balloon-tip ,
+.gleo-balloon-below > .gleo-balloon-tip { width: 1rem; height: .5rem; }
+
+.gleo-balloon > .gleo-balloon-tip::before,
+.gleo-balloon > .gleo-balloon-tip::after {
+	box-sizing: border-box;
+	position: absolute;
+	border-width: .5rem;
+	content:"";
+	border-style: solid;
+}
+.gleo-balloon > .gleo-balloon-tip::before {
+	border-color: transparent;
+	z-index: 1;
+}
+.gleo-balloon > .gleo-balloon-tip::after {
+	border-color: transparent;
+	z-index: 3;
+}
+.gleo-balloon-right > .gleo-balloon-tip {left: 0;}
+.gleo-balloon-right > .gleo-balloon-tip::before {
+	border-right-color: var(--border-color);
+	border-left-width: 0}
+.gleo-balloon-right > .gleo-balloon-tip::after  {
+	border-right-color: var(--background-color);
+	border-left-width: 0; left: 1px}
+
+.gleo-balloon-above > .gleo-balloon-tip {bottom: 0;}
+.gleo-balloon-above > .gleo-balloon-tip::before {
+	border-top-color: var(--border-color);
+	border-bottom-width: 0}
+.gleo-balloon-above > .gleo-balloon-tip::after  {
+	border-top-color: var(--background-color);
+	border-bottom-width: 0; bottom: 1px}
+
+.gleo-balloon-left > .gleo-balloon-tip {right: 0;}
+.gleo-balloon-left > .gleo-balloon-tip::before {
+	border-left-color: var(--border-color);
+	border-right-width: 0}
+.gleo-balloon-left > .gleo-balloon-tip::after  {
+	border-left-color: var(--background-color);
+	border-right-width: 0; right: 1px; }
+
+.gleo-balloon-below > .gleo-balloon-tip {top: 0;}
+.gleo-balloon-below > .gleo-balloon-tip::before {
+	border-bottom-color: var(--border-color);
+	border-top-width: 0}
+.gleo-balloon-below > .gleo-balloon-tip::after  {
+	border-bottom-color: var(--background-color);
+	border-top-width: 0; top: 1px}
+
+.gleo-balloon-body {
+	position: absolute;
+	border-radius: .5rem;
+	background: var(--background-color);
+	padding: .25rem;
+	border: 1px solid var(--border-color);
+	z-index: 2;
+	display:flex;
+}
+
+.gleo-balloon-right > .gleo-balloon-body ,
+.gleo-balloon-left > .gleo-balloon-body {
+	align-items: center;
+	min-height: calc(1rem + 4px);
+}
+
+.gleo-balloon-above > .gleo-balloon-body ,
+.gleo-balloon-below > .gleo-balloon-body {
+	justify-content: center;
+	min-width: calc(1rem + 4px);
+}
+
+.gleo-balloon-right > .gleo-balloon-body { left: .5rem; }
+.gleo-balloon-above > .gleo-balloon-body { bottom: .5rem;}
+.gleo-balloon-left  > .gleo-balloon-body { right: .5rem;}
+.gleo-balloon-below > .gleo-balloon-body { top: .5rem;}
+`);
+
+/**
+ * @class Balloon
+ * @inherits HTMLPin
+ *
+ * A styled `HTMLPin`, with a triangular tip on the anchor point and a rounded
+ * border. Suitable for popups/popovers/tooltips.
+ *
+ */
+class Balloon extends HTMLPin {
+	/**
+	 * @constructor Balloon(geometry: RawGeometry, contents: HTMLElement, options?: Balloon Options)
+	 * @alternative
+	 * @constructor Balloon(geometry: RawGeometry, contents: String, options?: Balloon Options)
+	 * @alternative
+	 * @constructor Balloon(geometry: Array of Number, contents: HTMLElement, options?: Balloon Options)
+	 * @alternative
+	 * @constructor Balloon(geometry: Array of Number, contents: String, options?: Balloon Options)
+	 */
+	constructor(
+		geometry,
+		contents,
+		{
+			/**
+			 * @section Balloon Options
+			 * @option position: String = 'above'
+			 * Valid values are: `above`, `below`, `left` and `right`.
+			 */
+			position = "above",
+			...opts
+			/// FIXME: backgroundColour, borderColour?
+		} = {}
+	) {
+		const el = document.createElement("div");
+		const tip = document.createElement("div");
+		const body = document.createElement("div");
+		el.classList.add("gleo-balloon");
+		el.classList.add(`gleo-balloon-${position}`);
+		tip.classList.add("gleo-balloon-tip");
+		body.classList.add("gleo-balloon-body");
+		if (contents instanceof HTMLElement) {
+			body.appendChild(contents);
+		} else {
+			body.innerHTML = contents;
+		}
+		el.appendChild(tip);
+		el.appendChild(body);
+		super(geometry, el, opts);
+		this.#body = body;
+	}
+
+	#body;
+	/**
+	 * @section
+	 * @property body: HTMLElement
+	 * Read-only accessor to the `HTMLElement` for the body of the balloon, not
+	 * including the tip.
+	 */
+	get body() {
+		return this.#body;
+	}
+}
+
+// 90 degrees, in radians
+const Δϕ90 = Math.PI / 2;
+
+// 150 degrees, in radians
+const Δϕ150 = Math.PI / 1.2;
+
+/**
+ * @class AcetateChain
+ * @inherits AcetateVertices
+ *
+ * An `Acetate` that draws lines as `Chain`s of overlapping 2-point segments
+ *
+ */
+class AcetateChain extends AcetateVertices {
+	/**
+	 * @constructor AcetateChain(target: GliiFactory)
+	 */
+	constructor(target, opts) {
+		super(target, { zIndex: 1500, ...opts });
+
+		// this._indices = new this.glii.SparseIndices({
+		// 	type: this.glii.UNSIGNED_INT,
+		// 	drawMode: this.glii.POINTS,
+		// });
+
+		// Could be done as a SingleAttribute, but is a InterleavedAttributes for
+		// compatibility with the `intensify` decorator.
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// RGBA Colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Width, in 256ths of CSS pixels.
+					// Used for fading.
+					glslType: "float",
+					type: Uint16Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this._geomAttrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Vertex extrusion amount
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Segment length: lenght at vertex (either 0 or full),
+					// and segment lenght.
+					// Used for fading. The values will be interpolated in the
+					// non-cap triangles of each segment.
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			attributes: {
+				aColour: this._attrs.getBindableAttribute(0),
+				aWidth: this._attrs.getBindableAttribute(1),
+				aExtrude: this._geomAttrs.getBindableAttribute(0),
+				aLength: this._geomAttrs.getBindableAttribute(1),
+				...opts.attributes,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				uScale: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				vLength = aLength / uScale;
+				vWidth = aWidth / 512.;
+
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix
+					+ vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vColour: "vec4",
+				vLength: "vec2",
+				vWidth: "float", // *half* the width
+				// vExterior: "float",
+				// vDashArray: "vec4",
+				// vAccLength: "float",
+				// vMiter: "float", // Only for joins: px distance to node
+			},
+			fragmentShaderMain: `
+				gl_FragColor = vColour;
+
+				float position = min(vLength.x, vLength.y - vLength.x);
+				float opacity = 0.5 + min(position / vWidth, 1.0) / 2.;
+
+				gl_FragColor.a *= opacity;
+			`,
+			blend: {
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+
+				srcRGB: this.glii.ONE_MINUS_DST_ALPHA,
+				srcAlpha: this.glii.ONE,
+				dstRGB: this.glii.DST_ALPHA,
+				dstAlpha: this.glii.ONE,
+			},
+		};
+	}
+
+	resize(w, h) {
+		super.resize(w, h);
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+		this._programs.setUniform("uPixelSize", [dpr2 / w, dpr2 / h]);
+	}
+
+	runProgram() {
+		this._programs.setUniform("uScale", this.platina.scale);
+		super.runProgram();
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Indices
+			this._indices.asTypedArray(maxIdx),
+
+			// Width (for fading)
+			this._attrs.asStridedArray(1, maxVtx),
+		];
+	}
+
+	_getGeometryStridedArrays(maxVtx, maxIdx) {
+		return [
+			// CRS coords
+			this._coords.asStridedArray(maxVtx),
+
+			// Extrusion
+			this._geomAttrs.asStridedArray(0, maxVtx),
+
+			// Segment length (and relative length position)
+			this._geomAttrs.asStridedArray(1),
+
+			// Point strides
+			this._getPerPointStridedArrays(maxVtx, maxIdx),
+
+			// Segment strides
+			this._getPerSegmentStridedArrays(maxVtx, maxIdx),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, vtxLength, baseIdx, idxLength) {
+		this._attrs.commit(baseVtx, vtxLength);
+		this._indices.commit(baseIdx, idxLength);
+	}
+
+	_commitGeometryStridedArrays(baseVtx, vtxLength /*, baseIdx, totalIndices*/) {
+		this._geomAttrs.commit(baseVtx, vtxLength);
+		this._attrs.commit(baseVtx, vtxLength);
+		this._commitPerPointStridedArrays(baseVtx, vtxLength);
+	}
+
+	_getPerPointStridedArrays(_maxVtx, _maxIdx) {
+		return [];
+	}
+
+	_getPerSegmentStridedArrays(maxVtx, _maxIdx) {
+		return [
+			// Colour
+			this._attrs.asStridedArray(0, maxVtx),
+		];
+	}
+
+	multiAdd(syms) {
+		super.multiAdd(syms);
+		super.multiAllocate(syms);
+
+		return this;
+	}
+
+	reproject(start, length, symbols) {
+		const end = start + length;
+
+		// In most cases, it's safe to assume that relevant symbols in the same
+		// attribute allocation block have their vertex attributes in a
+		// compacted manner.
+		// The exception is tiles: tile vertex attributes are allocated in bulk
+		// (enough to fill a whole texture atlas), before actually instantiating
+		// tile symbols. Tile acetates shall overload this method.
+
+		const stridedCoords = this._coords.asStridedArray(end);
+		const geomStrides = this._getGeometryStridedArrays(end);
+
+		const relevantSymbols =
+			symbols ??
+			this._knownSymbols.filter((symbol, attrIdx) => {
+				return attrIdx >= start && attrIdx + symbol.attrLength <= start + length;
+			});
+
+		relevantSymbols.forEach((s) => {
+			const geom = s.geometry.toCRS(this._crs);
+			// stridedCoords.set(geom.coords, s.attrBase);
+			s._setGeometryStrides(geom, ...geomStrides);
+		});
+
+		this._coords.commit(start, length);
+		this._commitGeometryStridedArrays(start, length);
+
+		const coordData = new Float32Array(stridedCoords.buffer, start * 8, length * 2);
+		super.expandBBox(coordData);
+		return coordData;
+	}
+}
+
+/**
+ * @class Chain
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetetateChain
+ *
+ * Draws line geometries as a set of overlapping 2-point segments.
+ *
+ * Behaves similar to `Stroke` symbols, but handles the line joins ("corners")
+ * differently: instead of calculating joins, corner points are drawn twice
+ * at half the opacity.
+ *
+ * Compared with `Stroke`s, `Chain`s produce less graphical artefacts when
+ * drawing thick, short lines. The downside is reduced fidelity for corners
+ * between long segments.
+ *
+ */
+
+class Chain extends GleoSymbol {
+	static Acetate = AcetateChain;
+
+	#colour;
+	#width;
+	// #dashArray;
+	// #centerline;
+
+	/**
+	 * @constructor Chain(geom: Geometry, opts?: Chain Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka Stroke Options
+			 * @option colour: Colour = '#3388ff'
+			 * The colour of the chain.
+			 * @alternative
+			 * @option colour: Array of Colour
+			 * The colour of each segment of the chain. There must be enough elements.
+			 */
+			colour = "#3388ff",
+			/**
+			 * @option width: Number = 4
+			 * The width of the chain, in CSS pixels
+			 */
+			width = 4,
+
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#calcStorage();
+
+		this.#colour = this.constructor._parseColour(colour);
+		if (this.#colour === null && Array.isArray(colour)) {
+			this.#colour = colour.map(this.constructor._parseColour);
+		}
+
+		this.#width = width;
+	}
+
+	#segmentCount;
+
+	#calcStorage() {
+		const segmentCount = (this.#segmentCount =
+			this.geometry.coords.length / this.geometry.dimension -
+			this.geometry.rings.length -
+			this.geometry.hulls.length -
+			1);
+
+		// Each segment has 10 vertices and 10 triangles (30 triangle primitive indices)
+		this.attrLength = segmentCount * 10;
+		this.idxLength = segmentCount * 30;
+	}
+
+	_setGlobalStrides(typedIdxs, strideWidth) {
+		/*
+		 * Vertices connect as follows, 1 and 6 being the offset-zero points
+		 * of the segment.
+		 *
+		 *      0---5
+		 *     /|\  |\
+		 *    3 | \ | 8
+		 *    |\|  \|/|
+		 *    | 1---6 |
+		 *    |/|\  |\|
+		 *    4 | \ | 9
+		 *     \|  \|/
+		 *      2---7
+		 *
+		 * (This is compatible with the LINECAP point extrusion type: line caps have
+		 * the centerline at the 2nd (offset 1) vertex).
+		 */
+
+		// prettier-ignore
+		const idxMap = [
+			1, 0, 3,
+			1, 3, 4,
+			1, 4, 2,
+			1, 6, 0,
+			0, 6, 5,
+			1, 7, 6,
+			1, 2, 7,
+			6, 8, 5,
+			6, 9, 8,
+			6, 7, 9,
+		];
+
+		let idx = this.idxBase;
+
+		for (let i = 0; i < this.#segmentCount; i++) {
+			const offset = this.attrBase + i * 10;
+			typedIdxs.set(
+				idxMap.map((n) => n + offset),
+				idx
+			);
+			idx += 30;
+		}
+
+		let w = this.#width * 256;
+		for (let i = 0; i < this.attrLength; i++) {
+			strideWidth.set([w], this.attrBase + i);
+		}
+	}
+
+	_setGeometryStrides(
+		geom,
+		strideCoords,
+		strideExtrude,
+		strideLength,
+		perPointStrides,
+		perSegmentStrides
+	) {
+		const w = this.#width / 2;
+
+		geom.mapRings((start, end, _length, _r) => {
+			for (let i = start + 1; i < end; i++) {
+				const coordAx = geom.coords[(i - 1) * geom.dimension];
+				const coordAy = geom.coords[(i - 1) * geom.dimension + 1];
+				const coordBx = geom.coords[i * geom.dimension];
+				const coordBy = geom.coords[i * geom.dimension + 1];
+
+				const Δx = coordBx - coordAx;
+				const Δy = coordBy - coordAy;
+				const ϕ = Math.atan2(Δy, Δx);
+
+				// Plus 90 degrees counter-clockwise
+				const ϕ90 = ϕ + Δϕ90;
+				const cosϕ90 = w * Math.cos(ϕ90);
+				const sinϕ90 = w * Math.sin(ϕ90);
+
+				// Plus 150 degrees counter-clockwise
+				const ϕ150 = ϕ + Δϕ150;
+				const cosϕ150 = w * Math.cos(ϕ150);
+				const sinϕ150 = w * Math.sin(ϕ150);
+
+				// Plus 210 degrees counter-clockwise
+				const ϕ210 = ϕ - Δϕ150;
+				const cosϕ210 = w * Math.cos(ϕ210);
+				const sinϕ210 = w * Math.sin(ϕ210);
+
+				const vtx = this.attrBase + i * 10 - 10;
+
+				strideExtrude.set([cosϕ90, sinϕ90], vtx + 0);
+				strideExtrude.set([0, 0], vtx + 1);
+				strideExtrude.set([-cosϕ90, -sinϕ90], vtx + 2);
+				strideExtrude.set([cosϕ150, sinϕ150], vtx + 3);
+				strideExtrude.set([cosϕ210, sinϕ210], vtx + 4);
+
+				strideExtrude.set([cosϕ90, sinϕ90], vtx + 5);
+				strideExtrude.set([0, 0], vtx + 6);
+				strideExtrude.set([-cosϕ90, -sinϕ90], vtx + 7);
+				strideExtrude.set([-cosϕ210, -sinϕ210], vtx + 8);
+				strideExtrude.set([-cosϕ150, -sinϕ150], vtx + 9);
+
+				// prettier-ignore
+				strideCoords.set([
+					coordAx, coordAy,
+					coordAx, coordAy,
+					coordAx, coordAy,
+					coordAx, coordAy,
+					coordAx, coordAy,
+
+					coordBx, coordBy,
+					coordBx, coordBy,
+					coordBx, coordBy,
+					coordBx, coordBy,
+					coordBx, coordBy,
+				], vtx);
+
+				// Length of segment
+				const l = Math.sqrt(Δx * Δx + Δy * Δy);
+
+				// Five first vertices are at position zero, five last ones
+				// are at position 100% length
+				for (let i = 0; i < 5; i++) {
+					strideLength.set([0, l], vtx + i);
+				}
+				for (let i = 5; i < 10; i++) {
+					strideLength.set([l, l], vtx + i);
+				}
+
+				/// TODO: Trick lengths at first and last point in the geometry
+				/// ring, unless the ring loops
+
+				this._setPerSegmentStrides(
+					i - 1,
+					this.attrBase + i * 10 - 10,
+					10,
+					geom,
+					...perSegmentStrides
+				); /// TODO!!!!
+
+				this._setPerPointStrides(
+					i - 1,
+					LINECAP,
+					this.attrBase + i * 10 - 10,
+					5,
+					...perPointStrides
+				);
+				this._setPerPointStrides(
+					i,
+					LINECAP,
+					this.attrBase + i * 10 - 5,
+					5,
+					...perPointStrides
+				);
+			}
+		});
+	}
+
+	_setPerPointStrides(_n, _pointType, _vtx, _vtxCount, _geom, ..._strides) {
+		// noop
+	}
+
+	_setPerSegmentStrides(n, vtx, vtxCount, _geom, strideColour) {
+		const segmentColour =
+			Array.isArray(this.#colour) && Array.isArray(this.#colour[0])
+				? this.#colour[n]
+				: this.#colour;
+		for (let i = 0; i < vtxCount; i++) {
+			strideColour.set(segmentColour, vtx + i);
+		}
+	}
+
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class Circle
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateSolidBorder
+ *
+ * A circle with both fill and stroke (i.e. perimeter line).
+ *
+ * Renders with a different `Acetate` than the simpler `CircleFill` and
+ * `CircleStroke`.
+ *
+ * @example
+ * ```js
+ * new Circle([0, 0], {
+ * 	fillColour: "red",
+ * 	strokeColour: "black",
+ * 	width: 3,
+ * 	radius: 40
+ * }).addTo(map);
+ * ```
+ */
+
+class Circle extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidBorder;
+
+	#radius;
+	#width;
+	#fillColour;
+	#strokeColour;
+	#feather;
+
+	/**
+	 * @constructor CircleFill(geom: Geometry, opts?: CircleFill Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka Circle Options
+			 * @option radius: Number = 20; Radius of the circle, in CSS pixels
+			 * @option width: Number = 4; Width of the border, in CSS pixels
+			 * @option fillColour: Colour = '#3388ff33'; The fill colour
+			 * @option strokeColour: Colour = '#3388ff33'; The border stroke colour
+			 */
+			radius = 20,
+			width = 4,
+			fillColour = "#3388ff33",
+			strokeColour = "#3388ff",
+			/**
+			 * @option feather: Number = 0.5
+			 * The width of the antialiasing feather, in CSS pixels.
+			 */
+			feather = 0.5,
+
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#radius = radius;
+		this.#width = width * 2;
+		this.#fillColour = this.constructor._parseColour(fillColour);
+		this.#strokeColour = this.constructor._parseColour(strokeColour);
+		this.#feather = feather;
+
+		// Length of circumference
+		const length = Math.PI * 2 * this.#radius;
+		// Divide in triangles so there's a triangle per...
+		// 6 pixels of circumference length. That should be enough.
+		this.steps = Math.max(7, Math.ceil(length / 6));
+		// this.steps = 4;
+
+		this.attrLength = this.steps + 1;
+		this.idxLength = this.steps * 3;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(
+		strideExtrusion,
+		strideFillColour,
+		strideBorderColour,
+		strideBorder,
+		strideEdgeDistance,
+		typedIdxs
+	) {
+		// const feather = this._inAcetate.feather;
+
+		// Radian increment per step
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρ = this.#radius + this.#feather / 2;
+		const [Δx, Δy] = this.offset;
+
+		// Attributes start with the center point
+		strideExtrusion.set([Δx, Δy], this.attrBase);
+		strideFillColour?.set(this.#fillColour, this.attrBase);
+		strideBorderColour?.set(this.#strokeColour, this.attrBase);
+		strideEdgeDistance.set([this.#radius, this.#radius, this.#radius], this.attrBase);
+
+		let θ = 0;
+		let vtx = this.attrBase + 1;
+		let idx = this.idxBase;
+		for (let i = 0; i < this.steps; i++) {
+			strideExtrusion.set([Math.sin(θ) * ρ + Δx, Math.cos(θ) * ρ + Δy], vtx);
+			strideFillColour?.set(this.#fillColour, vtx);
+			strideBorderColour?.set(this.#strokeColour, vtx);
+
+			// Vertices of the i-th triangle are: center, current, next
+			if (i !== this.steps - 1) {
+				typedIdxs?.set([this.attrBase, vtx, vtx + 1], idx);
+			} else {
+				typedIdxs?.set([this.attrBase, vtx, this.attrBase + 1], idx);
+			}
+
+			strideEdgeDistance.set([0, 0, 0], vtx);
+			strideBorder.set([this.#width, this.#feather], vtx);
+
+			θ += ɛ;
+			vtx++;
+			idx += 3;
+		}
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class CircleGauge
+ * @inherits CircleStroke
+ * @relationship drawnOn AcetateSolidExtrusion
+ *
+ * A circular percentage gauge. Looks like a `CircleStroke`, but covers less
+ * than 360°.
+ *
+ */
+
+class CircleGauge extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidExtrusion;
+
+	#radius;
+	#colour;
+	#width;
+	#percentage;
+
+	/**
+	 * @constructor CircleGauge(geom: Geometry, opts?: CircleGauge Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka CircleGauge Options
+			 * @option radius: Number = 20; Radius of the circle, in CSS pixels
+			 * @option colour: Colour = '#3388ff'; The stroke colour
+			 * @option width: Number = 2; The width of the stroke, in CSS pixels
+			 * @option percentage: Number = 1
+			 * The percentage to show, must be a number between 0 (0%) and 1 (100%)
+			 */
+			radius = 20,
+			colour = "#3388ff",
+			width = 2,
+			percentage = 1,
+
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#radius = radius;
+		this.#colour = this.constructor._parseColour(colour);
+		this.#width = width;
+		this.#percentage = Math.min(1, Math.max(0, percentage));
+
+		// Length of circumference
+		const length = Math.PI * 2 * this.#radius;
+		// Divide in triangles so there's a triangle per...
+		// 6 pixels of circumference length. That should be enough.
+		this.steps = Math.max(7, Math.ceil(length / 6));
+
+		this.opaqueSteps = Math.ceil(this.steps * this.#percentage);
+
+		this.attrLength = (this.opaqueSteps + 1) * 2;
+		this.idxLength = this.opaqueSteps * 6;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(strideExtrusion, strideColour, strideFeather, typedIdxs) {
+		// Radian increment per step
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρ = this.#radius;
+		const w = (this.#width + this._inAcetate.feather) / 2;
+		const f = w * 256; // Feather max
+		const [Δx, Δy] = this.offset;
+
+		let θ = 0;
+		let vtx = this.attrBase;
+		let idx = this.idxBase;
+		for (let i = 0; i < this.opaqueSteps; i++) {
+			const sinθ = Math.sin(θ);
+			const cosθ = Math.cos(θ);
+
+			// Two vertices per step: inner and outer
+			// prettier-ignore
+			strideExtrusion.set(
+				[	sinθ * (ρ - w) + Δx, cosθ * (ρ - w) + Δy,
+					sinθ * (ρ + w) + Δx, cosθ * (ρ + w) + Δy, ],
+				vtx
+			);
+
+			strideColour?.set(this.#colour, vtx);
+			strideFeather?.set([-f, f], vtx);
+			strideColour?.set(this.#colour, vtx + 1);
+			strideFeather?.set([+f, f], vtx + 1);
+
+			// Two triangles per step, forming a quad to the vertices of the
+			// next step.
+			// prettier-ignore
+			typedIdxs?.set([
+				vtx+0, vtx+1, vtx+2,
+				vtx+2, vtx+1, vtx+3
+			], idx);
+
+			θ += ɛ;
+			vtx += 2;
+			idx += 6;
+		}
+
+		// Last pair of vertices
+		θ = Math.PI * 2 * this.#percentage;
+		const sinθ = Math.sin(θ);
+		const cosθ = Math.cos(θ);
+
+		// prettier-ignore
+		strideExtrusion.set(
+			[	sinθ * (ρ - w) + Δx, cosθ * (ρ - w) + Δy,
+				sinθ * (ρ + w) + Δx, cosθ * (ρ + w) + Δy, ],
+			vtx
+		);
+
+		strideColour?.set(this.#colour, vtx);
+		strideFeather?.set([-f, f], vtx);
+		strideColour?.set(this.#colour, vtx + 1);
+		strideFeather?.set([+f, f], vtx + 1);
+	}
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class AcetateMesh
+ * @inherits AcetateVertices
+ *
+ * An `Acetate` that draws a simple (single-colour) fill for `Mesh`es.
+ *
+ */
+
+class AcetateMesh extends AcetateInteractive {
+	/**
+	 * @constructor AcetateMesh(target: GliiFactory)
+	 */
+	constructor(target, opts) {
+		super(target, { zIndex: 1500, ...opts });
+
+		// Could be done as a SingleAttribute, but is a InterleavedAttributes for
+		// compatibility with the `intensify` decorator.
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+			]
+		);
+	}
+
+	// Pretty much the same shader as AcetateFill
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aColour: this._attrs.getBindableAttribute(0),
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+			`,
+			varyings: { vColour: "vec4" },
+			fragmentShaderMain: `gl_FragColor = vColour;`,
+		};
+	}
+
+	/**
+	 * @method multiAdd(meshes: Array of Mesh): this
+	 * Adds the meshes to this acetate (so they're drawn on the next refresh),
+	 * using as few WebGL calls as feasible.
+	 */
+	multiAdd(meshes) {
+		// Skip already added symbols
+		meshes = meshes.filter((f) => !f._inAcetate);
+		if (meshes.length === 0) {
+			return;
+		}
+
+		const totalVertices = meshes.reduce((acc, mesh) => acc + mesh.attrLength, 0);
+		const totalIdxs = meshes.reduce((acc, mesh) => acc + mesh.idxLength, 0);
+		let baseVtx = this._attribAllocator.allocateBlock(totalVertices);
+		let baseIdx = this._indices.allocateSlots(totalIdxs);
+		let vtxAcc = baseVtx;
+		let idxAcc = baseIdx;
+		const stridedArrays = this._getStridedArrays(
+			baseVtx + totalVertices
+			// baseIdx + totalIndices
+		);
+
+		const stridedIdxs = this._indices.asTypedArray(baseIdx + totalIdxs);
+
+		meshes.forEach((mesh) => {
+			mesh.updateRefs(this, vtxAcc, idxAcc);
+			this._knownSymbols[vtxAcc] = mesh;
+
+			mesh._setGlobalStrides(...stridedArrays);
+			stridedIdxs.set(mesh.triangles.map((n) => n + idxAcc));
+
+			vtxAcc += mesh.attrLength;
+			idxAcc += mesh.idxLength;
+		});
+
+		this._commitStridedArrays(baseVtx, totalVertices);
+		this._indices.commit(baseIdx, totalIdxs);
+
+		if (!this._crs) {
+			// Fill symbols have been added before setting a CRS. The CRS of the first
+			// Fill symbol shall be used temporarily.
+			this._oldCrs = this._crs = meshes[0].geom.crs;
+		}
+
+		this.reproject(baseVtx, totalVertices, meshes);
+
+		super.multiAddIds(meshes, baseVtx);
+
+		return super.multiAdd(meshes);
+	}
+
+	_getStridedArrays(maxVtx, _maxIdx) {
+		return [
+			// Colour
+			this._attrs.asStridedArray(0, maxVtx),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, vtxLength /*, baseIdx, totalIndices*/) {
+		this._attrs.commit(baseVtx, vtxLength);
+	}
+
+	_getGeometryStridedArrays() {
+		return [];
+	}
+
+	_commitGeometryStridedArrays(_baseVtx, _vtxCount, _baseIdx, _idxCount) {
+		// noop
+	}
+}
+
+/**
+ * @class Mesh
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateMesh
+ *
+ * Displays a mesh of connected points, each of them with a RGB(A) colour,
+ * performing linear interpolation.
+ *
+ * This is a mesh in the geospatial sense of the word (see e.g.
+ * [MDAL](https://www.mdal.xyz/)). It is **not** a mesh in the 3D computer
+ * graphics sense of the word (since 3D graphics usually imply that a mesh
+ * includes shaders or materials, see e.g.
+ * [a threeJS mesh](https://threejs.org/docs/#api/en/objects/Mesh)). In
+ * particular, all Gleo `Mesh`es are rendered using the same shader.
+ *
+ * If your mesh data does not contain RGB(A) values for each point, consider
+ * using a symbol decorator such as `intensify`.
+ *
+ * @example
+ *
+ * ```
+ * const mesh = new Mesh(
+ * 	// The geometry shall be interpreted like a multipoint; rings are ignored.
+ * 	[
+ * 		[5, 5],
+ * 		[7, 3],
+ * 		[6, 8],
+ * 		[10, 12],
+ * 	],
+ *
+ * 	// The colours are assigned to the points in the geometry on a one-to-one basis
+ * 	['red', 'blue', 'green', 'yellow'],
+ *
+ * 	// The triangles are defined in a single array. Each set of 3 point indices
+ * 	// (0-indexed, relative to the geometry) defines a triangle.
+ * 	[0, 1, 2,    0, 1, 3],
+ *
+ * 	// Obviously accepts options from GleoSymbol
+ * 	{
+ * 		interactive: true,
+ * 		attribution: "FooBar"
+ * 	}
+ * ).addTo(gleoMap);
+ * ```
+ *
+ */
+
+class Mesh extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateMesh
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateMesh;
+
+	#values;
+	#triangles;
+
+	/**
+	 * @constructor Mesh(geom: Geometry, values: Array of Colour, triangles: array of Number, opts?: Mesh Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @option values: Array of Colour
+			 * The colours for the points in the mesh, one value per point.
+			 */
+			values = [],
+			...opts
+		} = {},
+		triangles
+	) {
+		super(geom, opts);
+
+		this.#values = values.map(this.constructor._parseColour).flat();
+
+		this.#triangles = triangles;
+
+		this.attrLength = this.geom.coords.length / this.geom.dimension;
+		this.idxLength = this.#triangles.length;
+	}
+
+	get triangles() {
+		return this.#triangles;
+	}
+	get values() {
+		return this.#values;
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+
+	_setGlobalStrides(stridedColour, ..._strides) {
+		stridedColour.set(this.values, this.attrBase);
+	}
+
+	_setGeometryStrides() {
+		/* noop */
+	}
+	_setPerPointStrides(_n, _pointType, _vtx, _vtxCount, _geom, ..._strides) {
+		// Noop
+	}
+}
+
+// This file is a trivial modification of Volodymir Agafonkin's `delaunator`,
+// embedding his `robust-predicates` utility library.
+// `delaunator` is ISC-licensed, whereas `robust-predicates` has a public domain
+// dedication.
+
+/**
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors
+ * of this software dedicate any and all copyright interest in the
+ * software to the public domain. We make this dedication for the benefit
+ * of the public at large and to the detriment of our heirs and
+ * successors. We intend this dedication to be an overt act of
+ * relinquishment in perpetuity of all present and future rights to this
+ * software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * For more information, please refer to <http://unlicense.org>
+ */
+
+const epsilon = 1.1102230246251565e-16;
+const splitter = 134217729;
+const resulterrbound = (3 + 8 * epsilon) * epsilon;
+
+// fast_expansion_sum_zeroelim routine from oritinal code
+function sum(elen, e, flen, f, h) {
+	let Q, Qnew, hh, bvirt;
+	let enow = e[0];
+	let fnow = f[0];
+	let eindex = 0;
+	let findex = 0;
+	if (fnow > enow === fnow > -enow) {
+		Q = enow;
+		enow = e[++eindex];
+	} else {
+		Q = fnow;
+		fnow = f[++findex];
+	}
+	let hindex = 0;
+	if (eindex < elen && findex < flen) {
+		if (fnow > enow === fnow > -enow) {
+			Qnew = enow + Q;
+			hh = Q - (Qnew - enow);
+			enow = e[++eindex];
+		} else {
+			Qnew = fnow + Q;
+			hh = Q - (Qnew - fnow);
+			fnow = f[++findex];
+		}
+		Q = Qnew;
+		if (hh !== 0) {
+			h[hindex++] = hh;
+		}
+		while (eindex < elen && findex < flen) {
+			if (fnow > enow === fnow > -enow) {
+				Qnew = Q + enow;
+				bvirt = Qnew - Q;
+				hh = Q - (Qnew - bvirt) + (enow - bvirt);
+				enow = e[++eindex];
+			} else {
+				Qnew = Q + fnow;
+				bvirt = Qnew - Q;
+				hh = Q - (Qnew - bvirt) + (fnow - bvirt);
+				fnow = f[++findex];
+			}
+			Q = Qnew;
+			if (hh !== 0) {
+				h[hindex++] = hh;
+			}
+		}
+	}
+	while (eindex < elen) {
+		Qnew = Q + enow;
+		bvirt = Qnew - Q;
+		hh = Q - (Qnew - bvirt) + (enow - bvirt);
+		enow = e[++eindex];
+		Q = Qnew;
+		if (hh !== 0) {
+			h[hindex++] = hh;
+		}
+	}
+	while (findex < flen) {
+		Qnew = Q + fnow;
+		bvirt = Qnew - Q;
+		hh = Q - (Qnew - bvirt) + (fnow - bvirt);
+		fnow = f[++findex];
+		Q = Qnew;
+		if (hh !== 0) {
+			h[hindex++] = hh;
+		}
+	}
+	if (Q !== 0 || hindex === 0) {
+		h[hindex++] = Q;
+	}
+	return hindex;
+}
+
+function estimate(elen, e) {
+	let Q = e[0];
+	for (let i = 1; i < elen; i++) Q += e[i];
+	return Q;
+}
+
+function vec(n) {
+	return new Float64Array(n);
+}
+
+const ccwerrboundA = (3 + 16 * epsilon) * epsilon;
+const ccwerrboundB = (2 + 12 * epsilon) * epsilon;
+const ccwerrboundC = (9 + 64 * epsilon) * epsilon * epsilon;
+
+const B = vec(4);
+const C1 = vec(8);
+const C2 = vec(12);
+const D = vec(16);
+const u = vec(4);
+
+function orient2dadapt(ax, ay, bx, by, cx, cy, detsum) {
+	let acxtail, acytail, bcxtail, bcytail;
+	let bvirt, c, ahi, alo, bhi, blo, _i, _j, _0, s1, s0, t1, t0, u3;
+
+	const acx = ax - cx;
+	const bcx = bx - cx;
+	const acy = ay - cy;
+	const bcy = by - cy;
+
+	s1 = acx * bcy;
+	c = splitter * acx;
+	ahi = c - (c - acx);
+	alo = acx - ahi;
+	c = splitter * bcy;
+	bhi = c - (c - bcy);
+	blo = bcy - bhi;
+	s0 = alo * blo - (s1 - ahi * bhi - alo * bhi - ahi * blo);
+	t1 = acy * bcx;
+	c = splitter * acy;
+	ahi = c - (c - acy);
+	alo = acy - ahi;
+	c = splitter * bcx;
+	bhi = c - (c - bcx);
+	blo = bcx - bhi;
+	t0 = alo * blo - (t1 - ahi * bhi - alo * bhi - ahi * blo);
+	_i = s0 - t0;
+	bvirt = s0 - _i;
+	B[0] = s0 - (_i + bvirt) + (bvirt - t0);
+	_j = s1 + _i;
+	bvirt = _j - s1;
+	_0 = s1 - (_j - bvirt) + (_i - bvirt);
+	_i = _0 - t1;
+	bvirt = _0 - _i;
+	B[1] = _0 - (_i + bvirt) + (bvirt - t1);
+	u3 = _j + _i;
+	bvirt = u3 - _j;
+	B[2] = _j - (u3 - bvirt) + (_i - bvirt);
+	B[3] = u3;
+
+	let det = estimate(4, B);
+	let errbound = ccwerrboundB * detsum;
+	if (det >= errbound || -det >= errbound) {
+		return det;
+	}
+
+	bvirt = ax - acx;
+	acxtail = ax - (acx + bvirt) + (bvirt - cx);
+	bvirt = bx - bcx;
+	bcxtail = bx - (bcx + bvirt) + (bvirt - cx);
+	bvirt = ay - acy;
+	acytail = ay - (acy + bvirt) + (bvirt - cy);
+	bvirt = by - bcy;
+	bcytail = by - (bcy + bvirt) + (bvirt - cy);
+
+	if (acxtail === 0 && acytail === 0 && bcxtail === 0 && bcytail === 0) {
+		return det;
+	}
+
+	errbound = ccwerrboundC * detsum + resulterrbound * Math.abs(det);
+	det += acx * bcytail + bcy * acxtail - (acy * bcxtail + bcx * acytail);
+	if (det >= errbound || -det >= errbound) return det;
+
+	s1 = acxtail * bcy;
+	c = splitter * acxtail;
+	ahi = c - (c - acxtail);
+	alo = acxtail - ahi;
+	c = splitter * bcy;
+	bhi = c - (c - bcy);
+	blo = bcy - bhi;
+	s0 = alo * blo - (s1 - ahi * bhi - alo * bhi - ahi * blo);
+	t1 = acytail * bcx;
+	c = splitter * acytail;
+	ahi = c - (c - acytail);
+	alo = acytail - ahi;
+	c = splitter * bcx;
+	bhi = c - (c - bcx);
+	blo = bcx - bhi;
+	t0 = alo * blo - (t1 - ahi * bhi - alo * bhi - ahi * blo);
+	_i = s0 - t0;
+	bvirt = s0 - _i;
+	u[0] = s0 - (_i + bvirt) + (bvirt - t0);
+	_j = s1 + _i;
+	bvirt = _j - s1;
+	_0 = s1 - (_j - bvirt) + (_i - bvirt);
+	_i = _0 - t1;
+	bvirt = _0 - _i;
+	u[1] = _0 - (_i + bvirt) + (bvirt - t1);
+	u3 = _j + _i;
+	bvirt = u3 - _j;
+	u[2] = _j - (u3 - bvirt) + (_i - bvirt);
+	u[3] = u3;
+	const C1len = sum(4, B, 4, u, C1);
+
+	s1 = acx * bcytail;
+	c = splitter * acx;
+	ahi = c - (c - acx);
+	alo = acx - ahi;
+	c = splitter * bcytail;
+	bhi = c - (c - bcytail);
+	blo = bcytail - bhi;
+	s0 = alo * blo - (s1 - ahi * bhi - alo * bhi - ahi * blo);
+	t1 = acy * bcxtail;
+	c = splitter * acy;
+	ahi = c - (c - acy);
+	alo = acy - ahi;
+	c = splitter * bcxtail;
+	bhi = c - (c - bcxtail);
+	blo = bcxtail - bhi;
+	t0 = alo * blo - (t1 - ahi * bhi - alo * bhi - ahi * blo);
+	_i = s0 - t0;
+	bvirt = s0 - _i;
+	u[0] = s0 - (_i + bvirt) + (bvirt - t0);
+	_j = s1 + _i;
+	bvirt = _j - s1;
+	_0 = s1 - (_j - bvirt) + (_i - bvirt);
+	_i = _0 - t1;
+	bvirt = _0 - _i;
+	u[1] = _0 - (_i + bvirt) + (bvirt - t1);
+	u3 = _j + _i;
+	bvirt = u3 - _j;
+	u[2] = _j - (u3 - bvirt) + (_i - bvirt);
+	u[3] = u3;
+	const C2len = sum(C1len, C1, 4, u, C2);
+
+	s1 = acxtail * bcytail;
+	c = splitter * acxtail;
+	ahi = c - (c - acxtail);
+	alo = acxtail - ahi;
+	c = splitter * bcytail;
+	bhi = c - (c - bcytail);
+	blo = bcytail - bhi;
+	s0 = alo * blo - (s1 - ahi * bhi - alo * bhi - ahi * blo);
+	t1 = acytail * bcxtail;
+	c = splitter * acytail;
+	ahi = c - (c - acytail);
+	alo = acytail - ahi;
+	c = splitter * bcxtail;
+	bhi = c - (c - bcxtail);
+	blo = bcxtail - bhi;
+	t0 = alo * blo - (t1 - ahi * bhi - alo * bhi - ahi * blo);
+	_i = s0 - t0;
+	bvirt = s0 - _i;
+	u[0] = s0 - (_i + bvirt) + (bvirt - t0);
+	_j = s1 + _i;
+	bvirt = _j - s1;
+	_0 = s1 - (_j - bvirt) + (_i - bvirt);
+	_i = _0 - t1;
+	bvirt = _0 - _i;
+	u[1] = _0 - (_i + bvirt) + (bvirt - t1);
+	u3 = _j + _i;
+	bvirt = u3 - _j;
+	u[2] = _j - (u3 - bvirt) + (_i - bvirt);
+	u[3] = u3;
+	const Dlen = sum(C2len, C2, 4, u, D);
+
+	return D[Dlen - 1];
+}
+
+function orient2d(ax, ay, bx, by, cx, cy) {
+	const detleft = (ay - cy) * (bx - cx);
+	const detright = (ax - cx) * (by - cy);
+	const det = detleft - detright;
+
+	if (detleft === 0 || detright === 0 || detleft > 0 !== detright > 0) return det;
+
+	const detsum = Math.abs(detleft + detright);
+	if (Math.abs(det) >= ccwerrboundA * detsum) return det;
+
+	return -orient2dadapt(ax, ay, bx, by, cx, cy, detsum);
+}
+
+/**
+ * ISC License
+ *
+ * Copyright (c) 2021, Mapbox
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice
+ * and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ * THIS SOFTWARE.
+ **/
+
+const EPSILON = Math.pow(2, -52);
+const EDGE_STACK = new Uint32Array(512);
+
+class Delaunator {
+	static from(points, getX = defaultGetX, getY = defaultGetY) {
+		const n = points.length;
+		const coords = new Float64Array(n * 2);
+
+		for (let i = 0; i < n; i++) {
+			const p = points[i];
+			coords[2 * i] = getX(p);
+			coords[2 * i + 1] = getY(p);
+		}
+
+		return new Delaunator(coords);
+	}
+
+	constructor(coords) {
+		const n = coords.length >> 1;
+		if (n > 0 && typeof coords[0] !== "number")
+			throw new Error("Expected coords to contain numbers.");
+
+		this.coords = coords;
+
+		// arrays that will store the triangulation graph
+		const maxTriangles = Math.max(2 * n - 5, 0);
+		this._triangles = new Uint32Array(maxTriangles * 3);
+		this._halfedges = new Int32Array(maxTriangles * 3);
+
+		// temporary arrays for tracking the edges of the advancing convex hull
+		this._hashSize = Math.ceil(Math.sqrt(n));
+		this._hullPrev = new Uint32Array(n); // edge to prev edge
+		this._hullNext = new Uint32Array(n); // edge to next edge
+		this._hullTri = new Uint32Array(n); // edge to adjacent triangle
+		this._hullHash = new Int32Array(this._hashSize); // angular edge hash
+
+		// temporary arrays for sorting points
+		this._ids = new Uint32Array(n);
+		this._dists = new Float64Array(n);
+
+		this.update();
+	}
+
+	update() {
+		const {
+			coords,
+			_hullPrev: hullPrev,
+			_hullNext: hullNext,
+			_hullTri: hullTri,
+			_hullHash: hullHash,
+		} = this;
+		const n = coords.length >> 1;
+
+		// populate an array of point indices; calculate input data bbox
+		let minX = Infinity;
+		let minY = Infinity;
+		let maxX = -Infinity;
+		let maxY = -Infinity;
+
+		for (let i = 0; i < n; i++) {
+			const x = coords[2 * i];
+			const y = coords[2 * i + 1];
+			if (x < minX) minX = x;
+			if (y < minY) minY = y;
+			if (x > maxX) maxX = x;
+			if (y > maxY) maxY = y;
+			this._ids[i] = i;
+		}
+		const cx = (minX + maxX) / 2;
+		const cy = (minY + maxY) / 2;
+
+		let i0, i1, i2;
+
+		// pick a seed point close to the center
+		for (let i = 0, minDist = Infinity; i < n; i++) {
+			const d = dist(cx, cy, coords[2 * i], coords[2 * i + 1]);
+			if (d < minDist) {
+				i0 = i;
+				minDist = d;
+			}
+		}
+		const i0x = coords[2 * i0];
+		const i0y = coords[2 * i0 + 1];
+
+		// find the point closest to the seed
+		for (let i = 0, minDist = Infinity; i < n; i++) {
+			if (i === i0) continue;
+			const d = dist(i0x, i0y, coords[2 * i], coords[2 * i + 1]);
+			if (d < minDist && d > 0) {
+				i1 = i;
+				minDist = d;
+			}
+		}
+		let i1x = coords[2 * i1];
+		let i1y = coords[2 * i1 + 1];
+
+		let minRadius = Infinity;
+
+		// find the third point which forms the smallest circumcircle with the first two
+		for (let i = 0; i < n; i++) {
+			if (i === i0 || i === i1) continue;
+			const r = circumradius(i0x, i0y, i1x, i1y, coords[2 * i], coords[2 * i + 1]);
+			if (r < minRadius) {
+				i2 = i;
+				minRadius = r;
+			}
+		}
+		let i2x = coords[2 * i2];
+		let i2y = coords[2 * i2 + 1];
+
+		if (minRadius === Infinity) {
+			// order collinear points by dx (or dy if all x are identical)
+			// and return the list as a hull
+			for (let i = 0; i < n; i++) {
+				this._dists[i] =
+					coords[2 * i] - coords[0] || coords[2 * i + 1] - coords[1];
+			}
+			quicksort(this._ids, this._dists, 0, n - 1);
+			const hull = new Uint32Array(n);
+			let j = 0;
+			for (let i = 0, d0 = -Infinity; i < n; i++) {
+				const id = this._ids[i];
+				const d = this._dists[id];
+				if (d > d0) {
+					hull[j++] = id;
+					d0 = d;
+				}
+			}
+			this.hull = hull.subarray(0, j);
+			this.triangles = new Uint32Array(0);
+			this.halfedges = new Uint32Array(0);
+			return;
+		}
+
+		// swap the order of the seed points for counter-clockwise orientation
+		if (orient2d(i0x, i0y, i1x, i1y, i2x, i2y) < 0) {
+			const i = i1;
+			const x = i1x;
+			const y = i1y;
+			i1 = i2;
+			i1x = i2x;
+			i1y = i2y;
+			i2 = i;
+			i2x = x;
+			i2y = y;
+		}
+
+		const center = circumcenter(i0x, i0y, i1x, i1y, i2x, i2y);
+		this._cx = center.x;
+		this._cy = center.y;
+
+		for (let i = 0; i < n; i++) {
+			this._dists[i] = dist(coords[2 * i], coords[2 * i + 1], center.x, center.y);
+		}
+
+		// sort the points by distance from the seed triangle circumcenter
+		quicksort(this._ids, this._dists, 0, n - 1);
+
+		// set up the seed triangle as the starting hull
+		this._hullStart = i0;
+		let hullSize = 3;
+
+		hullNext[i0] = hullPrev[i2] = i1;
+		hullNext[i1] = hullPrev[i0] = i2;
+		hullNext[i2] = hullPrev[i1] = i0;
+
+		hullTri[i0] = 0;
+		hullTri[i1] = 1;
+		hullTri[i2] = 2;
+
+		hullHash.fill(-1);
+		hullHash[this._hashKey(i0x, i0y)] = i0;
+		hullHash[this._hashKey(i1x, i1y)] = i1;
+		hullHash[this._hashKey(i2x, i2y)] = i2;
+
+		this.trianglesLen = 0;
+		this._addTriangle(i0, i1, i2, -1, -1, -1);
+
+		for (let k = 0, xp, yp; k < this._ids.length; k++) {
+			const i = this._ids[k];
+			const x = coords[2 * i];
+			const y = coords[2 * i + 1];
+
+			// skip near-duplicate points
+			if (k > 0 && Math.abs(x - xp) <= EPSILON && Math.abs(y - yp) <= EPSILON)
+				continue;
+			xp = x;
+			yp = y;
+
+			// skip seed triangle points
+			if (i === i0 || i === i1 || i === i2) continue;
+
+			// find a visible edge on the convex hull using edge hash
+			let start = 0;
+			for (let j = 0, key = this._hashKey(x, y); j < this._hashSize; j++) {
+				start = hullHash[(key + j) % this._hashSize];
+				if (start !== -1 && start !== hullNext[start]) break;
+			}
+
+			start = hullPrev[start];
+			let e = start,
+				q;
+			while (
+				((q = hullNext[e]),
+				orient2d(
+					x,
+					y,
+					coords[2 * e],
+					coords[2 * e + 1],
+					coords[2 * q],
+					coords[2 * q + 1]
+				) >= 0)
+			) {
+				e = q;
+				if (e === start) {
+					e = -1;
+					break;
+				}
+			}
+			if (e === -1) continue; // likely a near-duplicate point; skip it
+
+			// add the first triangle from the point
+			let t = this._addTriangle(e, i, hullNext[e], -1, -1, hullTri[e]);
+
+			// recursively flip triangles from the point until they satisfy the Delaunay condition
+			hullTri[i] = this._legalize(t + 2);
+			hullTri[e] = t; // keep track of boundary triangles on the hull
+			hullSize++;
+
+			// walk forward through the hull, adding more triangles and flipping recursively
+			let n = hullNext[e];
+			while (
+				((q = hullNext[n]),
+				orient2d(
+					x,
+					y,
+					coords[2 * n],
+					coords[2 * n + 1],
+					coords[2 * q],
+					coords[2 * q + 1]
+				) < 0)
+			) {
+				t = this._addTriangle(n, i, q, hullTri[i], -1, hullTri[n]);
+				hullTri[i] = this._legalize(t + 2);
+				hullNext[n] = n; // mark as removed
+				hullSize--;
+				n = q;
+			}
+
+			// walk backward from the other side, adding more triangles and flipping
+			if (e === start) {
+				while (
+					((q = hullPrev[e]),
+					orient2d(
+						x,
+						y,
+						coords[2 * q],
+						coords[2 * q + 1],
+						coords[2 * e],
+						coords[2 * e + 1]
+					) < 0)
+				) {
+					t = this._addTriangle(q, i, e, -1, hullTri[e], hullTri[q]);
+					this._legalize(t + 2);
+					hullTri[q] = t;
+					hullNext[e] = e; // mark as removed
+					hullSize--;
+					e = q;
+				}
+			}
+
+			// update the hull indices
+			this._hullStart = hullPrev[i] = e;
+			hullNext[e] = hullPrev[n] = i;
+			hullNext[i] = n;
+
+			// save the two new edges in the hash table
+			hullHash[this._hashKey(x, y)] = i;
+			hullHash[this._hashKey(coords[2 * e], coords[2 * e + 1])] = e;
+		}
+
+		this.hull = new Uint32Array(hullSize);
+		for (let i = 0, e = this._hullStart; i < hullSize; i++) {
+			this.hull[i] = e;
+			e = hullNext[e];
+		}
+
+		// trim typed triangle mesh arrays
+		this.triangles = this._triangles.subarray(0, this.trianglesLen);
+		this.halfedges = this._halfedges.subarray(0, this.trianglesLen);
+	}
+
+	_hashKey(x, y) {
+		return (
+			Math.floor(pseudoAngle(x - this._cx, y - this._cy) * this._hashSize) %
+			this._hashSize
+		);
+	}
+
+	_legalize(a) {
+		const { _triangles: triangles, _halfedges: halfedges, coords } = this;
+
+		let i = 0;
+		let ar = 0;
+
+		// recursion eliminated with a fixed-size stack
+		while (true) {
+			const b = halfedges[a];
+
+			/* if the pair of triangles doesn't satisfy the Delaunay condition
+			 * (p1 is inside the circumcircle of [p0, pl, pr]), flip them,
+			 * then do the same check/flip recursively for the new pair of triangles
+			 *
+			 *           pl                    pl
+			 *          /||\                  /  \
+			 *       al/ || \bl            al/    \a
+			 *        /  ||  \              /      \
+			 *       /  a||b  \    flip    /___ar___\
+			 *     p0\   ||   /p1   =>   p0\---bl---/p1
+			 *        \  ||  /              \      /
+			 *       ar\ || /br             b\    /br
+			 *          \||/                  \  /
+			 *           pr                    pr
+			 */
+			const a0 = a - (a % 3);
+			ar = a0 + ((a + 2) % 3);
+
+			if (b === -1) {
+				// convex hull edge
+				if (i === 0) break;
+				a = EDGE_STACK[--i];
+				continue;
+			}
+
+			const b0 = b - (b % 3);
+			const al = a0 + ((a + 1) % 3);
+			const bl = b0 + ((b + 2) % 3);
+
+			const p0 = triangles[ar];
+			const pr = triangles[a];
+			const pl = triangles[al];
+			const p1 = triangles[bl];
+
+			const illegal = inCircle(
+				coords[2 * p0],
+				coords[2 * p0 + 1],
+				coords[2 * pr],
+				coords[2 * pr + 1],
+				coords[2 * pl],
+				coords[2 * pl + 1],
+				coords[2 * p1],
+				coords[2 * p1 + 1]
+			);
+
+			if (illegal) {
+				triangles[a] = p1;
+				triangles[b] = p0;
+
+				const hbl = halfedges[bl];
+
+				// edge swapped on the other side of the hull (rare); fix the halfedge reference
+				if (hbl === -1) {
+					let e = this._hullStart;
+					do {
+						if (this._hullTri[e] === bl) {
+							this._hullTri[e] = a;
+							break;
+						}
+						e = this._hullPrev[e];
+					} while (e !== this._hullStart);
+				}
+				this._link(a, hbl);
+				this._link(b, halfedges[ar]);
+				this._link(ar, bl);
+
+				const br = b0 + ((b + 1) % 3);
+
+				// don't worry about hitting the cap: it can only happen on extremely degenerate input
+				if (i < EDGE_STACK.length) {
+					EDGE_STACK[i++] = br;
+				}
+			} else {
+				if (i === 0) break;
+				a = EDGE_STACK[--i];
+			}
+		}
+
+		return ar;
+	}
+
+	_link(a, b) {
+		this._halfedges[a] = b;
+		if (b !== -1) this._halfedges[b] = a;
+	}
+
+	// add a new triangle given vertex indices and adjacent half-edge ids
+	_addTriangle(i0, i1, i2, a, b, c) {
+		const t = this.trianglesLen;
+
+		this._triangles[t] = i0;
+		this._triangles[t + 1] = i1;
+		this._triangles[t + 2] = i2;
+
+		this._link(t, a);
+		this._link(t + 1, b);
+		this._link(t + 2, c);
+
+		this.trianglesLen += 3;
+
+		return t;
+	}
+}
+
+// monotonically increases with real angle, but doesn't need expensive trigonometry
+function pseudoAngle(dx, dy) {
+	const p = dx / (Math.abs(dx) + Math.abs(dy));
+	return (dy > 0 ? 3 - p : 1 + p) / 4; // [0..1]
+}
+
+function dist(ax, ay, bx, by) {
+	const dx = ax - bx;
+	const dy = ay - by;
+	return dx * dx + dy * dy;
+}
+
+function inCircle(ax, ay, bx, by, cx, cy, px, py) {
+	const dx = ax - px;
+	const dy = ay - py;
+	const ex = bx - px;
+	const ey = by - py;
+	const fx = cx - px;
+	const fy = cy - py;
+
+	const ap = dx * dx + dy * dy;
+	const bp = ex * ex + ey * ey;
+	const cp = fx * fx + fy * fy;
+
+	return (
+		dx * (ey * cp - bp * fy) - dy * (ex * cp - bp * fx) + ap * (ex * fy - ey * fx) < 0
+	);
+}
+
+function circumradius(ax, ay, bx, by, cx, cy) {
+	const dx = bx - ax;
+	const dy = by - ay;
+	const ex = cx - ax;
+	const ey = cy - ay;
+
+	const bl = dx * dx + dy * dy;
+	const cl = ex * ex + ey * ey;
+	const d = 0.5 / (dx * ey - dy * ex);
+
+	const x = (ey * bl - dy * cl) * d;
+	const y = (dx * cl - ex * bl) * d;
+
+	return x * x + y * y;
+}
+
+function circumcenter(ax, ay, bx, by, cx, cy) {
+	const dx = bx - ax;
+	const dy = by - ay;
+	const ex = cx - ax;
+	const ey = cy - ay;
+
+	const bl = dx * dx + dy * dy;
+	const cl = ex * ex + ey * ey;
+	const d = 0.5 / (dx * ey - dy * ex);
+
+	const x = ax + (ey * bl - dy * cl) * d;
+	const y = ay + (dx * cl - ex * bl) * d;
+
+	return { x, y };
+}
+
+function quicksort(ids, dists, left, right) {
+	if (right - left <= 20) {
+		for (let i = left + 1; i <= right; i++) {
+			const temp = ids[i];
+			const tempDist = dists[temp];
+			let j = i - 1;
+			while (j >= left && dists[ids[j]] > tempDist) ids[j + 1] = ids[j--];
+			ids[j + 1] = temp;
+		}
+	} else {
+		const median = (left + right) >> 1;
+		let i = left + 1;
+		let j = right;
+		swap(ids, median, i);
+		if (dists[ids[left]] > dists[ids[right]]) swap(ids, left, right);
+		if (dists[ids[i]] > dists[ids[right]]) swap(ids, i, right);
+		if (dists[ids[left]] > dists[ids[i]]) swap(ids, left, i);
+
+		const temp = ids[i];
+		const tempDist = dists[temp];
+		while (true) {
+			do i++;
+			while (dists[ids[i]] < tempDist);
+			do j--;
+			while (dists[ids[j]] > tempDist);
+			if (j < i) break;
+			swap(ids, i, j);
+		}
+		ids[left + 1] = ids[j];
+		ids[j] = temp;
+
+		if (right - i + 1 >= j - left) {
+			quicksort(ids, dists, i, right);
+			quicksort(ids, dists, left, j - 1);
+		} else {
+			quicksort(ids, dists, left, j - 1);
+			quicksort(ids, dists, i, right);
+		}
+	}
+}
+
+function swap(arr, i, j) {
+	const tmp = arr[i];
+	arr[i] = arr[j];
+	arr[j] = tmp;
+}
+
+function defaultGetX(p) {
+	return p[0];
+}
+function defaultGetY(p) {
+	return p[1];
+}
+
+/**
+ * @class DelaunayMesh
+ * @inherits Mesh
+ *
+ * A `Mesh` which is calculated from a multipoint `Geometry`, leveraging Volodymir
+ * Agafonkin's [`delaunator`](https://github.com/mapbox/delaunator)
+ * implementation of the Delaunay triangulation.
+ *
+ * Works as a `Mesh`, but without the need of specifying the triangles array
+ * at instantiation time.
+ *
+ * Note that the triangulation algorithm runs on the CRS of the data, and **not**
+ * on the display CRS of the map.
+ */
+
+class DelaunayMesh extends Mesh {
+	/**
+	 * @constructor Mesh(geom: Geometry, opts?: DelaunayMesh Options)
+	 */
+	constructor(geom, opts = {}) {
+		const geometry = factory$1(geom);
+
+		/// TODO: sanity check on the dimension of the geometry. This should
+		/// throw an error on geometries with dimension other than 2.
+
+		// Gets fed the coordinates of a 2D `Geometry`, with coordinates already packed.
+		const delaunated = new Delaunator(geometry.coords);
+
+		super(geometry, opts, delaunated.triangles);
+	}
+}
+
+/**
+ * @class AcetateDot
+ * @inherits Acetate
+ *
+ * An `Acetate` that draws points as coloured dots (given `vec4` RGBA data per dot).
+ *
+ * In particular, this uses the `POINTS` `drawMode` of WebGL. That means every symbol
+ * gets *only* one vertex.
+ */
+
+class AcetateDot extends Acetate {
+	constructor(target, opts) {
+		super(target, { zIndex: 5000, ...opts });
+
+		this._indices = new this.glii.SequentialSparseIndices({
+			drawMode: this.glii.POINTS,
+		});
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Point size
+					glslType: "float",
+					type: Uint16Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				aColour: this._attrs?.getBindableAttribute(0),
+				aSize: this._attrs?.getBindableAttribute(1),
+				...opts.attributes,
+			},
+			uniforms: {
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+				gl_PointSize = aSize;
+			`,
+			varyings: { vColour: "vec4" },
+			fragmentShaderMain: `gl_FragColor = vColour;`,
+			indexBuffer: this._indices,
+			blend: {
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+
+				srcRGB: this.glii.SRC_ALPHA,
+				dstRGB: this.glii.ONE_MINUS_SRC_ALPHA,
+				srcAlpha: this.glii.ONE,
+				dstAlpha: this.glii.ONE_MINUS_SRC_ALPHA,
+			},
+		};
+	}
+
+	_getStridedArrays(_, maxIdx) {
+		return [
+			// RGBA colour
+			this._attrs.asStridedArray(0, maxIdx),
+
+			// Dot size
+			this._attrs.asStridedArray(1),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, vtxCount) {
+		this._attrs.commit(baseVtx, vtxCount);
+	}
+
+	/**
+	 * @method multiAdd(dots: Array of Dot): this
+	 * Adds the dots to this acetate (so they're drawn on the next refresh),
+	 * using as few WebGL calls as feasible.
+	 *
+	 * GPU memory space allocated to the given points will be adjacent.
+	 */
+	multiAdd(dots) {
+		this.multiAllocate(dots);
+		return super.multiAdd(dots);
+	}
+
+	multiAllocate(symbols) {
+		// Skip already added symbols
+		symbols = symbols.filter((s) => isNaN(s.attrBase));
+		if (symbols.length === 0) {
+			return;
+		}
+
+		const totalVertices = symbols.reduce((acc, ext) => acc + ext.attrLength, 0);
+		const base = this._indices.allocateSlots(totalVertices);
+
+		if (this._crs) {
+			this.reproject(base, totalVertices, symbols);
+		}
+
+		let stridedArrays = this._getStridedArrays(
+			base + totalVertices,
+			base + totalVertices
+		);
+
+		let acc = base;
+
+		symbols.forEach((sym) => {
+			sym._inAcetate = this;
+			sym.attrBase = sym.idxBase = acc;
+			this._knownSymbols[acc] = sym;
+
+			sym._setGlobalStrides(...stridedArrays);
+
+			acc += sym.attrLength;
+		});
+
+		this._commitStridedArrays(base, totalVertices, base, totalVertices);
+
+		this.dirty = true;
+		return this;
+	}
+
+	/**
+	 * @method deallocate(dot: Dot): this
+	 * Deallocates the dot from this acetate (so it's *not* drawn on the next refresh).
+	 */
+	deallocate(dot) {
+		if (this._knownSymbols[dot.attrBase] !== dot) {
+			throw new Error("Trying to remove a Dot symbol from the wrong Acetate.");
+		}
+		this._indices.deallocateSlots(dot.attrBase, 1);
+		dot.updateRefs(undefined, undefined, undefined);
+
+		return this;
+	}
+
+	/**
+	 * @method reprojectAll(): undefined
+	 * Dumps a new set of values to `this._coords`, based on the known
+	 * set of symbols added to the acetate.
+	 */
+	reprojectAll() {
+		this._indices.forEachBlock(this.reproject.bind(this));
+	}
+
+	/**
+	 * Internal. Reprojects a part of the this._coords attribute buffer, from
+	 * `start` to `start+length`. Flattens the result and dumps into coords
+	 * attribute buffer.
+	 */
+	reproject(start, length) {
+		//console.log(`Should reproject dots allocated at ${start}, length ${length}`);
+
+		const end = start + length;
+		const stridedCoords = this._coords.asStridedArray(end);
+
+		this._knownSymbols.forEach((s) => {
+			const offset = s.attrBase;
+			if (offset < start || offset >= end) {
+				return;
+			}
+			stridedCoords.set(s.geometry.toCRS(this._crs).coords, s.attrBase);
+		});
+
+		this._coords.commit(start, length);
+
+		const coordData = new Float32Array(stridedCoords.buffer, start * 8, length * 2);
+		super.expandBBox(coordData);
+		return coordData;
+	}
+}
+
+/**
+ * @class Dot
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateDot
+ *
+ * A 1-pixel dot, with RGBA colour.
+ *
+ * `Dot`s are a minimalist symbol, in the sense that they use the least
+ * GPU data structures among symbols.
+ */
+
+class Dot extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateDot
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateDot;
+	#colour;
+
+	/**
+	 * @constructor Dot(geom: Geometry, opts?: Dot Options)
+	 */
+	constructor(geom, { colour = [0, 0, 0, 255], size = 1, ...opts } = {}) {
+		super(geom, opts);
+
+		if (this.geom.coords.length !== this.geom.dimension) {
+			/// TODO: Add an alternative, to accept plain arrays instead of coordinates
+			/// This would require setting up a module to specify the default CRS to
+			/// be used, like `projector.mjs` does with the Proj instance.
+			throw new Error("Geometry passed to Dot constructor is not a single point.");
+		}
+
+		/**
+		 * @section
+		 * @aka Dot Options
+		 * @option colour: Colour = [0,0,0,255]
+		 * The colour of the dot.
+		 */
+		this.#colour = this.constructor._parseColour(colour);
+
+		/**
+		 * @option size: Number = 1
+		 * The size of the dot, in GL pixels. Values larger than 1 will draw a
+		 * square with this many pixels per side.
+		 *
+		 * The maximum value depends on the GPU and WebGL/OpenGL stack. It is possible
+		 * for the maximum value to be 1.
+		 */
+		this.size = size;
+
+		// Dots are *always* one vertex and one primitive index (and they're the same)
+		this.attrLength = 1;
+		this.idxLength = 1;
+	}
+
+	/**
+	 * @section Acetate interface methods
+	 * @uninheritable
+	 * For internal use only
+	 * @method _setGlobalStrides(stridedColour: StridedTypedArray, stridedDotSize: StridedTypedArray): this
+	 */
+	_setGlobalStrides(colour, dotSize) {
+		colour.set(this.#colour, this.attrBase);
+		dotSize.set([this.size], this.attrBase);
+		return this;
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class FuelPoint
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateFuelPoint
+ *
+ * A point for a scalar field, similar to `HeatPoint`. Unlike `HeatPoint`,
+ * `FuelPoint`s do not have a radius in pixels and only have an intensity. The
+ * intensity of all `FuelPoint`s in the same `AcetateFuelPoint`
+ * increases/decreases at the same rate.
+ */
+
+class FuelPoint extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateFuelPoint
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateFuelPoint;
+
+	#intensity;
+
+	/**
+	 * @constructor HeatPoint(geom: Geometry, opts?: HeatPoint Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka HeatMap Options
+			 * @option intensity: Number = 10
+			 * Intensity of the point, at its center. The intensity fades linearly
+			 * outwards, at the same rate for all `FuelPoint`s.
+			 */
+			intensity = 10,
+
+			interactive = true,
+
+			...opts
+		} = {}
+	) {
+		super(geom, { ...opts, interactive });
+		this.#intensity = intensity;
+
+		// Assume a constant number of circle subdivisions for all FuelPoints.
+		this.steps = 16;
+
+		this.attrLength = this.steps + 1;
+		this.idxLength = this.steps * 3;
+	}
+
+	/**
+	 * @property intensity
+	 * The value of the `intensity` option at instantiation time. Read-only.
+	 */
+	get intensity() {
+		return this.#intensity;
+	}
+
+	_setGlobalStrides(strideIntensity, strideDistance, typedIdxs, radius) {
+		// Radian increment per step
+		// const ɛ = (Math.PI * 2) / this.steps;
+
+		/// TODO: Scale radius - the offset should be geodetic instead of CRS-planar
+		// const ρ = radius;
+
+		// const [Δx, Δy] = this.offset;
+
+		// Attributes start with the center point
+		// strideExtrusion.set([Δx, Δy], this.attrBase);
+		strideIntensity?.set([this.#intensity], this.attrBase);
+		strideDistance?.set([0], this.attrBase);
+
+		// let θ = 0;
+		let vtx = this.attrBase + 1;
+		let idx = this.idxBase;
+
+		// Intensity is a single attribute, and all values but the first must be set to zero
+		// strideIntensity?.set(new Array(this.attrLength - 1).fill(0), vtx);
+
+		// Intensity is the same for all vertices
+		// strideIntensity?.set(new Array(this.attrLength).fill(this.#intensity), this.attrBase);
+
+		for (let i = 0; i < this.steps; i++) {
+			// strideExtrusion.set([Math.sin(θ) * ρ + Δx, Math.cos(θ) * ρ + Δy], vtx);
+			strideDistance?.set([radius], vtx);
+			strideIntensity?.set([this.#intensity], vtx);
+
+			// Vertices of the i-th triangle are: center, current, next
+			if (i !== this.steps - 1) {
+				typedIdxs?.set([this.attrBase, vtx, vtx + 1], idx);
+			} else {
+				typedIdxs?.set([this.attrBase, vtx, this.attrBase + 1], idx);
+			}
+
+			// θ += ɛ;
+			vtx++;
+			idx += 3;
+		}
+	}
+}
+
+/**
+ * @class AcetateHair
+ * @inherits AcetateVertices
+ *
+ * An `Acetate` that draws lines as thin (1px) lines.
+ *
+ * In particular, this uses the `LINES` `drawMode` of WebGL. Line segments drawn
+ * this way are 1px-wide and, depending on the OpenGL implementation, are not
+ * antialiased and cannot be any thicker (hence "hair" instead of "line").
+ */
+
+class AcetateHair extends AcetateVertices {
+	/**
+	 * @constructor AcetateHair(glii: GliiFactory)
+	 */
+	constructor(target, opts) {
+		super(target, { zIndex: 3000, ...opts });
+
+		this._indices._drawMode = this.glii.LINES;
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// RGBA Colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		return {
+			...opts,
+			attributes: {
+				aColour: this._attrs.getBindableAttribute(0),
+				...opts.attributes,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+			`,
+			varyings: { vColour: "vec4" },
+			fragmentShaderMain: `gl_FragColor = vColour;`,
+		};
+	}
+
+	#allocatedVtxs = 0;
+	_getStridedArrays(maxVtx, maxIdx) {
+		this.#allocatedVtxs = maxVtx;
+		return [
+			// Indices
+			...super._getStridedArrays(maxVtx, maxIdx),
+
+			// Colours
+			this._attrs.asStridedArray(0, maxVtx),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, totalVertices, baseIdx, totalIndices) {
+		this._attrs.commit(baseVtx, totalVertices);
+		return super._commitStridedArrays(baseVtx, totalVertices, baseIdx, totalIndices);
+	}
+
+	_getGeometryStridedArrays() {
+		return [];
+	}
+
+	_commitGeometryStridedArrays(_baseVtx, _vtxCount, _baseIdx, _idxCount) {
+		// noop
+	}
+
+	multiAdd(syms) {
+		super.multiAdd(syms);
+		super.multiAllocate(syms);
+
+		const perPointStrides = this._getPerPointStridedArrays(this.#allocatedVtxs);
+		let minVtx = Infinity;
+		let maxVtx = -Infinity;
+		syms.forEach((sym) => {
+			let vtx = sym.attrBase;
+			minVtx = Math.min(vtx, minVtx);
+			maxVtx = Math.max(vtx + sym.attrLength, maxVtx);
+			for (let n = 0; n < sym.attrLength; n++) {
+				/// TODO: This should use the *projected* geometry
+				sym._setPerPointStrides(n, MESH, vtx + n, 1, ...perPointStrides);
+			}
+		});
+		this._commitPerPointStridedArrays(minVtx, maxVtx - minVtx);
+
+		return this;
+	}
+}
+
+/**
+ * @class Hair
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateHair
+ *
+ * A 1-pixel line, with a different RGBA colour per hair.
+ *
+ * `Hair`s are drawn in an `AcetateHair`, which leverages the `LINES` `drawMode` of WebGL.
+ * Therefore, they are not antialiased and always one device pixel (not one CSS pixel) wide.
+ *
+ * For thicker & antialiased lines, see the `Stroke` symbol.
+ */
+
+class Hair extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateHair
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateHair;
+
+	/**
+	 * @class Hair
+	 * @section
+	 * @constructor Hair(geom: Geometry, opts?: Hair Options)
+	 *
+	 * Create a hair from a `Geometry` and an array of 4 numbers containing a RGBA
+	 * colour (with values within 0 and 255).
+	 *
+	 * The `Geometry` might have any depth. If the depth is 1, a single continuous hair
+	 * line is created. If it's deeper, then multiple lines are created.
+	 */
+	constructor(geom, { colour = [0, 0, 0, 255], ...opts } = {}) {
+		super(geom, opts);
+
+		if (!(this.geometry instanceof RawGeometry)) {
+			/// TODO: Add an alternative, to accept plain arrays instead of coordinates
+			/// This would require setting up a module to specify the default CRS to
+			/// be used, like `projector.mjs` does with the Proj instance.
+			throw new Error("First argument to Hair constructor is not a (Raw)Geometry.");
+		}
+
+		// A Hair symbol needs to destructure its Geometry into sets of 2-vertex
+		// line primitives, one continuous linestring per ring/hull in the Geometry.
+
+		// The vertex IDs of the line primitives are consistent even through reprojections
+		// (thanks to Geometry wrapping), so the logic can run here instead of in the Acetate.
+
+		let idx = 0;
+
+		const ringsPrimitives = this.geometry.mapRings((_start, _end, length) => {
+			const primitives = Array.from(new Array(length - 1)).map((_, i) => {
+				const j = idx + i;
+				return [j, j + 1];
+			});
+			idx += length;
+			return primitives;
+		});
+
+		// This is "relative" since it's always zero-indexed, independent of the value
+		// of `this.idxBase`.
+		this.relativeIdxs = ringsPrimitives.flat(2);
+
+		// Amount of vertex attribute slots needed
+		this.attrLength = this.geometry.coords.length / this.geometry.dimension;
+
+		// Amount of primitive index slots needed
+		this.idxLength = this.relativeIdxs.length;
+
+		/**
+		 * @section
+		 * @aka Hair Options
+		 * @option colour: Colour = [0,0,0,255]
+		 * The colour of the hair.
+		 */
+		this.colour = this.constructor._parseColour(colour);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+
+	_setGlobalStrides(typedIdxs, strideColour) {
+		strideColour.set(
+			new Array(this.attrLength).fill(this.colour).flat(),
+			this.attrBase
+		);
+
+		const idxs = this.relativeIdxs.map((i) => this.attrBase + i);
+
+		typedIdxs.set(idxs, this.idxBase);
+	}
+
+	_setGeometryStrides() {
+		/* noop */
+	}
+
+	/**
+	 * @section Acetate Interface
+	 * @uninheritable
+	 * @method _setPerPointStrides(n: Number, pointType: Symbol, vtx: Number, geom: Geometry, vtxCount: Number ...): this
+	 * As `_setGlobalStrides`, but only affects the n-th point in the symbol's
+	 * geometry.
+	 *
+	 * Takes the following parameters:
+	 * - Index for the `n`th point in the geometry
+	 * - Type of point extrusion (always "mesh" for hairs)
+	 * - Index for the vertex attribute data
+	 * - Number of vertices spawned for this geometry point (always 1 for hairs)
+	 * - strided arrays, as per `_getPerPointStridedArrays`.
+	 *
+	 * This method can be overriden or extended by subclasses and/or decorators.
+	 */
+	_setPerPointStrides(_n, _pointType, _vtx, _vtxCount, ..._strides) {
+		// Noop
+	}
+}
+
+/**
+ * @class Halo
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateSolidExtrusion
+ *
+ * A `Halo` is a circular symbol with multiple colour stops in a radial gradient,
+ * each colour stop having a different radius (specified in CSS pixels).
+ *
+ * @example
+ * ```
+ * let halo = new Halo(geometry, {
+ *   stops: {
+ *     90: [255,0,0,0],
+ *     100: [255,0,0,255],
+ *     110: [255,0,0,0]
+ *   }
+ * });
+ * ```
+ *
+ */
+
+class Halo extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidExtrusion;
+
+	#radii = [];
+	#colours = [];
+	#stopsCount = 0;
+	#width;
+
+	/**
+	 * @constructor Halo(geom: Geometry, opts?: Halo Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka Halo Options
+			 * @option stops: Object of Number to Colour = {}
+			 * A key-value map of radii to `Colour`s
+			 */
+			stops = {},
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		let maxRadius = 0;
+		let minRadius = Infinity;
+		for (let [radius, colour] of Object.entries(stops)) {
+			const r = Number(radius);
+			this.#radii.push(r);
+			this.#colours.push(this.constructor._parseColour(colour));
+			maxRadius = Math.max(maxRadius, r);
+			minRadius = Math.min(minRadius, r);
+			this.#stopsCount++;
+		}
+
+		if (this.#stopsCount < 2) {
+			throw new Error(`A Halo needs at least two colour stops`);
+		}
+
+		this.#width = maxRadius - minRadius;
+
+		// Length of circumference
+		const length = Math.PI * 2 * maxRadius;
+		// Divide in triangles so there's a triangle per...
+		// 6 pixels of circumference length. That should be enough.
+		this.steps = Math.max(6, Math.ceil(length / 6));
+
+		this.attrLength = this.steps * this.#stopsCount;
+		this.idxLength = this.steps * 6 * (this.#stopsCount - 1);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(strideExtrusion, strideColour, strideFeather, typedIdxs) {
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρmid = this.#radii[0] + this.#width / 2;
+		const w = this.#width / 2;
+		const f = w * 256; // Feather max
+		const [Δx, Δy] = this.offset;
+
+		let θ = 0;
+		const c = this.#stopsCount;
+		const steps2 = this.steps * c;
+		let vtx = this.attrBase;
+		let idx = this.idxBase;
+		for (let i = 0; i < steps2; i += c) {
+			const sinθ = Math.sin(θ);
+			const cosθ = Math.cos(θ);
+
+			for (let j = 1; j < c; j++) {
+				if (i !== steps2 - c) {
+					// prettier-ignore
+					typedIdxs?.set([
+						vtx+j-1, vtx+j, vtx+j+c-1,
+						vtx+j, vtx+j+c-1, vtx+j+c,
+					], idx);
+				} else {
+					// prettier-ignore
+					typedIdxs?.set(
+						[
+							vtx + j - 1, vtx + j, this.attrBase + j - 1,
+							vtx + j, this.attrBase + j - 1, this.attrBase + j,
+						],
+						idx
+					);
+				}
+				idx += 6;
+			}
+
+			for (let j = 0; j < this.#stopsCount; j++) {
+				const ρ = this.#radii[j];
+				strideExtrusion.set([sinθ * ρ + Δx, cosθ * ρ + Δy], vtx);
+				strideColour?.set(this.#colours[j], vtx);
+				strideFeather?.set([(ρ - ρmid) / w, f], vtx);
+				vtx++;
+			}
+
+			θ += ɛ;
+		}
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+}
+
+/**
+ * @class HeadingTriangle
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateHeadingTriangle
+ *
+ * A small triangle, meant to signify heading (or direction, or course) of
+ * a feature; should be used in conjunction with other symbol to represent
+ * the feature itself.
+ *
+ * Works with point geometries only.
+ */
+
+class HeadingTriangle extends ExtrudedPoint {
+	static Acetate = AcetateSolidBorder;
+
+	#distance;
+	#width;
+	#length;
+	#fillColour;
+	#borderColour;
+	#borderWidth;
+	#feather;
+	#yaw;
+
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka HeadingTriangle Options
+			 * @option distance: Number = 16
+			 * The distance from the geometry to the base of the triangle, in CSS pixels.
+			 *
+			 * @option width: Number = 8
+			 * The width of the triangle, in CSS pixels.
+			 *
+			 * @option length: Number = 6
+			 * The length of the triangle, in CSS pixels.
+			 *
+			 * @option fillColour: Colour = 'white'
+			 * The colour for the inside area of the triangle.
+			 *
+			 * @option borderColour: Colour = 'black'
+			 * The colour for the border of the triangle.
+			 *
+			 * @option borderWidth: Number = 1
+			 * The width of the border, in CSS pixels.
+			 *
+			 * @option feather: Number = 0.5
+			 * The width of the antialiasing feather, in CSS pixels.
+			 */
+			distance = 16,
+			width = 8,
+			length = 6,
+			fillColour = [255, 255, 255, 255],
+			borderColour = [0, 0, 0, 255],
+			borderWidth = 1,
+			feather = 0.5,
+
+			/**
+			 * @option yaw: Number = 0
+			 * The yaw rotation of the triangle, in clockwise degrees from "north"
+			 */
+			yaw = 0,
+
+			...opts
+		}
+	) {
+		super(geom, opts);
+
+		this.#distance = distance - feather / 2;
+		this.#width = width + feather;
+		this.#length = length + feather / 2;
+		this.#fillColour = this.constructor._parseColour(fillColour);
+		this.#borderColour = this.constructor._parseColour(borderColour);
+		this.#borderWidth = borderWidth;
+		this.#feather = feather;
+
+		this.#yaw = yaw;
+
+		this.attrLength = 3;
+		this.idxLength = 3;
+	}
+
+	/**
+	 * @section
+	 * @property yaw: Number
+	 * Runtime value of the `yaw` option: the yaw rotation of the sprite,
+	 * in clockwise degrees. Can be updated.
+	 */
+	set yaw(yaw) {
+		this.#yaw = yaw;
+		this._refreshExtrusion();
+	}
+	get yaw() {
+		return this.#yaw;
+	}
+
+	/**
+	 * @property fillColour: Colour
+	 * The fill colour of the triangle. Can be updated.
+	 */
+	get fillColour() {
+		return this.#fillColour;
+	}
+
+	set fillColour(c) {
+		this.#fillColour = this.constructor._parseColour(c);
+		if (!this._inAcetate) {
+			return;
+		}
+
+		const stridedArrays = this._inAcetate._getStridedArrays(
+			this.attrBase + this.attrLength,
+			this.idxBase + this.idxLength
+		);
+		this._setGlobalStrides(...stridedArrays);
+		this._inAcetate._commitStridedArrays(
+			this.attrBase,
+			this.attrLength,
+			this.idxBase,
+			this.idxLength
+		);
+		this._inAcetate.dirty = true;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideFillColour: StridedTypedArray, strideBorderColour: StridedTypedArray, strideBorder: StridedTypedArray, strideEdgeDistance: StridedTypedArray, typedIdxs: TypedArray, feather: Number): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(
+		strideExtrusion,
+		strideFillColour,
+		strideBorderColour,
+		strideBorder,
+		strideEdgeDistance,
+		typedIdxs
+	) {
+		const yawRadians = (-this.#yaw * Math.PI) / 180;
+		const s = Math.sin(yawRadians);
+		const c = Math.cos(yawRadians);
+		const l = this.#length;
+		const w = this.#width / 2;
+		const d = this.#distance;
+
+		let [Δx, Δy] = this.offset;
+		Δx -= s * d;
+		Δy += c * d;
+
+		// prettier-ignore
+		strideExtrusion.set([
+			Δx - s*l, Δy + c*l,
+			Δx - c*w, Δy - s*w,
+			Δx + c*w, Δy + s*w
+		], this.attrBase);
+
+		if (!strideFillColour) {
+			return;
+		}
+
+		for (let i = 0; i < 3; i++) {
+			strideFillColour.set(this.#fillColour, this.attrBase + i);
+			strideBorderColour.set(this.#borderColour, this.attrBase + i);
+			strideBorder.set([this.#borderWidth, this.#feather], this.attrBase + i);
+		}
+
+		strideEdgeDistance.set([this.#length, 0, 0], this.attrBase);
+
+		// Relation between length & width; half the angle of the triangle tip;
+		// same as relative angle from base vertex to create an orthogonal
+		// to a side
+		const α = Math.atan2(this.#length, this.#width);
+
+		const dist = Math.cos(α) * this.#width;
+
+		strideEdgeDistance.set([0, dist, 0], this.attrBase + 1);
+		strideEdgeDistance.set([0, 0, dist], this.attrBase + 2);
+
+		typedIdxs.set(
+			[this.attrBase, this.attrBase + 1, this.attrBase + 2],
+			this.idxBase
+		);
+	}
+
+	_refreshExtrusion() {
+		if (!this._inAcetate) {
+			return this;
+		}
+
+		let strideExtrude = this._inAcetate._extrusions.asStridedArray();
+		this._setGlobalStrides(strideExtrude);
+
+		this._inAcetate._extrusions.commit(this.attrBase, this.attrLength);
+		this._inAcetate.dirty = true;
+		return this;
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class AcetateHeatChain
+ * @inherits AcetateChain
+ * @relationship drawnOn ScalarField
+ *
+ * An `Acetate` to place `HeatChain`s into a scalar field.
+ *
+ */
+class AcetateHeatChain extends Chain.Acetate {
+	#blendEquation;
+
+	/**
+	 * @constructor AcetateHeatChain(target: GliiFactory, opts: AcetateHeatChain Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option blendEquation: String
+			 * Defines how the symbols' intensity affects the value of the
+			 * scalar field. The default is `"ADD"`, which means the intensity
+			 * is added to the scalar field. Other possible values are `"SUBTRACT"`,
+			 * `"MIN"` and `"MAX"`.
+			 */
+			blendEquation = "ADD",
+
+			...opts
+		} = {}
+	) {
+		super(target, {
+			zIndex: 2000,
+			...opts,
+
+			// Heat acetates are not gonna be interactive - otherwise
+			// confusion will ensue when several heatpoints overlap each other.
+			// Arguably interactivity could be achieved by a more complex shader,
+			// leveraging the depth buffer - only the heatpoint closest to
+			// the camera would be registered.
+			interactive: false,
+		});
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Heat intensity
+					glslType: "float",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Width, in 256ths of CSS pixels.
+					// Used for fading.
+					glslType: "float",
+					type: Uint16Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this.#blendEquation = getBlendEquationConstant(this.glii, blendEquation);
+	}
+
+	/**
+	 * @property PostAcetate: ScalarField
+	 * Signals that this `Acetate` isn't rendered as a RGBA8 texture,
+	 * but instead uses a scalar field.
+	 */
+	static get PostAcetate() {
+		return ScalarField;
+	}
+
+	// This is the definition for the *first* program, turning HeatPoint
+	// symbols into a float32 texture (AKA "scalar field")
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aIntensity: this._attrs.getBindableAttribute(0),
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vIntensity = aIntensity;
+				vLength = aLength / uScale;
+				vWidth = aWidth / 512.;
+
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix
+					+ vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vIntensity: "float",
+				...opts.varyings,
+			},
+			fragmentShaderMain: `
+			gl_FragColor.r = vIntensity;
+
+			float position = min(vLength.x, vLength.y - vLength.x);
+			float opacity = 0.5 + min(position / vWidth, 1.0) / 2.;
+
+			gl_FragColor.r *= opacity;
+			`,
+			target: this._inAcetate.framebuffer,
+			blend: {
+				equationRGB: this.#blendEquation,
+				// equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.#blendEquation,
+
+				srcRGB: this.glii.ONE,
+				srcAlpha: this.glii.ZERO,
+				dstRGB: this.glii.ONE,
+				dstAlpha: this.glii.ZERO,
+			},
+		};
+	}
+}
+
+/**
+ * @class HeatChain
+ * @inherits Chain
+ * @relationship drawnOn AcetetateHeatChain
+ *
+ * A mix of `Chain` and `HeatPoint` - given a (poly)line geometry, this will
+ * increase the value of a scalar field along the centre of the line, falling
+ * off towards the edges of the line.
+ *
+ * Use a `HeatMap` or any other subclass of `ScalarField`, same as
+ * `HeatPoint`.
+ *
+ * See also `HeatChain`. For high fidelity on visible corners, use `HeatStroke`.
+ * To minimize rendering artefacts when zooming out on geometries with sharp
+ * turns, use `HeatChain`.
+ */
+let HeatChain$1 = class HeatChain extends Chain {
+	static Acetate = AcetateHeatChain;
+
+	#intensity;
+	/**
+	 * @constructor HeatChain(geom: Geometry, opts?: HeatChain Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka HeatChain Options
+			 * @option intensity: Number = 10
+			 * Intensity of the scalar field on the chain's centerline.
+			 * The intensity will fall off towards zero on the chain's edge, in
+			 * a linear fashion.
+			 * @alternative
+			 * @option intensity: Array of Number
+			 * Intensity of the scalar field on the centerline of each segment
+			 * of the chain. There must be enough elements.
+			 */
+			intensity = 10,
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+		this.#intensity = intensity;
+	}
+
+	_setPerSegmentStrides(n, vtx, vtxCount, _geom, strideIntensity) {
+		const segmentIntensity = Array.isArray(this.#intensity)
+			? this.#intensity[n]
+			: this.#intensity;
+
+		for (let i = 0; i < vtxCount; i++) {
+			strideIntensity.set([i === 1 || i === 6 ? segmentIntensity : 0], vtx + i);
+		}
+	}
+};
+
+/**
+ * @class AcetateHeatPoint
+ * @inherits AcetateExtrudedPoint
+ * @relationship drawnOn ScalarField
+ *
+ * An `Acetate` to place `HeatPoint`s into a scalar field.
+ *
+ */
+
+class AcetateHeatPoint extends AcetateExtrudedPoint {
+	#blendEquation;
+
+	/**
+	 * @constructor AcetateHeatPoint(target: , opts: AcetateHeatPoint Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option blendEquation: String
+			 * Defines how the symbols' intensity affects the value of the
+			 * scalar field. The default is `"ADD"`, which means the intensity
+			 * is added to the scalar field. Other possible values are `"SUBTRACT"`,
+			 * `"MIN"` and `"MAX"`.
+			 */
+			blendEquation = "ADD",
+
+			...opts
+		} = {}
+	) {
+		super(target, {
+			zIndex: 2000,
+			...opts,
+
+			// Heatpoint acetates are not gonna be interactive - otherwise
+			// confusion will ensue when several heatpoints overlap each other.
+			// Arguably interactivity could be achieved by a more complex shader,
+			// leveraging the depth buffer - only the heatpoint closest to
+			// the camera would be registered.
+			interactive: false,
+		});
+
+		this._attrs = new this.glii.SingleAttribute({
+			usage: this.glii.STATIC_DRAW,
+			size: 1,
+			growFactor: 1.2,
+
+			// Heat intensity
+			glslType: "float",
+			type: Float32Array,
+			normalized: false,
+		});
+
+		this.#blendEquation = getBlendEquationConstant(this.glii, blendEquation);
+	}
+
+	/**
+	 * @property PostAcetate: ScalarField
+	 * Signals that this `Acetate` isn't rendered as a RGBA8 texture,
+	 * but instead uses a scalar field.
+	 */
+	static get PostAcetate() {
+		return ScalarField;
+	}
+
+	// This is the definition for the *first* program, turning HeatPoint
+	// symbols into a float32 texture (AKA "scalar field")
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aIntensity: this._attrs,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vIntensity = aIntensity;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix +
+					vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vIntensity: "float",
+			},
+			fragmentShaderMain: ` gl_FragColor.r = vIntensity; `,
+			target: this._inAcetate.framebuffer,
+			blend: {
+				equationRGB: this.#blendEquation,
+				// equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.#blendEquation,
+
+				/**
+				 * NOTE: When using blend modes that multiply the src RGB
+				 * components by the scr alpha, then the fragment shader
+				 * needs to set the alpha component. i.e. there's a need to
+				 * set `gl_FragColor.a = 1.;`.
+				 *
+				 * This is counter-intuitive, since the R32F texture has no
+				 * alpha component. **BUT**, the alpha component of
+				 * gl_FragColor lives until the blend operation.
+				 *
+				 * By setting the srcRGB blend parameter to `ONE`, the output
+				 * is unaffected by the alpha component.
+				 */
+				srcRGB: this.glii.ONE,
+				srcAlpha: this.glii.ZERO,
+				dstRGB: this.glii.ONE,
+				dstAlpha: this.glii.ZERO,
+			},
+		};
+	}
+
+	resize(x, y) {
+		super.resize(x, y);
+		this._program._target = this._inAcetate.framebuffer;
+		const dpr2 = (devicePixelRatio ?? 1) * 2;
+
+		const invCellSize = 1 / (this._inAcetate?.cellSize ?? 1);
+		this._program.setUniform("uPixelSize", [
+			(invCellSize * dpr2) / x,
+			(invCellSize * dpr2) / y,
+		]);
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Static extrusion
+			this._extrusions.asStridedArray(maxVtx),
+			// Field intensity
+			this._attrs.asStridedArray(maxVtx),
+			// Triangle indices
+			this._indices.asTypedArray(maxIdx),
+		];
+	}
+}
+
+/**
+ * @class HeatPoint
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateHeatPoint
+ *
+ * A point for a heatmap - an abstract blob that will increase/change
+ * the colour on the `ScalarField` it is in, typically a
+ * `HeatMap`.
+ */
+
+class HeatPoint extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateHeatPoint
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateHeatPoint;
+
+	#radius;
+	#intensity;
+
+	/**
+	 * @constructor HeatPoint(geom: Geometry, opts?: HeatPoint Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka HeatPoint Options
+			 * @option radius: Number = 20; Radius of the circle, in CSS pixels
+			 * @option intensity: Number = 10
+			 * Intensity of the point, at its center. The intensity fades linearly
+			 * towards its edge (half intensity at half the radius, etc)
+			 */
+			radius = 20,
+			intensity = 10,
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+		this.#radius = radius;
+		this.#intensity = intensity;
+
+		// Length of circumference
+		const length = Math.PI * 2 * this.#radius;
+		// Divide in triangles so there's a triangle per...
+		// 6 pixels of circumference length. That should be enough.
+		this.steps = Math.max(6, Math.ceil(length / 6));
+
+		this.attrLength = this.steps + 1;
+		this.idxLength = this.steps * 3;
+	}
+
+	_setGlobalStrides(strideExtrusion, strideIntensity, typedIdxs) {
+		// Radian increment per step
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρ = this.#radius;
+		const [Δx, Δy] = this.offset;
+
+		// Attributes start with the center point
+		strideExtrusion.set([Δx, Δy], this.attrBase);
+		strideIntensity?.set([this.#intensity], this.attrBase);
+
+		let θ = 0;
+		let vtx = this.attrBase + 1;
+		let idx = this.idxBase;
+
+		// Intensity is a single attribute, and all values but the first must be set to zero
+		strideIntensity?.set(new Array(this.attrLength - 1).fill(0), vtx);
+
+		for (let i = 0; i < this.steps; i++) {
+			strideExtrusion.set([Math.sin(θ) * ρ + Δx, Math.cos(θ) * ρ + Δy], vtx);
+
+			// Vertices of the i-th triangle are: center, current, next
+			if (i !== this.steps - 1) {
+				typedIdxs?.set([this.attrBase, vtx, vtx + 1], idx);
+			} else {
+				typedIdxs?.set([this.attrBase, vtx, this.attrBase + 1], idx);
+			}
+
+			θ += ɛ;
+			vtx++;
+			idx += 3;
+		}
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+}
+
+/**
+ * @class AcetateHeatStroke
+ * @inherits AcetateStroke
+ * @relationship drawnOn ScalarField
+ *
+ * Draws `HeatStroke`s onto a scalar field.
+ */
+
+class AcetateHeatStroke extends Stroke.Acetate {
+	constructor(glii, opts) {
+		super(glii, opts);
+
+		// Non-geometric attributes - the ones that don't change with a full
+		// reprojection
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Field intensity
+					glslType: "float",
+					type: Float32Array,
+				},
+				// {
+				// 	// RGBA Colour
+				// 	glslType: "vec4",
+				// 	type: Uint8Array,
+				// 	normalized: true,
+				// },
+				{
+					// (Accumulated) dash array, with up to 4 elements.
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: false,
+				},
+				// TODO: antialias feather (or make it an Acetate uniform)
+			]
+		);
+	}
+
+	/**
+	 * @property PostAcetate: AcetateScalarField
+	 * Signals that this `Acetate` isn't rendered as a RGBA8 texture,
+	 * but instead uses a scalar field.
+	 */
+	static get PostAcetate() {
+		return ScalarField;
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		delete opts.attributes.aColour;
+		delete opts.varyings.vColour;
+
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aIntensity: this._attrs.getBindableAttribute(0),
+			},
+			varyings: {
+				...opts.varyings,
+				vIntensity: "float",
+			},
+			vertexShaderSource: opts.vertexShaderSource.replace(/Colour/g, "Intensity"),
+			vertexShaderMain: opts.vertexShaderMain.replace(/Colour/g, "Intensity"),
+			fragmentShaderMain: `
+				/// FIXME: This is an attempt at reversing some artefacts on
+				/// short segments with acute angles
+				// if (!gl_FrontFacing) {
+				// 	// gl_FragColor.r = - gl_FragColor.r;
+				// 	discard;
+				// }
+
+				float dashIdx = mod(vAccLength, vDashArray.w);
+				if (dashIdx <= vDashArray.x) {
+					gl_FragColor.r = vIntensity;
+				} else if (dashIdx <= vDashArray.y) {
+					discard;
+				} else if (dashIdx <= vDashArray.z) {
+					gl_FragColor.r = vIntensity;
+				} else {
+					discard;
+				}
+			`,
+
+			target: this._inAcetate.framebuffer,
+
+			blend: {
+				// See notes about blend mode in AcetateHeatStroke
+				equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.glii.FUNC_ADD,
+				srcRGB: this.glii.ONE,
+				srcAlpha: this.glii.ZERO,
+				dstRGB: this.glii.ONE,
+				dstAlpha: this.glii.ZERO,
+			},
+		};
+	}
+
+	resize(x, y) {
+		super.resize(x, y);
+		this._program._target = this._inAcetate.framebuffer;
+	}
+
+	// Same as Stroke
+	// _getPerPointStridedArrays(maxVtx, maxIdx) {
+	// 	return [
+	// 		...super._getPerPointStridedArrays(maxVtx, maxIdx),
+	//
+	// 		// Field intensity
+	// 		this._attrs.asStridedArray(0, maxVtx),
+	// 	];
+	// }
+
+	// Same as Stroke
+	// _getStridedArrays(maxVtx, _maxIdx) { }
+
+	_commitPerPointStridedArrays(baseVtx, vtxLength) {
+		super._commitPerPointStridedArrays(baseVtx, vtxLength);
+		this._attrs.commit(baseVtx, vtxLength);
+	}
+}
+
+/**
+ * @class HeatStroke
+ * @inherits Stroke
+ * @relationship drawnOn AcetateHeatStroke
+ *
+ * A mix of `Stroke` and `HeatPoint` - given a (poly)line geometry, this will
+ * increase the value of a scalar field along the centre of the line, falling
+ * off towards the edges of the line.
+ *
+ * Use a `HeatMap` or any other subclass of `ScalarField`, same as
+ * `HeatPoint`.
+ *
+ * See also `HeatChain`. For high fidelity on visible corners, use `HeatStroke`.
+ * To minimize rendering artefacts when zooming out on geometries with sharp
+ * turns, use `HeatChain`.
+ */
+class HeatStroke extends Stroke {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateHeatStroke
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateHeatStroke;
+
+	#intensity;
+
+	constructor(
+		geom,
+		{
+			/**
+			 * @option intensity: Number = 1
+			 * Intensity of the scalar field on the stroke's centerline.
+			 * The intensity will fall off towards zero on the stroke's edge, in
+			 * a linear fashion.
+			 */
+			intensity = 1,
+			...opts
+		} = {}
+	) {
+		super(geom, {
+			joins: Stroke.OUTBEVEL,
+			caps: Stroke.SQUARE,
+			...opts,
+			colour: undefined,
+			centerline: true,
+		});
+
+		this.#intensity = intensity;
+	}
+
+	_setPerPointStrides(n, pointType, vtx, vtxCount, strideIntensity) {
+		const first =
+			n === 0 || this.geometry.rings.includes(n) || this.geometry.hulls.includes(n);
+		const isBevel = this.joins === Stroke.BEVEL || this.joins === Stroke.OUTBEVEL;
+
+		let centerVtx =
+			pointType === LINELOOP || (pointType === LINEJOIN && isBevel && first)
+				? 0
+				: 1;
+
+		// centerVtx = (pointType === LINELOOP) ? 0 : 1;
+
+		for (let i = 0; i < vtxCount; i++) {
+			if (i === centerVtx) {
+				// centerpoint
+				strideIntensity.set([this.#intensity], vtx + i);
+			} else {
+				// non-centerpoint
+				strideIntensity.set([0], vtx + i);
+			}
+		}
+	}
+
+	// // As parent, but skips colour
+	// _setGlobalStrides(strideDash) {
+	// 	// Normalize dasharray into an accumulated 4-element array.
+	// 	let dashArray;
+	// 	if (!this.dashArray || this.dashArray.length === 0) {
+	// 		dashArray = Uint8Array.from([1, 1, 1, 1]);
+	// 	} else if (this.dashArray.length === 2) {
+	// 		const [d0, d1] = this.dashArray;
+	// 		dashArray = Uint8Array.from([d0, d1 + d0, d0 + d1 + d0, d1 + d0 + d1 + d0]);
+	// 	} else if (this.dashArray.length === 4) {
+	// 		const [d0, d1, d2, d3] = this.dashArray;
+	// 		dashArray = Uint8Array.from([d0, d1 + d0, d2 + d1 + d0, d3 + d2 + d1 + d0]);
+	// 	} else {
+	// 		throw new Error("Invalid length of dashArray in stroke.");
+	// 	}
+	//
+	// 	for (let i = this.attrBase, end = this.attrBase + this.attrLength; i < end; i++) {
+	// 		strideDash.set(dashArray, i);
+	// 	}
+	// }
+}
+
+/**
+ * @class AcetateMonteCarlo
+ * @inherits AcetateDot
+ *
+ * Displays `MonteCarloFill` symbols. Performs triangulation of polygons via
+ * `earcut`, and creates points inside those polygons in a random uniform
+ * manner.
+ *
+ * Uses the `POINTS` draw mode of WebGL, same as `AcetateDot`.
+ */
+
+class AcetateMonteCarlo extends Dot.Acetate {
+	constructor(
+		glii,
+		{
+			/**
+			 * @section AcetateMonteCarlo Options
+			 * @option ditSize: Number = 1
+			 * The size of the dots , in GL pixels. The maximum value depends on the
+			 * GPU and the WebGL/OpenGL stack.
+			 */
+			dotSize = 1,
+			...opts
+		} = {}
+	) {
+		super(glii, { zIndex: 1500, opts });
+
+		// this._attrs.destroy();
+		// delete this._attrs;
+		this._colours = new this.glii.SingleAttribute({
+			size: 1,
+			growFactor: 1.2,
+			usage: glii.STATIC_DRAW,
+			glslType: "vec4",
+			type: Uint8Array,
+			normalized: true,
+		});
+
+		this.#dotSize = dotSize;
+		this.on("programlinked", () => (this.dotSize = this.#dotSize));
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				aColour: this._colours,
+				aCoords: opts.attributes.aCoords,
+				// ...opts.attributes
+			},
+			uniforms: {
+				uDotSize: "float",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				gl_Position = vec4(vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+				gl_PointSize = uDotSize;
+			`,
+			fragmentShaderMain: `gl_FragColor = vColour;`,
+		};
+	}
+
+	// Pretty much copied from AcetateFill.multiAdd.
+	multiAdd(montecarlos) {
+		// Skip already added symbols
+		montecarlos = montecarlos.filter((m) => !m._inAcetate);
+		if (montecarlos.length === 0) {
+			return;
+		}
+
+		const count = montecarlos.reduce((acc, mc) => acc + mc.attrLength, 0);
+		const base = this._indices.allocateSlots(count);
+		let vtxAcc = base;
+
+		montecarlos.forEach((mc) => {
+			mc.updateRefs(this, vtxAcc, undefined);
+			this._knownSymbols[vtxAcc] = mc;
+			vtxAcc += mc.attrLength;
+		});
+
+		this._colours.multiSet(
+			base,
+			montecarlos.map((mc, i) => new Array(mc.attrLength).fill(mc.colour)).flat(2)
+		);
+
+		if (this.crs) {
+			this.sprinkle(montecarlos);
+		} else {
+			// Fake coordinates with zeroes, just to grow the attribute storage.
+			this.multiSetCoords(
+				base,
+				new Array(
+					montecarlos.map((mc) => mc.attrLength).reduce((a, b) => a + b) * 2
+				)
+			);
+		}
+
+		// Call `multiAdd` of `Acetate` grandparent class, skipping the
+		// implementation of `AcetateDot` parent class
+		//return super.super.multiAdd(montecarlos, base);
+		return Object.getPrototypeOf(
+			Object.getPrototypeOf(Object.getPrototypeOf(this))
+		).multiAdd.call(this, montecarlos);
+	}
+
+	sprinkle(montecarlos, baseVtx) {
+		const allDotCoords = montecarlos
+			.map((mc) => {
+				const d = mc.geom.dimension;
+				const stops = [...mc.geom.hulls, mc.geom.coords.length / d];
+				let start = 0;
+				const coords = mc.geom.toCRS(this._crs).coords;
+
+				const trigs = stops
+					.map((stop) => {
+						// Get the ring offsets ("hole positions") for the current hull
+						const rings = mc.geom.rings
+							.filter((r) => r > start && r < stop)
+							.map((r) => r - start);
+
+						const trigs = earcut(
+							coords.slice(start * d, stop * d),
+							rings,
+							d
+						).map((t) => t + start);
+						start = stop;
+						return trigs;
+					})
+					.flat();
+
+				/// Calculate triangle areas
+				let areas = new Array(trigs.length / 3);
+				let totalArea = 0;
+
+				for (let i = 0, l = trigs.length; i < l; i += 3) {
+					const x1 = coords[trigs[i] * d];
+					const y1 = coords[trigs[i] * d + 1];
+					const x2 = coords[trigs[i + 1] * d];
+					const y2 = coords[trigs[i + 1] * d + 1];
+					const x3 = coords[trigs[i + 2] * d];
+					const y3 = coords[trigs[i + 2] * d + 1];
+
+					// Calculate area as per https://en.wikipedia.org/wiki/Triangle#Using_coordinates
+
+					const area =
+						0.5 * Math.abs((x1 - x3) * (y2 - y1) - (x1 - x2) * (y3 - y1));
+
+					areas[i / 3] = area;
+					totalArea += area;
+				}
+
+				// Turn areas into number of dots into each area (by means of
+				// percentages relative to the polygon's total area, multiplied by
+				// number of points)
+				areas = areas.map((a) => (mc.count * a) / totalArea);
+
+				let accArea = 0;
+				const dotCoords = new Array(mc.count * 2);
+				// Loop through triangles. Each triangle has a known number of dots
+				// to sprinkle.
+				const maxJ = areas.length - 1;
+				areas.forEach((area, j) => {
+					const top =
+						j === maxJ
+							? mc.count // Avoid floating-point rounding errors
+							: area + accArea;
+
+					const j3 = j * 3;
+					const x1 = coords[trigs[j3] * d];
+					const y1 = coords[trigs[j3] * d + 1];
+					const x2 = coords[trigs[j3 + 1] * d];
+					const y2 = coords[trigs[j3 + 1] * d + 1];
+					const x3 = coords[trigs[j3 + 2] * d];
+					const y3 = coords[trigs[j3 + 2] * d + 1];
+
+					const d1x = x2 - x1;
+					const d1y = y2 - y1;
+					const d2x = x3 - x1;
+					const d2y = y3 - y1;
+
+					const i1 = Math.floor(accArea) * 2;
+					const i2 = Math.floor(top) * 2;
+
+					// console.log("Sprinkling Montecarlo triangle", trigs[j3], trigs[j3+1], trigs[j3+2], "coords", x1,y1,x2,y2,x3,y3, "count", (i2 - i1) / 2);
+
+					for (let i = i1; i < i2; i += 2) {
+						let r1 = Math.random();
+						let r2 = Math.random();
+
+						if (r1 + r2 > 1) {
+							r1 = 1 - r1;
+							r2 = 1 - r2;
+						}
+
+						const x = x1 + d1x * r1 + d2x * r2;
+						const y = y1 + d1y * r1 + d2y * r2;
+
+						dotCoords[i] = x;
+						dotCoords[i + 1] = y;
+					}
+					accArea += area;
+				});
+
+				return dotCoords;
+			})
+			.flat();
+
+		this.multiSetCoords(baseVtx, allDotCoords);
+	}
+
+	/**
+	 * @method reproject(start: Number, length: Number): Array of Number
+	 * As `AcetateVertices.reproject()`, but also recalculates the random
+	 * points positions for the affected symbols
+	 */
+	reproject(start, length) {
+		if (this._crs.name !== this._oldCrs.name) {
+			this.sprinkle(
+				this._knownSymbols.filter((symbol, attrIdx) => {
+					return (
+						attrIdx >= start && attrIdx + symbol.attrLength <= start + length
+					);
+				}),
+				start
+			);
+		} else {
+			// Manual offsetting of points, as per AcetateArrugatedRaster
+
+			const fromOffset = this._oldCrs?.offset ?? [0, 0];
+			const toOffset = this._crs?.offset ?? [0, 0];
+			const offsetX = toOffset[0] - fromOffset[0];
+			const offsetY = toOffset[1] - fromOffset[1];
+
+			let coordSlice = new Float32Array(
+				this._coords._byteData.buffer,
+				start * 8, // Each item is 2 4-byte floats, so 8 bytes per.
+				length * 2
+			);
+
+			coordSlice = coordSlice.map((xy, i) => (i % 2 ? xy - offsetY : xy - offsetX));
+
+			this.multiSetCoords(start, coordSlice);
+		}
+	}
+
+	/**
+	 * @property dotSize
+	 * Size of each dot. Each dot will be a square, each side measuring this
+	 * many GL pixels. Can be updated.
+	 */
+	#dotSize;
+	get dotSize() {
+		return this.#dotSize;
+	}
+	set dotSize(s) {
+		this._program?.setUniform("uDotSize", s);
+		this.#dotSize = s;
+		this.dirty = true;
+	}
+}
+
+/**
+ * @class MonteCarloFill
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateMonteCarlo
+ *
+ * Spawns 1-pixel dots randomly sprinkled through the area of the given polygon
+ * `Geometry`. Useful for representing area-relative densities.
+ *
+ * Otherwise, it's similar to `Fill`.
+ *
+ */
+
+class MonteCarloFill extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateMonteCarlo
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateMonteCarlo;
+
+	/**
+	 * @constructor MonteCarloFill(geom: Geometry, opts?: MonteCarloFill Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka MonteCarloFill Options
+			 * @option colour: Colour = '#3388ff33'
+			 * The colour of the fill symbol.
+			 */
+			colour = [0x33, 0x88, 0xff, 0x33],
+
+			/**
+			 * @option count: Number = 0
+			 * The number of dots to spawn
+			 */
+			count = 0,
+			...opts
+		} = {}
+	) {
+		// Length of each linestring
+		//this._lengths = linestrings.map((ls) => ls.length);
+		super(geom, opts);
+
+		// Amount of vertex attribute slots needed. One per dot.
+		this.attrLength = count;
+
+		// Amount of index slots needed (calc'd by earcut)
+		//this.idxLength = (this.attrLength - this._lengths.length) * 2;
+
+		this.#colour = this.constructor._parseColour(colour);
+
+		this.count = count;
+	}
+
+	#colour;
+	/**
+	 * @property colour: Colour
+	 * The colour for all the dots. Can be updated.
+	 */
+	get colour() {
+		return this.#colour;
+	}
+	set colour(newColour) {
+		this.#colour = parseCSSColor(newColour);
+		if (!this._inAcetate) {
+			return this;
+		}
+		this._inAcetate._colours.multiSet(
+			this.attrBase,
+			new Array(this.attrLength).fill(this.#colour).flat()
+		);
+		this._inAcetate.dirty = true;
+	}
+
+	setGeometry(geom) {
+		const geometry = factory$1(geom);
+		const ac = this._inAcetate;
+		if (ac) {
+			ac.remove(this);
+			this.geom = factory$1(geometry);
+			this.attrLength = count;
+			ac.add(this);
+		} else {
+			this.attrLength = count;
+			this.geom = factory$1(geometry);
+		}
+		return this;
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class AcetateOffScreenIndicator
+ * @inherits AcetateHeadingTriangle
+ */
+class AcetateOffScreenIndicator extends HeadingTriangle.Acetate {
+	#margin;
+
+	constructor(
+		target,
+		{
+			/**
+			 * @option margin: Array of Number = [8, 8, 8, 8]
+			 * The margin for the symbols, in CSS pixels, in
+			 * `[top, right, bottom, left]` form.
+			 */
+			margin = [8, 8, 8, 8],
+
+			...opts
+		} = {}
+	) {
+		super(target, opts);
+
+		this.#margin = margin;
+		this.bbox.expandXY(-Infinity, -Infinity);
+		this.bbox.expandXY(Infinity, Infinity);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		const clampFn = `vec4 clampPosition(vec3 pos, float heading) {
+
+				if (pos.x > uScreenEdgeMargin[3] &&	// left
+					pos.x < uScreenEdgeMargin[1] &&	// right
+					pos.y > uScreenEdgeMargin[2] &&	// down
+					pos.y < uScreenEdgeMargin[0]   	// up
+				) {
+					// Geometry is inside viewport
+					// return vec4(pos, 1.0);
+					return vec4(0.0);
+				}
+
+				if (heading < uCornerAngles[2] ||
+					heading > uCornerAngles[3]
+				) {
+					// Off to the *left*
+					return vec4(
+						uScreenEdgeMargin[3],
+						pos.y * uScreenEdgeMargin[3] / pos.x,
+						pos.z,
+						1.0
+					);
+				}
+
+				if (heading < uCornerAngles[1]) {
+					// Off to *down*
+					return vec4(
+						pos.x * uScreenEdgeMargin[2] / pos.y,
+						uScreenEdgeMargin[2],
+						pos.z,
+						1.0
+					);
+				}
+
+				if (heading < uCornerAngles[0]) {
+					// Off to the *right*
+					return vec4(
+						uScreenEdgeMargin[1],
+						pos.y * uScreenEdgeMargin[1] / pos.x,
+						pos.z,
+						1.0
+					);
+				}
+
+				if (heading < uCornerAngles[3]) {
+					// Off to the *top*
+					return vec4(
+						pos.x * uScreenEdgeMargin[0] / pos.y,
+						uScreenEdgeMargin[0],
+						pos.z,
+						1.0
+					);
+				}
+
+			}`;
+		// return vec4(
+		// 	clamp( pos.x, uScreenEdgeMargin.w, uScreenEdgeMargin.y),
+		// 	clamp( pos.y, uScreenEdgeMargin.z, uScreenEdgeMargin.x),
+		// 	pos.z,
+		// 	1.0
+		// );
+
+		return {
+			...opts,
+			vertexShaderSource: opts.vertexShaderSource + clampFn,
+			vertexShaderMain: `
+					vFillColour = aFillColour;
+					vBorderColour = aBorderColour;
+					vBorder = aBorder;
+					vEdge = aEdge;
+
+					vec3 position = vec3(aCoords, 1.0) * uTransformMatrix;
+					float heading = atan( position.y, position.x * uScreenRatio);
+					float cosHeading = cos(heading);
+					float sinHeading = sin(heading);
+
+					mat2 headingRotation = mat2(
+						cosHeading, sinHeading,
+						-sinHeading, cosHeading
+					);
+
+					gl_Position =
+						clampPosition(position, heading) +
+						vec4(headingRotation * aExtrude * uPixelSize, 0.0, 0.0);
+				`,
+			uniforms: {
+				uScreenEdgeMargin: "vec4",
+				uScreenRatio: "float",
+				uCornerAngles: "vec4",
+				...opts.uniforms,
+			},
+		};
+	}
+
+	resize(x, y) {
+		super.resize(x, y);
+
+		this._programs.setUniform("uScreenEdgeMargin", [
+			1 - this.#margin[0] / y, // top
+			1 - this.#margin[1] / x, // right
+			-1 + this.#margin[2] / y, // bottom
+			// reprojectAll() also resets the bounding box, so reapply the hack.
+			-1 + this.#margin[3] / x, // left
+		]);
+
+		this._programs.setUniform("uScreenRatio", [x / y]);
+		this._programs.setUniform("uCornerAngles", [
+			Math.atan2(y, x),
+			Math.atan2(-y, x),
+			Math.atan2(-y, -x),
+			Math.atan2(y, -x),
+		]);
+
+		return this;
+	}
+
+	reprojectAll() {
+		super.reprojectAll();
+		this.bbox.expandXY(-Infinity, -Infinity);
+		this.bbox.expandXY(Infinity, Infinity);
+	}
+}
+
+/**
+ * @class OffScreenIndicator
+ * @inherits HeadingTriangle
+ * @relationship drawnOn AcetateOffScreenIndicator
+ *
+ * A `HeadingTriangle` that displays only when its point geometry is off-screen.
+ * It appears at the edge of the viewport, heading towards the geometry.
+ *
+ * The use case is to call attention to other point symbols when they go off-screen.
+ *
+ * See also the `screenedgify` decorator for a similar concept.
+ *
+ * @example
+ *
+ * You can manually instantiate the `AcetateOffScreenIndicator` to customize
+ * the margin of the indicators.
+ *
+ * ```js
+ * new OffScreenIndicator.Acetate(map, {margin: [8,8,60,8]});
+ *
+ * new OffScreenIndicator(geometry, { colour: "red" }).addTo(map);
+ * ```
+ *
+ */
+class OffScreenIndicator extends HeadingTriangle {
+	static Acetate = AcetateOffScreenIndicator;
+
+	constructor(geom, { distance = -10, width = 20, length = 12, ...opts } = {}) {
+		super(geom, { ...opts, distance, width, length, yaw: 90 });
+	}
+}
+
+/**
+ * @class Pie
+ * @inherits ExtrudedPoint
+ * @relationship drawnOn AcetateSolidExtrusion
+ *
+ * A circular pie chart, displayed at a constant screen ratio.
+ *
+ * @example
+ * ```
+ * let pie = new Pie(geometry, {
+ * 	radius: 40,
+ * 	slices: {
+ * 		red: 10,
+ * 		green: 15,
+ * 		blue: 8,
+ * 		pink: 11,
+ * 		cyan: 12,
+ * 		black: 13,
+ * 	},
+ * }
+ * ```
+ */
+
+const TAU = Math.PI * 2;
+
+class Pie extends ExtrudedPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateSolidExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSolidExtrusion;
+
+	/**
+	 * @constructor Pie(geom: Geometry, opts?: Pie Options)
+	 */
+	constructor(geom, { radius = 20, slices, resolution = 0.4, ...opts } = {}) {
+		super(geom, opts);
+
+		/**
+		 * @section
+		 * @aka Pie Options
+		 *
+		 * @option radius: Number = 20
+		 * Radius of the pie chart, in CSS pixels
+		 *
+		 * @option slices: Object of Colour to Number
+		 * The data for the pie chart slices. Keys must be `Colour`s, values must be
+		 * `Number`s.The size of the pie chart's slices will be directly proportional
+		 * to the data value.
+		 */
+		this.#radius = radius;
+		this.#slices = slices;
+		const sliceCount = Object.keys(slices).length;
+
+		this.#valueSum = Object.values(slices).reduce((acc, curr) => acc + curr, 0);
+
+		// Preliminary steps calculation, just to estimate the amount of
+		// vertices/triangles needed.
+		const length = TAU * this.#radius;
+		const steps = Math.max(6, Math.ceil(length / 6));
+		this.#epsilonValue = this.#valueSum / steps;
+
+		// NOTE: This is an upper bound - assuming all and each slice needs three,
+		// and not two, extra vertices. That's center, first vertex of arc, and
+		// extra arc vertex due to `ceil()`ing steps calculations.
+		this.attrLength = steps + sliceCount * 3;
+		this.idxLength = (steps + sliceCount) * 3;
+	}
+	#radius;
+	#slices;
+	#valueSum;
+	#epsilonValue;
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(strideExtrusion, strideColour, strideFeather, typedIdxs) {
+		const feather = this._inAcetate.feather;
+		const ρ = this.#radius + feather / 2;
+		const f = ρ * 256; // Feather max
+		const [offsetX, offsetY] = this.offset;
+
+		let acc = 0;
+		let radiansPerUnit = TAU / this.#valueSum;
+		let vtx = this.attrBase;
+		let idx = this.idxBase;
+
+		Object.entries(this.#slices).forEach(([rawColour, amount]) => {
+			// Number of triangle divisions in this slice
+			const steps = Math.ceil(amount / this.#epsilonValue);
+
+			// Increment of value each triangle division
+			const ɛ = amount / steps;
+
+			const colour = parseCSSColor(rawColour);
+
+			// Start and end angles of the slice arc
+			let θ = acc * radiansPerUnit;
+
+			// Center vertex
+			strideExtrusion.set([offsetX, offsetY], vtx);
+			strideColour?.set(colour, vtx);
+			strideFeather?.set([0, f], vtx);
+			const centerVtx = vtx;
+			vtx++;
+
+			// First vertex of the arc
+			strideExtrusion.set(
+				[Math.sin(θ) * ρ + offsetX, Math.cos(θ) * ρ + offsetY],
+				vtx
+			);
+			strideColour?.set(colour, vtx);
+			strideFeather?.set([f, f], vtx);
+			vtx++;
+
+			for (let i = 0; i < steps; i++) {
+				// Rest of vertices of the arc
+
+				typedIdxs?.set([centerVtx, vtx - 1, vtx], idx);
+
+				acc += ɛ;
+				θ = acc * radiansPerUnit;
+
+				strideExtrusion.set(
+					[Math.sin(θ) * ρ + offsetX, Math.cos(θ) * ρ + offsetY],
+					vtx
+				);
+				strideColour?.set(colour, vtx);
+				strideFeather?.set([f, f], vtx);
+				vtx++;
+				idx += 3;
+			}
+		});
+
+		// Since this.#idxLength is a upper bound of the needed amount of
+		// triangle vertices, there might be an unused gap in the indexBuffer.
+		// This is set to NaN to avoid stale references from being used.
+		let gap = this.idxBase + this.idxLength - idx;
+		if (gap > 0) {
+			typedIdxs?.set(new Array(gap).fill(0), idx);
+			// typedIdxs?.set(new Array(gap).fill(NaN), idx);
+		}
+	}
+
+	_setStridedExtrusion(strideExtrusion) {
+		this._setGlobalStrides(strideExtrusion);
+	}
+}
+
+/**
+ * @class RadarSweep
+ * @inherits CircleFill
+ * @relationship drawnOn AcetateRotatingExtrusion
+ *
+ * Decorative animated rotating radar sweep.
+ *
+ * Behaves similar to a `CircleFill`, but the fill colour varies radially,
+ * losing opacity. The end result is the movie-like sweep effect of a old-timey
+ * CRT radar.
+ */
+
+class RadarSweep extends CircleFill {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateRotatingExtrusion
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateRotatingExtrusion;
+
+	#radius;
+	#colour;
+	#speed;
+
+	/**
+	 * @constructor RadarSweep(geom: Geometry, opts?: RadarSweep Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka RadarSweep Options
+			 * @option speed: Number = 0.5
+			 * Rotation speed, in revolutions per second.
+			 */
+			radius = 20,
+
+			colour = "#3388ffff",
+
+			speed = 0.5,
+
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#speed = speed;
+		this.#radius = radius;
+		this.#colour = parseCSSColor(colour);
+
+		this.attrLength = this.steps * 2 + 3;
+		this.idxLength = this.steps * 3;
+	}
+
+	/**
+	 * @section Acetate interface
+	 * @method _setGlobalStrides(strideExtrusion: StridedTypedArray, strideColour: StridedTypedArray, strideFeather: StridedTypedArray, typedIdxs: TypedArray): undefined
+	 * Sets the appropriate values into the strided arrays, based on the
+	 * symbol's `attrBase` and `idxBase`.
+	 *
+	 * Receives the width of the feathering as a parameter, in pixels.
+	 */
+	_setGlobalStrides(
+		strideExtrusion,
+		strideRotateExtrusion,
+		strideColour,
+		strideFeather,
+		strideSpeed,
+		typedIdxs
+	) {
+		const feather = this._inAcetate.feather;
+		// Radian increment per step
+		const ɛ = (Math.PI * 2) / this.steps;
+
+		const ρ = this.#radius + feather / 2;
+		const f = ρ * 256; // Feather max
+		const [offsetX, offsetY] = this.offset;
+		const colour = this.#colour.slice(0);
+
+		let vtx = this.attrBase;
+		let idx = this.idxBase;
+
+		// Attributes start with the center point
+		strideExtrusion.set([offsetX, offsetY], vtx);
+		strideRotateExtrusion?.set([0, 0], vtx);
+		strideColour?.set(this.#colour, vtx);
+		strideFeather?.set([0, f], vtx);
+		strideSpeed?.set([this.#speed], vtx);
+
+		let θ = 0;
+		for (let i = 0; i < this.steps; i++) {
+			// Alpha for current two vertices
+			colour[3] = this.#colour[3] * (1 - i / this.steps);
+
+			// Edge point
+			strideExtrusion.set([offsetX, offsetY], vtx);
+			strideRotateExtrusion?.set([Math.sin(θ) * ρ, Math.cos(θ) * ρ], vtx);
+			strideColour?.set(colour, vtx);
+			strideFeather?.set([f, f], vtx);
+			strideSpeed?.set([this.#speed], vtx);
+			vtx++;
+
+			// Centre point
+			strideExtrusion.set([offsetX, offsetY], vtx);
+			strideRotateExtrusion?.set([0, 0], vtx);
+			strideColour?.set(colour, vtx);
+			strideFeather?.set([0, f], vtx);
+			strideSpeed?.set([this.#speed], vtx);
+			vtx++;
+
+			typedIdxs?.set([vtx, vtx + 1, vtx + 2], idx);
+			idx += 3;
+
+			θ += ɛ;
+		}
+
+		// Final edge point, transparent
+		colour[3] = 0;
+		strideExtrusion.set([offsetX, offsetY], vtx);
+		strideRotateExtrusion?.set([0, ρ], vtx);
+		strideColour?.set(colour, vtx);
+		strideFeather?.set([f, f], vtx);
+		strideSpeed?.set([this.#speed], vtx);
+		vtx++;
+	}
+}
+
+/**
+ * @class AcetateSlopePoint
+ * @inherits AcetateHeatPoint
+ * @relationship drawnOn VectorField
+ *
+ * An `Acetate` to place `SlopePoint`s into a vector field
+ *
+ */
+
+class AcetateSlopePoint extends HeatPoint.Acetate {
+	/**
+	 * @property PostAcetate: VectorField
+	 * Signals that this `Acetate` isn't rendered as a RGBA8 texture,
+	 * but instead uses a vector field.
+	 */
+	static get PostAcetate() {
+		return VectorField;
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aIntensity: this._attrs,
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vIntensity = aIntensity;
+				vExtrude = aExtrude * uPixelSize;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix +
+					vec3(vExtrude, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vIntensity: "float",
+				vExtrude: "vec2",
+			},
+			fragmentShaderMain: ` gl_FragColor.rg = vIntensity * normalize(vExtrude); `,
+		};
+	}
+}
+
+/**
+ * @class SlopePoint
+ * @inherits HeatPoint
+ * @relationship drawnOn AcetateSlopePoint
+ *
+ * A point for a vector field - will add the intensity horizontally to the first
+ * component of the vector field and vertically to the second component.
+ */
+
+class SlopePoint extends HeatPoint {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateHeatPoint
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateSlopePoint;
+}
+
+/**
+ * @class AcetateSpeedChain
+ * @inherits AcetateChain
+ * @relationship drawnOn VectorField
+ *
+ * An `Acetate` to place `SpeedChain`s into a scalar field.
+ *
+ */
+class AcetateSpeedChain extends Chain.Acetate {
+	#blendEquation;
+
+	/**
+	 * @constructor AcetateSpeedChain(target: GliiFactory, opts: AcetateSpeedChain Options)
+	 */
+	constructor(
+		target,
+		{
+			/**
+			 * @option blendEquation: String
+			 * Defines how the symbols' vector affects the value of the
+			 * vector field. The default is `"ADD"`, which means the intensity
+			 * is added to the vector field. Other possible values are `"SUBTRACT"`,
+			 * `"MIN"` and `"MAX"` (which work independently on the X and Y components).
+			 */
+			blendEquation = "ADD",
+
+			...opts
+		} = {}
+	) {
+		super(target, {
+			zIndex: 2000,
+			...opts,
+
+			interactive: false,
+		});
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Vector field intensity
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Width, in 256ths of CSS pixels.
+					// Used for fading.
+					glslType: "float",
+					type: Uint16Array,
+					normalized: false,
+				},
+			]
+		);
+
+		this.#blendEquation = getBlendEquationConstant(this.glii, blendEquation);
+	}
+
+	/**
+	 * @property PostAcetate: VectorField
+	 * Signals that this `Acetate` isn't rendered as a RGBA8 texture,
+	 * but instead uses a vector field.
+	 */
+	static get PostAcetate() {
+		return VectorField;
+	}
+
+	// This is the definition for the *first* program, turning HeatPoint
+	// symbols into a float32 texture (AKA "scalar field")
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aIntensity: this._attrs.getBindableAttribute(0),
+			},
+			uniforms: {
+				uPixelSize: "vec2",
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vIntensity = aIntensity;
+				vLength = aLength / uScale;
+				vWidth = aWidth / 512.;
+
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix
+					+ vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: {
+				vIntensity: "vec2",
+				...opts.varyings,
+			},
+			fragmentShaderMain: `
+			gl_FragColor.rg = vIntensity;
+
+			float position = min(vLength.x, vLength.y - vLength.x);
+			float opacity = 0.5 + min(position / vWidth, 1.0) / 2.;
+
+			gl_FragColor.rg *= opacity;
+			`,
+			target: this._inAcetate.framebuffer,
+			blend: {
+				equationRGB: this.#blendEquation,
+				// equationRGB: this.glii.FUNC_ADD,
+				equationAlpha: this.#blendEquation,
+
+				srcRGB: this.glii.ONE,
+				srcAlpha: this.glii.ZERO,
+				dstRGB: this.glii.ONE,
+				dstAlpha: this.glii.ZERO,
+			},
+		};
+	}
+
+	resize(w, h) {
+		AcetateVertices.prototype.resize.call(this, w, h); // skip parent class' setting uPixelSize
+
+		// const dpr2 = (devicePixelRatio ?? 1) * 2;
+		const cellSize = this._inAcetate.cellSize;
+		this._programs.setUniform("uPixelSize", [2 / w / cellSize, 2 / h / cellSize]);
+	}
+}
+
+/**
+ * @class SpeedChain
+ * @inherits Chain
+ * @relationship drawnOn AcetetateSpeedChain
+ *
+ * A mix of `Chain` and `SlopePoint` - given a (poly)line geometry, this will
+ * increase the value of a vector field along the centre of the line, falling
+ * off towards the edges of the line.
+ *
+ * The increase of the vector field is in the direction of each segment of the
+ * chain. The intensity of the `SpeedChain` defines the *length* of the vector
+ * which is summed to the vector field.
+ */
+class HeatChain extends Chain {
+	static Acetate = AcetateSpeedChain;
+
+	#intensity;
+	#edgeIntensity;
+
+	/**
+	 * @constructor HeatChain(geom: Geometry, opts?: HeatChain Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka SpeedChain Options
+			 * @option intensity: Number = 10
+			 * Length of the vector which is added to the vector field.
+			 * The vector will fall off towards zero on the chain's edge, in
+			 * a linear fashion. If `edgeIntensity` is set, then the value
+			 * falls off to that instead.
+			 * @alternative
+			 * @option intensity: Array of Number
+			 * Intensity of the scalar field on the centerline of each segment
+			 * of the chain. There must be enough elements.
+			 */
+			intensity = 10,
+
+			/**
+			 * @section
+			 * @aka SpeedChain Options
+			 * @option intensity: Number = 0
+			 * As `intensity`, but applies to the edge of the chain instead of
+			 * its centerline.
+			 * @alternative
+			 * @option intensity: Array of Number
+			 * Intensity of the scalar field on the edge of each segment
+			 * of the chain. There must be enough elements.
+			 */
+			edgeIntensity = 0,
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+		this.#intensity = intensity;
+		this.#edgeIntensity = edgeIntensity;
+	}
+
+	_setPerSegmentStrides(n, vtx, _vtxCount, geom, strideIntensity) {
+		const segmentIntensity = Array.isArray(this.#intensity)
+			? this.#intensity[n]
+			: this.#intensity;
+		const segmentEdgeIntensity = Array.isArray(this.#intensity)
+			? this.#edgeIntensity[n]
+			: this.#edgeIntensity;
+
+		const coordAx = geom.coords[n * geom.dimension];
+		const coordAy = geom.coords[n * geom.dimension + 1];
+		const coordBx = geom.coords[(n + 1) * geom.dimension];
+		const coordBy = geom.coords[(n + 1) * geom.dimension + 1];
+
+		const Δx = coordBx - coordAx;
+		const Δy = coordBy - coordAy;
+		const ϕ = Math.atan2(Δy, Δx);
+
+		const cosϕ = Math.cos(ϕ);
+		const sinϕ = Math.sin(ϕ);
+
+		const centreCosϕ = segmentIntensity * cosϕ;
+		const centreSinϕ = segmentIntensity * sinϕ;
+
+		const edgeCosϕ = segmentEdgeIntensity * cosϕ;
+		const edgeSinϕ = segmentEdgeIntensity * sinϕ;
+
+		strideIntensity.set([edgeCosϕ, edgeSinϕ], vtx);
+		strideIntensity.set([centreCosϕ, centreSinϕ], vtx + 1);
+		strideIntensity.set([edgeCosϕ, edgeSinϕ], vtx + 2);
+		strideIntensity.set([0, 0], vtx + 3);
+		strideIntensity.set([0, 0], vtx + 4);
+		strideIntensity.set([edgeCosϕ, edgeSinϕ], vtx + 5);
+		strideIntensity.set([centreCosϕ, centreSinϕ], vtx + 6);
+		strideIntensity.set([edgeCosϕ, edgeSinϕ], vtx + 7);
+		strideIntensity.set([0, 0], vtx + 8);
+		strideIntensity.set([0, 0], vtx + 9);
+	}
+}
+
+const SQRT3 = Math.sqrt(3);
+
+/**
+ * @class AcetateStrokeRoad
+ * @inherits AcetateStroke
+ *
+ * An `Acetate` that draws stroke roads (strokes with two widths and an inner
+ * and outer colour).
+ */
+class AcetateStrokeRoad extends Stroke.Acetate {
+	constructor(target, opts = {}) {
+		super(target, opts);
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// RGBA Colour, inside
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// (Accumulated) dash array, with up to 4 elements.
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: false,
+				},
+				{
+					// RGBA Colour, outside casing
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Z-index for this stroke (within the acetate).
+					// Values should be -32000 to +32000, attribute will get
+					// normalized (so it can be fed directly into gl_Position.z)
+					glslType: "float",
+					type: Int16Array,
+					normalized: true,
+				},
+				{
+					// Relative distance to centerline and casing threshold.
+					// First element is relative distance to centerline:
+					// value is 0 at centerline, 1 at edge (255 unnormalized at
+					// edge).
+					// Second element is casing threshold: percentage of the
+					// half width when the outside casing starts. When the
+					// relative distance to centerline is greater than this
+					// value, outside casing colour has to be applied. Note
+					// attribute normalization: percentage must be relative to 255.
+					glslType: "vec2",
+					type: Uint8Array,
+					normalized: true,
+				},
+				// TODO: antialias feather (or make it an Acetate uniform)
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+
+		// Note that the value of the depth buffer (gl_Position.z) is negative,
+		// since the depth clear value is 1 and the operation is LESS.
+		// The same result could be achieved with a positive value of the zIndex,
+		// a GREATER operation and a clear value of -1; but this would require
+		// re-setting the `this._clear` operation to reset the clear value.
+
+		return {
+			...opts,
+			depth: this.glii.LESS,
+			attributes: {
+				...opts.attributes,
+				aOutColour: this._attrs.getBindableAttribute(2),
+				aZIndex: this._attrs.getBindableAttribute(3),
+				aCaseThreshold: this._attrs.getBindableAttribute(4),
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				vOutColour = aOutColour;
+				vDashArray = aDashArray;
+				vAccLength = aAccLength / uScale;
+				vCaseThreshold = aCaseThreshold;
+
+				vec2 extrude = aExtrude;
+				if (aInnerAdjustment.x != 0.) {
+					float factor = clamp(
+						length(aExtrude) * uScale / aInnerAdjustment.x,
+						1.,
+						aInnerAdjustment.y
+					);
+					extrude /= factor;
+				}
+
+				gl_Position = vec4(
+					(vec3(aCoords, 1.0) * uTransformMatrix
+					+ vec3(extrude * uPixelSize, 0.0)).xy
+					, -aZIndex * 256.
+					, 1.0);
+			`,
+			varyings: {
+				...opts.varyings,
+				vCaseThreshold: "vec2",
+				vOutColour: "vec4",
+			},
+			fragmentShaderMain: `
+				float dashIdx = mod(vAccLength, vDashArray.w);
+
+				/// TODO: Apply some feathering between the two colours
+				vec4 colour = vCaseThreshold.x < vCaseThreshold.y ?
+					vColour : vOutColour;
+
+				if (dashIdx <= vDashArray.x) {
+					gl_FragColor = colour;
+				} else if (dashIdx <= vDashArray.y) {
+					discard;
+				} else if (dashIdx <= vDashArray.z) {
+					gl_FragColor = colour;
+				} else {
+					discard;
+				}
+
+				// gl_FragColor.rgb = (gl_FragCoord.zzz);
+
+				if (!gl_FrontFacing) {gl_FragColor = vec4(1., 0., 0., .5);}
+				// if (!gl_FrontFacing) { discard; }
+			`,
+		};
+	}
+
+	_getPerPointStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Z-index (higher at centerpoints)
+			this._attrs.asStridedArray(3, maxVtx),
+
+			// Casing threshold
+			this._attrs.asStridedArray(4),
+
+			...super._getPerPointStridedArrays(maxVtx, maxIdx),
+		];
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Casing colour
+			this._attrs.asStridedArray(2, maxVtx),
+
+			...super._getStridedArrays(maxVtx, maxIdx),
+		];
+	}
+
+	_commitPerPointStridedArrays(baseVtx, vtxLength) {
+		super._commitPerPointStridedArrays(baseVtx, vtxLength);
+		this._attrs.commit(baseVtx, vtxLength);
+	}
+}
+
+/**
+ * @class StrokeRoad
+ * @inherits Stroke
+ * @relationship dependsOn AcetateStrokeRoad
+ *
+ * A symbol for drawing roads - works as two `Stroke`s in one, with two
+ * different widths, two different colours, and an explicit Z-index for
+ * drawing tunnels/bridges under/over other roads.
+ */
+class StrokeRoad extends Stroke {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateStrokeRoad
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateStrokeRoad;
+
+	#outColour;
+	#outWidth;
+
+	#zIndex;
+	#capZIndex;
+
+	/**
+	 * @constructor StrokeRoad(geom: Geometry, opts?: StrokeRoad Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @aka StrokeRoad Options
+			 * @option outColour: Colour = 'black'
+			 * The colour of the outer casing of the road stroke
+			 */
+			outColour = [0, 0, 0, 255],
+			/**
+			 * @option width: Number = 2
+			 * The entire width of the stroke, in CSS pixels
+			 * @option outWidth: Number = 1
+			 * The width of the outer casing of the road stroke, in CSS pixels.
+			 *
+			 * Note that the inner width of the stroke is `width` minus `outWidth`.
+			 */
+			outWidth = 1,
+			/**
+			 * @option zIndex: Number = 0
+			 * The z-index of this symbol (relative to others in this acetate).
+			 * It will be encoded in a `Int16Array`, so the value must be an
+			 * integer between -32000 and +32000
+			 */
+			zIndex = 0,
+
+			/**
+			 * @option capZIndex: Number
+			 * As `zIndex`, but for line caps. When not specified, the line caps
+			 * will use the same z-index as the main body of the stroke.
+			 *
+			 * Has no effect when using `BUTT` line caps.
+			 */
+			capZIndex,
+
+			...opts
+		} = {}
+	) {
+		/// TODO: consider whether to tweak the widths at this stage, e.g.
+		/// sum `width` plus `outWidth` and pass it as simply `width`. This
+		/// would make `width` the inner width, i.e. the area which has
+		/// `colour` - perhaps this would make the semantics of
+		/// colour/outColour/width/outWidth a bit more consistent.
+		super(geom, { ...opts, centerline: true });
+
+		this.#outColour = this.constructor._parseColour(outColour);
+		this.#outWidth = outWidth;
+		this.#zIndex = zIndex;
+		this.#capZIndex = capZIndex ?? zIndex;
+	}
+
+	_setGlobalStrides(strideOutColour, ...strides) {
+		super._setGlobalStrides(...strides);
+
+		for (let i = this.attrBase, end = this.attrBase + this.attrLength; i < end; i++) {
+			strideOutColour.set(this.#outColour, i);
+		}
+	}
+
+	_setPerPointStrides(
+		n,
+		pointType,
+		vtx,
+		vtxCount,
+		strideZIndex,
+		strideCaseThreshold,
+		...strides
+	) {
+		super._setPerPointStrides(n, pointType, vtx, vtxCount, ...strides);
+
+		const caseThreshold = (255 * this.width) / (this.width + this.#outWidth);
+
+		if (pointType === LINECAP) {
+			// The three vertices that still form part of the main body use
+			// the normal z-index
+			strideZIndex.set([this.#zIndex], vtx + 0);
+			strideZIndex.set([this.#zIndex + 1], vtx + 1);
+			strideZIndex.set([this.#zIndex], vtx + 2);
+
+			strideCaseThreshold.set([255, caseThreshold], vtx + 0);
+			strideCaseThreshold.set([0, caseThreshold], vtx + 1);
+			strideCaseThreshold.set([255, caseThreshold], vtx + 2);
+
+			// Any vertices that only belong to the line cap use the cap z-index
+			for (let i = 3; i < vtxCount; i++) {
+				strideZIndex.set([this.#capZIndex], vtx + i);
+				strideCaseThreshold.set([255, caseThreshold], vtx + i);
+			}
+
+			if (this.caps === this.constructor.HEX) {
+				strideCaseThreshold.set([1, caseThreshold], vtx + 4);
+				strideZIndex.set([this.#capZIndex + 1], vtx + 4);
+			}
+		} else {
+			// join, loop
+
+			for (let i = 0; i < vtxCount; i++) {
+				if (
+					(i === 0 && pointType === LINELOOP) ||
+					(i === 1 && pointType !== LINELOOP)
+				) {
+					// centerpoint
+					strideZIndex.set([this.#zIndex + 1], vtx + i);
+					strideCaseThreshold.set([0, caseThreshold], vtx + i);
+				} else {
+					// non-centerpoint
+					strideZIndex.set([this.#zIndex], vtx + i);
+					strideCaseThreshold.set([255, caseThreshold], vtx + i);
+				}
+			}
+		}
+	}
+
+	// As parent, but adds extra vertices as to ramp down the z-index more
+	// aggresively
+	_fillLineEndHex(heading, data, geom, i, first) {
+		// Fills *four* vertices with a half-hexagon cap.
+
+		const hexHeight = data.width * 0.5 * SQRT3;
+
+		const extrude = heading.perp()._mult(data.width);
+		const halfExtrude = extrude.mult(0.5);
+		const widthHeading = heading.mult(first ? -hexHeight : hexHeight);
+		const leftExtrude = widthHeading.add(halfExtrude);
+		const rightExtrude = widthHeading._sub(halfExtrude);
+
+		// The rest of the method is identical to _fillLineEndSquare
+
+		this._setPerPointStrides(i, LINECAP, data.vtx, 8, geom, ...data.perPointStrides);
+
+		// prettier-ignore
+		data.strideExtrude.set( [
+			extrude.x, extrude.y, data.accDistance, 0, 0,
+			0, 0, data.accDistance, 0,0,
+			-extrude.x, -extrude.y, data.accDistance, 0, 0,
+
+			extrude.x, extrude.y, data.accDistance, 0, 0,
+			0, 0, data.accDistance, 0,0,
+			-extrude.x, -extrude.y, data.accDistance, 0, 0,
+
+			leftExtrude.x, leftExtrude.y, data.accDistance, 0, 0,
+			rightExtrude.x, rightExtrude.y, data.accDistance, 0, 0,
+		], data.vtx);
+
+		if (first) {
+			// prettier-ignore
+			data.typedIdxs.set([
+				data.vtx + 3, data.vtx + 6, data.vtx + 4,
+				data.vtx + 4, data.vtx + 6, data.vtx + 7,
+				data.vtx + 4, data.vtx + 7, data.vtx + 5,
+			], data.idx);
+		} else {
+			// prettier-ignore
+			data.typedIdxs.set([
+				data.vtx + 3, data.vtx + 4, data.vtx + 6,
+				data.vtx + 4, data.vtx + 7, data.vtx + 6,
+				data.vtx + 4, data.vtx + 5, data.vtx + 7,
+			], data.idx);
+		}
+		data.idx += 9;
+
+		data.lastLeftVtx = data.vtx + 0;
+		data.lastCenterVtx = data.vtx + 1;
+		data.lastRightVtx = data.vtx + 2;
+		data.vtx += 8;
+	}
+
+	get verticesPerEnd() {
+		return this.caps === Stroke.HEX ? 7 : super.verticesPerEnd;
+	}
+}
+
+/**
+ * @class AcetateTintedSprite
+ * @inherits AcetateSprite
+ *
+ * As `AcetateSprite`, but aditionally the shader applies a tint to the image.
+ *
+ * Meant to be used with `TintedSprite` symbols.
+ *
+ */
+class AcetateTintedSprite extends Sprite.Acetate {
+	constructor(target, opts) {
+		super(target, { zIndex: 4000, ...opts });
+
+		// this._indices = new glii.WireframeTriangleIndices({ type: glii.UNSIGNED_INT });
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				usage: this.glii.STATIC_DRAW,
+				size: 1,
+				growFactor: 1.2,
+			},
+			[
+				{
+					// Texture UV coords (relative to acetate image atlas)
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+				{
+					// Tint colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+			]
+		);
+	}
+
+	_getStridedArrays(maxVtx, maxIdx) {
+		return [
+			// Tint
+			this._attrs.asStridedArray(1, maxVtx),
+			// UV
+			this._attrs.asStridedArray(0),
+			// Extrusion
+			this._extrusions.asStridedArray(maxVtx),
+			// Index buffer
+			this._indices.asTypedArray(maxIdx),
+			// Texture size (width and height), in texels
+			this._texSize,
+		];
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aUV: this._attrs.getBindableAttribute(0),
+				aTint: this._attrs.getBindableAttribute(1),
+			},
+			vertexShaderMain: `
+				vUV = aUV;
+				vTint = aTint;
+				gl_Position = vec4(
+					vec3(aCoords, 1.0) * uTransformMatrix +
+					vec3(aExtrude * uPixelSize, 0.0)
+					, 1.0);
+			`,
+			varyings: { vUV: "vec2", vTint: "vec4" },
+			fragmentShaderMain: `gl_FragColor = texture2D(uAtlas,vUV) * vTint;`,
+		};
+	}
+}
+
+/**
+ * @class TintedSprite
+ * @inherits Sprite
+ * @relationship drawnOn AcetateTintedSprite
+ *
+ * As `Sprite`, but with a colour tint applied.
+ *
+ * @example
+ * ```js
+ * new Sprite([0, 0], {
+ * 	image: "img/whitemarker.png",
+ * 	spriteAnchor: [13, 41]
+ * 	tint: "red",
+ * }).addTo(map);
+ * ```
+ */
+
+// export default class Sprite extends GleoSymbol {
+class TintedSprite extends Sprite {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateTintedSprite
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateTintedSprite;
+	#tintColour;
+
+	/**
+	 * @constructor TintedSprite(geom: Geometry, opts?: TintedSprite Options)
+	 * @alternative
+	 * @constructor TintedSprite(geom: Array of Number, opts?: TintedSprite Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka TintedSprite Options
+			 * @option tint: Colour = [255,255,255,255]
+			 * The tint colour for the sprite. The result colour is
+			 * the [colour multiplication](https://en.wikipedia.org/wiki/Blend_modes#Multiply)
+			 * of the sprite's pixels and the tint.
+			 */
+
+			tint = [255, 255, 255, 255],
+			...opts
+		} = {}
+	) {
+		super(geom, opts);
+
+		this.#tintColour = parseCSSColor(tint);
+	}
+
+	_setGlobalStrides(strideTint, ...strides) {
+		strideTint.set(this.#tintColour, this.attrBase + 0);
+		strideTint.set(this.#tintColour, this.attrBase + 1);
+		strideTint.set(this.#tintColour, this.attrBase + 2);
+		strideTint.set(this.#tintColour, this.attrBase + 3);
+		return super._setGlobalStrides(...strides);
+	}
+
+	/**
+	 * @property tint: Colour
+	 * Gets or sets the tint colour for this sprite
+	 */
+	get tint() {
+		return this.#tintColour;
+	}
+	set tint(t) {
+		this.#tintColour = parseCSSColor(t);
+
+		if (!this._inAcetate || this.attrBase === undefined) {
+			return this;
+		}
+
+		let strideTint = this._inAcetate._attrs.asStridedArray(1);
+
+		strideTint.set(this.#tintColour, this.attrBase + 0);
+		strideTint.set(this.#tintColour, this.attrBase + 1);
+		strideTint.set(this.#tintColour, this.attrBase + 2);
+		strideTint.set(this.#tintColour, this.attrBase + 3);
+		this._inAcetate._attrs.commit(this.attrBase, this.attrLength);
+		this._inAcetate.dirty = true;
+	}
+}
+
+class AcetateVertexDot extends AcetateVertices {
+	constructor(target, opts) {
+		super(target, opts);
+		const glii = this.glii;
+
+		this._indices = new glii.SparseIndices({
+			type: glii.UNSIGNED_INT,
+			drawMode: glii.POINTS,
+		});
+		this._attrs = new glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: glii.STATIC_DRAW,
+			},
+			[
+				{
+					// Colour
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Point size
+					glslType: "float",
+					type: Uint16Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				aColour: this._attrs?.getBindableAttribute(0),
+				aSize: this._attrs?.getBindableAttribute(1),
+				...opts.attributes,
+			},
+			uniforms: {
+				...opts.uniforms,
+			},
+			vertexShaderMain: `
+				vColour = aColour;
+				gl_Position = vec4(vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+				gl_PointSize = aSize;
+			`,
+			varyings: { vColour: "vec4" },
+			fragmentShaderSource: `void main() { gl_FragColor = vColour; }`,
+		};
+	}
+	_getStridedArrays(maxVtx) {
+		return [
+			// Colour
+			this._attrs.asStridedArray(0, maxVtx),
+			// Dot size
+			this._attrs.asStridedArray(1),
+			// Index buffer
+			this._indices.asTypedArray(maxVtx),
+		];
+	}
+
+	_getGeometryStridedArrays(maxVtx) {
+		return [
+			// CRS coords
+			this._coords.asStridedArray(maxVtx),
+		];
+	}
+
+	_commitStridedArrays(baseVtx, vtxCount) {
+		this._attrs.commit(baseVtx, vtxCount);
+		this._indices.commit(baseVtx, vtxCount);
+	}
+
+	_commitGeometryStridedArrays(baseVtx, vtxLength /*, baseIdx, totalIndices*/) {
+		this._coords.commit(baseVtx, vtxLength);
+	}
+
+	multiAdd(dots) {
+		// Skip already added symbols
+		dots = dots.filter((d) => !d._inAcetate);
+		if (dots.length === 0) {
+			return;
+		}
+
+		/// number of attributes needed can be different than one per dot
+		/// (e.g. trajectorified dots), so this needs to sum the attrLengths
+		/// of all dots, not just use the dot count.
+		const totalAttrs = dots.reduce((acc, dot) => acc + dot.attrLength, 0);
+
+		let base = this._attribAllocator.allocateBlock(totalAttrs);
+		this._indices.allocateSlots(totalAttrs);
+		const maxVtx = base + totalAttrs;
+
+		let stridedArrays = this._getStridedArrays(maxVtx);
+
+		let i = 0;
+		dots.forEach((dot) => {
+			dot.updateRefs(this, base + i, base + i);
+			this._knownSymbols[base + i] = dot;
+			dot._setGlobalStrides(...stridedArrays);
+			i += dot.attrLength;
+		});
+		this._commitStridedArrays(base, totalAttrs);
+		this._indices.commit(base, totalAttrs);
+
+		if (this._crs) {
+			this.reproject(base, totalAttrs);
+		}
+
+		return super.multiAdd(dots);
+	}
+}
+
+/**
+ * @class VertexDot
+ * @inherits GleoSymbol
+ * @relationship drawnOn AcetateVertexDot
+ *
+ * An alternative implementation of the `Dot` symbol.
+ *
+ * This is done exclusively for compatibility with the `trajectorify` decorator.
+ *
+ * The technical difference is that `Dot` assumes always one vertex per `Dot`,
+ * whereas `VertexDot` *behaves* as multiple-vertices-per-symbol. That allows
+ * `VertexDot` to be `trajectorify`d.
+ */
+
+class VertexDot extends GleoSymbol {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateVertexDot
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateVertexDot;
+	#colour;
+
+	/**
+	 * @constructor VertexDot(geom: Geometry, opts?: VertexDot Options)
+	 */
+	constructor(geom, { colour = [0, 0, 0, 255], size = 1, ...opts } = {}) {
+		super(geom, opts);
+
+		/**
+		 * @section
+		 * @aka VertexDot Options
+		 * @option colour: Colour = [0,0,0,255]
+		 * The colour of the dot.
+		 */
+		this.#colour = this.constructor._parseColour(colour);
+
+		/**
+		 * @option size: Number = 1
+		 * The size of the dot, in GL pixels. Values larger than 1 will draw a
+		 * square with this many pixels per side.
+		 *
+		 * The maximum value depends on the GPU and WebGL/OpenGL stack.
+		 */
+		this.size = size;
+
+		this.attrLength = 1;
+		this.idxLength = 1;
+	}
+
+	_setGlobalStrides(colour, dotSize, indices) {
+		colour.set(this.#colour, this.attrBase);
+		dotSize.set([this.size], this.attrBase);
+		indices?.set([this.attrBase], this.attrBase);
+		return this;
+	}
+
+	_setGeometryStrides(geom, strideCoords) {
+		strideCoords.set(geom.coords.flat(), this.attrBase);
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+/**
+ * @class AcetateWavyFill
+ * @inherits AcetateVertices
+ *
+ * An animated `Acetate` for `WavyFill`s.
+ */
+class AcetateWavyFill extends Fill.Acetate {
+	/**
+	 * @constructor AcetateWavyFill(target: GliiFactory)
+	 */
+	constructor(target, opts = {}) {
+		super(target, opts);
+
+		// Could be done as a SingleAttribute, but is a InterleavedAttributes for
+		// compatibility with the `intensify` decorator.
+
+		this._attrs = new this.glii.InterleavedAttributes(
+			{
+				size: 1,
+				growFactor: 1.2,
+				usage: this.glii.STATIC_DRAW,
+			},
+			[
+				{
+					// colour one
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// colour two
+					glslType: "vec4",
+					type: Uint8Array,
+					normalized: true,
+				},
+				{
+					// Height of both bands + wave height proportion
+					glslType: "vec2",
+					type: Float32Array,
+					normalized: false,
+				},
+			]
+		);
+	}
+
+	glProgramDefinition() {
+		const opts = super.glProgramDefinition();
+		return {
+			...opts,
+			attributes: {
+				...opts.attributes,
+				aColour1: this._attrs.getBindableAttribute(0),
+				aColour2: this._attrs.getBindableAttribute(1),
+				aWaveHeight: this._attrs.getBindableAttribute(2),
+			},
+			vertexShaderMain: `
+				vColour1 = aColour1;
+				vColour2 = aColour2;
+				vWaveHeight = aWaveHeight;
+				gl_Position = vec4( vec3(aCoords, 1.0) * uTransformMatrix, 1.0);
+			`,
+			varyings: {
+				vColour1: "vec4",
+				vColour2: "vec4",
+				vWaveHeight: "vec2",
+			},
+			fragmentShaderMain: `
+
+			float height = gl_FragCoord.y / vWaveHeight.x;
+			float sinTime1 = sin(gl_FragCoord.x / 10. + uTime) * vWaveHeight.y;
+			float sinTime2 = sin(gl_FragCoord.x / -10. + uTime) * vWaveHeight.y;
+			float alpha = fract( height + sinTime1 );
+			float beta = fract(height + sinTime2 + .5);
+
+			if ( alpha >  beta) {
+				gl_FragColor = vColour1;
+			} else {
+				gl_FragColor = vColour2;
+			}
+			`,
+			uniforms: {
+				// uNow: "float",
+				uTime: "float",
+				...opts.uniforms,
+			},
+		};
+	}
+
+	_getStridedArrays(maxVtx, _maxIdx) {
+		return [
+			// Indices
+			//...super._getStridedArrays(maxVtx, maxIdx),
+
+			// Colour 1
+			this._attrs.asStridedArray(0, maxVtx),
+
+			// Colour 2
+			this._attrs.asStridedArray(1, maxVtx),
+
+			// Band/Wave heights
+			this._attrs.asStridedArray(2, maxVtx),
+		];
+	}
+
+	redraw() {
+		// this._programs.setUniform("uNow", performance.now());
+		this._programs.setUniform("uTime", performance.now() / 1000);
+		return super.redraw.apply(this, arguments);
+	}
+
+	// Animated acetates are always dirty
+	get dirty() {
+		return super.dirty || this._knownSymbols.length > 0;
+	}
+	set dirty(d) {
+		return (super.dirty = d);
+	}
+}
+
+/**
+ * @class WavyFill
+ * @inherits Fill
+ * @relationship drawnOn AcetateWavyFill
+ *
+ * Animated polygon fill with a wavy animation, meant for water features.
+ */
+class WavyFill extends Fill {
+	/// @section Static properties
+	/// @property Acetate: Prototype of AcetateWavyFill
+	// The `Acetate` class that draws this symbol.
+	static Acetate = AcetateWavyFill;
+
+	#colour1;
+	#colour2;
+	#bandsHeight;
+	#waveHeight;
+
+	/**
+	 * @section
+	 * @constructor WavyFill(geom: Geometry, opts?: WavyFill Options)
+	 */
+	constructor(
+		geom,
+		{
+			/**
+			 * @section
+			 * @aka WavyFill Options
+			 * @option colour1: Colour = '#3388ffc0'
+			 * The first colour of the fill symbol.
+			 * @option colour2: Colour = '#2266ffc0'
+			 * The second colour of the fill symbol.
+			 */
+			colour1 = [0x33, 0x88, 0xff, 0xc0],
+
+			colour2 = [0x22, 0x66, 0xff, 0xc0],
+
+			/**
+			 * @option bandsHeight: Number = 40
+			 * The height (in CSS pixels) of the two colour bands
+			 * @option waveHeight: Number = 0.25
+			 * The height of the tip of a wave (relative to its bottom point),
+			 * as a percentage of `bandsHeight`.
+			 */
+			bandsHeight = 40,
+			waveHeight = 0.25,
+
+			...opts
+		} = {}
+	) {
+		// Length of each linestring
+		//this._lengths = linestrings.map((ls) => ls.length);
+		super(geom, opts);
+
+		// Amount of vertex attribute slots needed
+		// Attribute slots is *half* of the lenght of the [x1,y2, ...xn,xy] flat array
+		this.attrLength = this.geom.coords.length / this.geom.dimension;
+
+		// Amount of index slots needed (calc'd by earcut)
+		//this.idxLength = (this.attrLength - this._lengths.length) * 2;
+
+		this.#colour1 = this.constructor._parseColour(colour1);
+		this.#colour2 = this.constructor._parseColour(colour2);
+		this.#bandsHeight = bandsHeight;
+		this.#waveHeight = waveHeight;
+		if (this.#colour1 === null || this.#colour2 === null) {
+			throw new Error("Invalid colours specified for WavyFill.");
+		}
+	}
+
+	_setGlobalStrides(strideColour1, strideColour2, strideWaveHeight) {
+		const attrMax = this.attrBase + this.attrLength;
+		for (let i = this.attrBase; i < attrMax; i++) {
+			strideColour1.set(this.#colour1, i);
+			strideColour2.set(this.#colour2, i);
+			strideWaveHeight.set([this.#bandsHeight, this.#waveHeight / 2], i);
+		}
+		return this;
+	}
+
+	// Can be overriden by subclasses or the `intensify` decorator
+	static _parseColour = parseCSSColor;
+}
+
+export { AbstractAttributeSet, AbstractPin, AbstractRaster, AbstractSymbolGroup, AbstractTileLoader, Acetate, AcetateExtrudedPoint, AcetateFuelPoint, AcetateHeadingTriangle, AcetateInteractive, AcetateRotatingExtrusion, AcetateSolidBorder, AcetateSolidExtrusion, AcetateStitchedTiles, AcetateStroke, AcetateVertices, Allocator, ArrowHeadField, ArrugatedRaster, Arrugator, Attribution, Balloon, BaseCRS, BlurField, Button, ButtonGroup, ButtonToggle, Callout, CartesianMap, Chain, Circle, CircleFill, CircleGauge, CircleStroke, Clusterer, ConformalOGCAPIMaps, ConformalRaster, ConformalWMS, Control, DelaunayMesh, Dot, EditBar, Evented, ExpandBox, ExtrudedPoint, Fill, FrameBuffer, FuelPoint, GPX, GenericVectorTileLoader, GeoJSON, GeoTIFF, GeoTIFFLoader, Geometry, GleoMap, GleoMouseEvent, GleoPointerEvent, GleoSymbol, GliiFactory, GreyScaleField$1 as GreyScaleField, HTMLImages, HTMLPin, Hair, Halo, HeadingTriangle, HeatChain$1 as HeatChain, HeatMap, HeatMirage, HeatPoint, HeatStroke, HexBin, HueVectorField, IndexBuffer, InertialEasing, InterleavedAttributes, JSONFG, KML, LatLng, LineArrugator, LngLat, LoDAllocator, LoDIndices, Loader, MercatorMap, MercatorTiles, Mesh, MonteCarloFill, MovingFeaturesJSON, MultiProgram, MultiSymbol, OffScreenIndicator, OffsetCRS, ParticleSimulator, ParticleTrailSimulator, Pbf, Pie, Platina, Point, PointIndices, ProtoMapsLoader, ProtobufVectorTileLoader, QuadBin, QuadMarginBin, RBush, RadarSweep, RasterTileLoader, RawGeometry, GreyScaleField as RedGreenField, RenderBuffer, ScalarFieldAnimated, ScaleBar, ScaledHeatMap, ScaledHexBin, SequentialIndices, SequentialSparseIndices, ShelfPack, SingleAttribute, SlopePoint, SparseIndices, HeatChain as SpeedChain, Spider, Sprite, Stroke, StrokeRoad, SymbolGroup, TextLabel, Texture, Tile, TileEvent, TilePyramid, TintedSprite, TinyQueue$1 as TinyQueue, TriangleIndices, TwinkleField, VectorStylesheetLoader, VectorTile, VectorTileFeature, VectorTileLayer, VerboseAllocator, VertexDot, WavyFill, WebGL1Clear, WebGL1Program, WireframeTriangleIndices, ZoomButton, ZoomIn, ZoomInOut, ZoomOut, TinyQueue as tinyqueue };
